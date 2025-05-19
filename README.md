@@ -2,6 +2,8 @@
 
 A soothing iOS app designed to help you find calm and peace in moments of stress or anxiety. CalmMeNow provides gentle audio prompts and calming sounds to guide you through moments of tension.
 
+Simply tap the "Calm Me Now" button to instantly immerse yourself in a peaceful soundscape, helping you find your center and breathe through any moment of stress.
+
 ## Features
 
 - 🎵 Soothing sound effects to help you relax
