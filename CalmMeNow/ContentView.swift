@@ -30,6 +30,14 @@ struct ContentView: View {
 
       VStack {
         Spacer()
+
+        // Logo
+        Image("CalmMeNow Logo Homepage")
+          .resizable()
+          .scaledToFit()
+          .frame(height: 120)
+          .padding(.bottom, 40)
+
         Text("Feeling overwhelmed?")
           .font(.title2)
           .padding(.bottom, 20)
