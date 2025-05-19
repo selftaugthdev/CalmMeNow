@@ -29,9 +29,22 @@
 		E4DB97C62DDBAD3E0084C498 /* CalmMeNowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalmMeNowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E4DB97E22DDBAE870084C498 /* Exceptions for "CalmMeNow" folder in "CalmMeNow" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/CalmPrompts.json,
+			);
+			target = E4DB97AE2DDBAD3C0084C498 /* CalmMeNow */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E4DB97B12DDBAD3C0084C498 /* CalmMeNow */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E4DB97E22DDBAE870084C498 /* Exceptions for "CalmMeNow" folder in "CalmMeNow" target */,
+			);
 			path = CalmMeNow;
 			sourceTree = "<group>";
 		};

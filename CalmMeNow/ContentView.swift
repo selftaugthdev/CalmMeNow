@@ -10,15 +10,24 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
-    }
-}
+            Spacer()
+            Text("Feeling overwhelmed?")
+                .font(.title2)
+                .padding(.bottom, 20)
 
-#Preview {
-    ContentView()
+            Button(action: {
+                AudioManager.shared.playRandomSound()
+            }) {
+                Text("🧘 Calm Me Now")
+                    .font(.title)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue.opacity(0.8))
+                    .foregroundColor(.white)
+                    .cornerRadius(16)
+            }
+            .padding(.horizontal, 40)
+            Spacer()
+        }
+    }
 }
