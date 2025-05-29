@@ -11,121 +11,100 @@ struct ContentView: View {
   @StateObject private var audioManager = AudioManager.shared
 
   var body: some View {
-    ZStack {
-      // Background gradient
-      LinearGradient(
-        gradient: Gradient(colors: [
-          Color(red: 0.85, green: 0.85, blue: 0.95),  // Deeper lavender
-          Color(red: 0.80, green: 0.90, blue: 0.95),  // Richer blue
-          Color(red: 0.85, green: 0.95, blue: 0.85),  // Deeper mint
-        ]),
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
-      .ignoresSafeArea()
-
-      // Add a subtle overlay to soften the gradient
-      Color.white.opacity(0.1)
+    NavigationView {
+      ZStack {
+        // Background gradient
+        LinearGradient(
+          gradient: Gradient(colors: [
+            Color(red: 0.85, green: 0.85, blue: 0.95),  // Deeper lavender
+            Color(red: 0.80, green: 0.90, blue: 0.95),  // Richer blue
+            Color(red: 0.85, green: 0.95, blue: 0.85),  // Deeper mint
+          ]),
+          startPoint: .topLeading,
+          endPoint: .bottomTrailing
+        )
         .ignoresSafeArea()
 
-      VStack {
-        Spacer()
+        // Add a subtle overlay to soften the gradient
+        Color.white.opacity(0.1)
+          .ignoresSafeArea()
 
-        // Logo
-        Image("CalmMeNow Logo Homepage")
-          .resizable()
-          .scaledToFit()
-          .frame(height: 120)
-          .padding(.bottom, 40)
+        VStack {
+          Spacer()
 
-        Text("How are you feeling?")
-          .font(.title2)
-          .padding(.bottom, 20)
+          // Logo
+          Image("CalmMeNow Logo Homepage")
+            .resizable()
+            .scaledToFit()
+            .frame(height: 120)
+            .padding(.bottom, 40)
 
-        Text("Select your emotion to find calm")
-          .font(.body)
-          .multilineTextAlignment(.center)
-          .padding(.horizontal, 40)
-          .padding(.bottom, 30)
-          .foregroundColor(.secondary)
-
-        if audioManager.isPlaying {
-          Text(timeString(from: audioManager.remainingTime))
-            .font(.title)
-            .foregroundColor(.blue)
+          Text("How are you feeling?")
+            .font(.title2)
             .padding(.bottom, 20)
+
+          Text("Select your emotion to find calm")
+            .font(.body)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 40)
+            .padding(.bottom, 30)
+            .foregroundColor(.secondary)
+
+          if audioManager.isPlaying {
+            Text(timeString(from: audioManager.remainingTime))
+              .font(.title)
+              .foregroundColor(.blue)
+              .padding(.bottom, 20)
+          }
+
+          // Emotion Buttons Grid
+          VStack(spacing: 15) {
+            NavigationLink(destination: AngryView()) {
+              Text("😠 I Feel Angry")
+                .font(.title3)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.blue.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(16)
+            }
+
+            NavigationLink(destination: AnxiousView()) {
+              Text("😰 I Feel Anxious")
+                .font(.title3)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.blue.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(16)
+            }
+
+            NavigationLink(destination: SadView()) {
+              Text("😢 I Feel Sad")
+                .font(.title3)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.blue.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(16)
+            }
+
+            NavigationLink(destination: FrustratedView()) {
+              Text("😤 I Feel Frustrated")
+                .font(.title3)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.blue.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(16)
+            }
+          }
+          .padding(.horizontal, 40)
+
+          Spacer()
         }
-
-        // Emotion Buttons Grid
-        VStack(spacing: 15) {
-          Button(action: {
-            if audioManager.isPlaying {
-              audioManager.stopSound()
-            } else {
-              audioManager.playRandomSound()
-            }
-          }) {
-            Text("😠 I Feel Angry")
-              .font(.title3)
-              .padding()
-              .frame(maxWidth: .infinity)
-              .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
-              .foregroundColor(.white)
-              .cornerRadius(16)
-          }
-
-          Button(action: {
-            if audioManager.isPlaying {
-              audioManager.stopSound()
-            } else {
-              audioManager.playRandomSound()
-            }
-          }) {
-            Text("😰 I Feel Anxious")
-              .font(.title3)
-              .padding()
-              .frame(maxWidth: .infinity)
-              .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
-              .foregroundColor(.white)
-              .cornerRadius(16)
-          }
-
-          Button(action: {
-            if audioManager.isPlaying {
-              audioManager.stopSound()
-            } else {
-              audioManager.playRandomSound()
-            }
-          }) {
-            Text("😢 I Feel Sad")
-              .font(.title3)
-              .padding()
-              .frame(maxWidth: .infinity)
-              .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
-              .foregroundColor(.white)
-              .cornerRadius(16)
-          }
-
-          Button(action: {
-            if audioManager.isPlaying {
-              audioManager.stopSound()
-            } else {
-              audioManager.playRandomSound()
-            }
-          }) {
-            Text("😤 I Feel Frustrated")
-              .font(.title3)
-              .padding()
-              .frame(maxWidth: .infinity)
-              .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
-              .foregroundColor(.white)
-              .cornerRadius(16)
-          }
-        }
-        .padding(.horizontal, 40)
-
-        Spacer()
       }
+      .navigationBarHidden(true)
     }
   }
 

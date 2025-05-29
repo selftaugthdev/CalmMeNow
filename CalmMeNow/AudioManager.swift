@@ -16,20 +16,31 @@ class AudioManager: NSObject, ObservableObject {
   @Published var remainingTime: TimeInterval = 0
   private var timer: Timer?
 
-  let sounds = ["perfect-beauty-1-min"]
+  let sounds = [
+    "perfect-beauty-1-min", "mixkit-jazz-sad", "mixkit-serene-anxious", "mixkit-just-chill-angry",
+  ]
 
   override init() {
     super.init()
   }
 
-  func playRandomSound() {
-    guard let randomSound = sounds.randomElement(),
-      let url = Bundle.main.url(forResource: randomSound, withExtension: "m4a")
-    else {
-      print("Sound not found")
+  func playSound(_ soundName: String) {
+    // Try .mp3 first
+    if let url = Bundle.main.url(forResource: soundName, withExtension: "mp3") {
+      playAudioFromURL(url)
       return
     }
 
+    // Try .m4a if .mp3 not found
+    if let url = Bundle.main.url(forResource: soundName, withExtension: "m4a") {
+      playAudioFromURL(url)
+      return
+    }
+
+    print("Sound not found")
+  }
+
+  private func playAudioFromURL(_ url: URL) {
     do {
       player = try AVAudioPlayer(contentsOf: url)
       player?.delegate = self
@@ -48,6 +59,11 @@ class AudioManager: NSObject, ObservableObject {
     } catch {
       print("Failed to play sound: \(error)")
     }
+  }
+
+  func playRandomSound() {
+    guard let randomSound = sounds.randomElement() else { return }
+    playSound(randomSound)
   }
 
   func stopSound() {
