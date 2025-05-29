@@ -59,44 +59,16 @@ struct ContentView: View {
 
           // Emotion Buttons Grid
           VStack(spacing: 15) {
-            NavigationLink(destination: AngryView()) {
-              Text("😠 I Feel Angry")
-                .font(.title3)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color.blue.opacity(0.8))
-                .foregroundColor(.white)
-                .cornerRadius(16)
-            }
-
-            NavigationLink(destination: AnxiousView()) {
-              Text("😰 I Feel Anxious")
-                .font(.title3)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color.blue.opacity(0.8))
-                .foregroundColor(.white)
-                .cornerRadius(16)
-            }
-
-            NavigationLink(destination: SadView()) {
-              Text("😢 I Feel Sad")
-                .font(.title3)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color.blue.opacity(0.8))
-                .foregroundColor(.white)
-                .cornerRadius(16)
-            }
-
-            NavigationLink(destination: FrustratedView()) {
-              Text("😤 I Feel Frustrated")
-                .font(.title3)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color.blue.opacity(0.8))
-                .foregroundColor(.white)
-                .cornerRadius(16)
+            ForEach(CooldownModel.cooldowns, id: \.id) { cooldown in
+              NavigationLink(destination: CooldownView(model: cooldown)) {
+                Text("\(cooldown.emoji) I Feel \(cooldown.emotion)")
+                  .font(.title3)
+                  .padding()
+                  .frame(maxWidth: .infinity)
+                  .background(Color.blue.opacity(0.8))
+                  .foregroundColor(.white)
+                  .cornerRadius(16)
+              }
             }
           }
           .padding(.horizontal, 40)
