@@ -38,18 +38,16 @@ struct ContentView: View {
           .frame(height: 120)
           .padding(.bottom, 40)
 
-        Text("Feeling overwhelmed?")
+        Text("How are you feeling?")
           .font(.title2)
           .padding(.bottom, 20)
 
-        Text(
-          "Tap the button below for a relaxing sound to instantly calm down and find your center"
-        )
-        .font(.body)
-        .multilineTextAlignment(.center)
-        .padding(.horizontal, 40)
-        .padding(.bottom, 30)
-        .foregroundColor(.secondary)
+        Text("Select your emotion to find calm")
+          .font(.body)
+          .multilineTextAlignment(.center)
+          .padding(.horizontal, 40)
+          .padding(.bottom, 30)
+          .foregroundColor(.secondary)
 
         if audioManager.isPlaying {
           Text(timeString(from: audioManager.remainingTime))
@@ -58,22 +56,74 @@ struct ContentView: View {
             .padding(.bottom, 20)
         }
 
-        Button(action: {
-          if audioManager.isPlaying {
-            audioManager.stopSound()
-          } else {
-            audioManager.playRandomSound()
+        // Emotion Buttons Grid
+        VStack(spacing: 15) {
+          Button(action: {
+            if audioManager.isPlaying {
+              audioManager.stopSound()
+            } else {
+              audioManager.playRandomSound()
+            }
+          }) {
+            Text("😠 I Feel Angry")
+              .font(.title3)
+              .padding()
+              .frame(maxWidth: .infinity)
+              .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
+              .foregroundColor(.white)
+              .cornerRadius(16)
           }
-        }) {
-          Text(audioManager.isPlaying ? "⏹ Stop" : "🧘 Calm Me Now")
-            .font(.title)
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
-            .foregroundColor(.white)
-            .cornerRadius(16)
+
+          Button(action: {
+            if audioManager.isPlaying {
+              audioManager.stopSound()
+            } else {
+              audioManager.playRandomSound()
+            }
+          }) {
+            Text("😰 I Feel Anxious")
+              .font(.title3)
+              .padding()
+              .frame(maxWidth: .infinity)
+              .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
+              .foregroundColor(.white)
+              .cornerRadius(16)
+          }
+
+          Button(action: {
+            if audioManager.isPlaying {
+              audioManager.stopSound()
+            } else {
+              audioManager.playRandomSound()
+            }
+          }) {
+            Text("😢 I Feel Sad")
+              .font(.title3)
+              .padding()
+              .frame(maxWidth: .infinity)
+              .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
+              .foregroundColor(.white)
+              .cornerRadius(16)
+          }
+
+          Button(action: {
+            if audioManager.isPlaying {
+              audioManager.stopSound()
+            } else {
+              audioManager.playRandomSound()
+            }
+          }) {
+            Text("😤 I Feel Frustrated")
+              .font(.title3)
+              .padding()
+              .frame(maxWidth: .infinity)
+              .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
+              .foregroundColor(.white)
+              .cornerRadius(16)
+          }
         }
         .padding(.horizontal, 40)
+
         Spacer()
       }
     }
