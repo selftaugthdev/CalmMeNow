@@ -25,19 +25,23 @@ class AudioManager: NSObject, ObservableObject {
   }
 
   func playSound(_ soundName: String) {
+    print("Attempting to play sound: \(soundName)")
+
     // Try .mp3 first
     if let url = Bundle.main.url(forResource: soundName, withExtension: "mp3") {
+      print("Found .mp3 file: \(url)")
       playAudioFromURL(url)
       return
     }
 
     // Try .m4a if .mp3 not found
     if let url = Bundle.main.url(forResource: soundName, withExtension: "m4a") {
+      print("Found .m4a file: \(url)")
       playAudioFromURL(url)
       return
     }
 
-    print("Sound not found")
+    print("Sound not found: \(soundName)")
   }
 
   private func playAudioFromURL(_ url: URL) {

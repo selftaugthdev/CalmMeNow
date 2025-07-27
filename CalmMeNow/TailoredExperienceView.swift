@@ -134,10 +134,12 @@ struct TailoredExperienceView: View {
         .foregroundColor(.black)  // Darker text for better readability
         .multilineTextAlignment(.center)
         .padding(.horizontal, 40)
+        .padding(.vertical, 20)  // Add vertical padding
         .background(
           RoundedRectangle(cornerRadius: 12)
             .fill(Color.white.opacity(0.8))
             .padding(.horizontal, 20)
+            .padding(.vertical, 10)  // Add vertical padding to background
         )
 
       // Tap to slow game
@@ -194,10 +196,13 @@ struct TailoredExperienceView: View {
               .repeatForever(autoreverses: true),
             value: isAnimating
           )
+          .padding(.horizontal, 20)  // Add horizontal padding
+          .padding(.vertical, 12)  // Add vertical padding
           .background(
             RoundedRectangle(cornerRadius: 8)
               .fill(Color.white.opacity(0.8))
               .padding(.horizontal, 10)
+              .padding(.vertical, 5)  // Add vertical padding to background
           )
       }
 
@@ -208,10 +213,12 @@ struct TailoredExperienceView: View {
         .foregroundColor(.black)  // Darker text for better readability
         .multilineTextAlignment(.center)
         .padding(.horizontal, 40)
+        .padding(.vertical, 20)  // Add vertical padding
         .background(
           RoundedRectangle(cornerRadius: 12)
             .fill(Color.white.opacity(0.8))
             .padding(.horizontal, 20)
+            .padding(.vertical, 10)  // Add vertical padding to background
         )
     }
   }
