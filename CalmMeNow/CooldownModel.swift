@@ -9,6 +9,7 @@ struct CooldownModel {
   let hasBreathingOrb: Bool
   let optionalText: String?
   let animationType: AnimationType
+  let intensity: String?
 
   enum AnimationType {
     case breathing
@@ -32,7 +33,8 @@ extension CooldownModel {
       ],
       hasBreathingOrb: true,
       optionalText: "Take a moment to breathe. Let's find your calm together.",
-      animationType: .breathing
+      animationType: .breathing,
+      intensity: nil
     ),
     CooldownModel(
       id: "angry",
@@ -45,7 +47,8 @@ extension CooldownModel {
       ],
       hasBreathingOrb: false,
       optionalText: "Take deep breaths and feel the anger dissolve",
-      animationType: .vibrating
+      animationType: .vibrating,
+      intensity: nil
     ),
     CooldownModel(
       id: "sad",
@@ -59,7 +62,8 @@ extension CooldownModel {
       ],
       hasBreathingOrb: false,
       optionalText: "It's okay to feel sad. Let's find comfort together.",
-      animationType: .hugging
+      animationType: .hugging,
+      intensity: nil
     ),
     CooldownModel(
       id: "frustrated",
@@ -72,7 +76,8 @@ extension CooldownModel {
       ],
       hasBreathingOrb: false,
       optionalText: "Take a step back. Let's find clarity together.",
-      animationType: .pulsing
+      animationType: .pulsing,
+      intensity: nil
     ),
   ]
 }
