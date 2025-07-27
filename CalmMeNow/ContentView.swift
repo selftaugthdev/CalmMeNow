@@ -13,6 +13,12 @@ struct ContentView: View {
   @State private var selectedButton: String? = nil
   @State private var isQuickCalmPressed = false
   @State private var isBreathing = false
+  // Modal presentation states
+  @State private var showingIntensitySelection = false
+  @State private var showingTailoredExperience = false
+  @State private var selectedEmotion = ""
+  @State private var selectedEmoji = ""
+  @State private var selectedIntensity: IntensityLevel = .mild
 
   var body: some View {
     NavigationView {
@@ -135,11 +141,9 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "anxious",
                   onTap: {
-                    selectedButton = "anxious"
-                    progressTracker.recordUsage()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      selectedButton = nil
-                    }
+                    selectedEmotion = "Anxious"
+                    selectedEmoji = "😰"
+                    showingIntensitySelection = true
                   }
                 )
 
@@ -150,11 +154,9 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "angry",
                   onTap: {
-                    selectedButton = "angry"
-                    progressTracker.recordUsage()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      selectedButton = nil
-                    }
+                    selectedEmotion = "Angry"
+                    selectedEmoji = "😡"
+                    showingIntensitySelection = true
                   }
                 )
               }
@@ -168,11 +170,9 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "sad",
                   onTap: {
-                    selectedButton = "sad"
-                    progressTracker.recordUsage()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      selectedButton = nil
-                    }
+                    selectedEmotion = "Sad"
+                    selectedEmoji = "😢"
+                    showingIntensitySelection = true
                   }
                 )
 
@@ -183,11 +183,9 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "frustrated",
                   onTap: {
-                    selectedButton = "frustrated"
-                    progressTracker.recordUsage()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      selectedButton = nil
-                    }
+                    selectedEmotion = "Frustrated"
+                    selectedEmoji = "😖"
+                    showingIntensitySelection = true
                   }
                 )
               }
@@ -223,7 +221,7 @@ struct ContentView: View {
                   LinearGradient(
                     gradient: Gradient(colors: [
                       Color.white.opacity(0.9),
-                      Color.white.opacity(0.7)
+                      Color.white.opacity(0.7),
                     ]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -236,11 +234,28 @@ struct ContentView: View {
                 .stroke(Color.blue.opacity(0.2), lineWidth: 1)
             )
             .padding(.horizontal, 40)
-            .padding(.bottom, 60) // Add bottom padding for scroll space
+            .padding(.bottom, 60)  // Add bottom padding for scroll space
           }
         }
       }
       .navigationBarHidden(true)
+      .sheet(isPresented: $showingIntensitySelection) {
+        IntensitySelectionView(
+          emotion: selectedEmotion,
+          emoji: selectedEmoji,
+          isPresented: $showingIntensitySelection,
+          onIntensitySelected: { intensity in
+            selectedIntensity = intensity
+            showingTailoredExperience = true
+          }
+        )
+      }
+      .sheet(isPresented: $showingTailoredExperience) {
+        TailoredExperienceView(
+          emotion: selectedEmotion,
+          intensity: selectedIntensity
+        )
+      }
     }
   }
 
