@@ -131,9 +131,14 @@ struct TailoredExperienceView: View {
       Text(mildInstructions)
         .font(.title2)
         .fontWeight(.medium)
-        .foregroundColor(.white)
+        .foregroundColor(.black)  // Darker text for better readability
         .multilineTextAlignment(.center)
         .padding(.horizontal, 40)
+        .background(
+          RoundedRectangle(cornerRadius: 12)
+            .fill(Color.white.opacity(0.8))
+            .padding(.horizontal, 20)
+        )
 
       // Tap to slow game
       Button(action: {
@@ -150,7 +155,7 @@ struct TailoredExperienceView: View {
           .padding(.horizontal, 32)
           .background(
             RoundedRectangle(cornerRadius: 25)
-              .fill(Color.white.opacity(0.2))
+              .fill(Color.black.opacity(0.6))
           )
       }
     }
@@ -182,12 +187,17 @@ struct TailoredExperienceView: View {
         Text(breathingText)
           .font(.title)
           .fontWeight(.bold)
-          .foregroundColor(.white)
+          .foregroundColor(.black)  // Darker text
           .opacity(isAnimating ? 1.0 : 0.7)
           .animation(
             Animation.easeInOut(duration: 3)
               .repeatForever(autoreverses: true),
             value: isAnimating
+          )
+          .background(
+            RoundedRectangle(cornerRadius: 8)
+              .fill(Color.white.opacity(0.8))
+              .padding(.horizontal, 10)
           )
       }
 
@@ -195,9 +205,14 @@ struct TailoredExperienceView: View {
       Text(severeInstructions)
         .font(.title2)
         .fontWeight(.medium)
-        .foregroundColor(.white)
+        .foregroundColor(.black)  // Darker text for better readability
         .multilineTextAlignment(.center)
         .padding(.horizontal, 40)
+        .background(
+          RoundedRectangle(cornerRadius: 12)
+            .fill(Color.white.opacity(0.8))
+            .padding(.horizontal, 20)
+        )
     }
   }
 
@@ -208,7 +223,12 @@ struct TailoredExperienceView: View {
       Text("How are you feeling now?")
         .font(.title3)
         .fontWeight(.medium)
-        .foregroundColor(.white)
+        .foregroundColor(.black)  // Darker text
+        .background(
+          RoundedRectangle(cornerRadius: 8)
+            .fill(Color.white.opacity(0.8))
+            .padding(.horizontal, 10)
+        )
 
       HStack(spacing: 20) {
         Button("I feel better") {
@@ -220,7 +240,7 @@ struct TailoredExperienceView: View {
         .padding(.horizontal, 24)
         .background(
           RoundedRectangle(cornerRadius: 20)
-            .fill(Color.green.opacity(0.3))
+            .fill(Color.green.opacity(0.8))
         )
 
         Button("Try something else") {
@@ -231,7 +251,7 @@ struct TailoredExperienceView: View {
         .padding(.horizontal, 24)
         .background(
           RoundedRectangle(cornerRadius: 20)
-            .fill(Color.blue.opacity(0.3))
+            .fill(Color.blue.opacity(0.8))
         )
       }
     }

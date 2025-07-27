@@ -16,6 +16,7 @@ struct ContentView: View {
   // Modal presentation states
   @State private var showingIntensitySelection = false
   @State private var showingTailoredExperience = false
+  @State private var showingEmergencyCalm = false
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
   @State private var selectedIntensity: IntensityLevel = .mild
@@ -52,7 +53,7 @@ struct ContentView: View {
               Button(action: {
                 isQuickCalmPressed = true
                 progressTracker.recordUsage()
-                audioManager.playSound("perfect-beauty-1-min")
+                showingEmergencyCalm = true
               }) {
                 HStack(spacing: 10) {
                   Text("🕊️")
@@ -122,13 +123,6 @@ struct ContentView: View {
               .padding(.horizontal, 40)
               .padding(.bottom, 50)  // More breathing room before cards
               .foregroundColor(.secondary)
-
-            if audioManager.isPlaying {
-              Text(timeString(from: audioManager.remainingTime))
-                .font(.title)
-                .foregroundColor(.blue)
-                .padding(.bottom, 30)
-            }
 
             // Clean Emotion Cards - 4 cards in 2x2 grid
             VStack(spacing: 20) {  // Increased spacing between rows
@@ -255,6 +249,9 @@ struct ContentView: View {
           emotion: selectedEmotion,
           intensity: selectedIntensity
         )
+      }
+      .sheet(isPresented: $showingEmergencyCalm) {
+        EmergencyCalmView()
       }
     }
   }
