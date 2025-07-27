@@ -3,6 +3,7 @@ import SwiftUI
 struct CooldownView: View {
   let model: CooldownModel
   @StateObject private var audioManager = AudioManager.shared
+  @StateObject private var progressTracker = ProgressTracker.shared
   @State private var isAnimating = false
   @State private var vibrationIntensity: CGFloat = 1.0
   @State private var colorTransition: Double = 0.0
@@ -79,6 +80,7 @@ struct CooldownView: View {
             audioManager.stopSound()
           } else {
             audioManager.playSound(model.soundFileName)
+            progressTracker.recordUsage()
           }
         }) {
           Text(audioManager.isPlaying ? "⏹ Stop" : "▶️ Start")

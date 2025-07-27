@@ -1,61 +1,158 @@
-# CalmMeNow
+# Instant Calm – iOS App
 
-A soothing iOS app designed to help you find calm and peace in moments of stress or anxiety. CalmMeNow provides gentle audio prompts and calming sounds to guide you through moments of tension.
+**One-tap relief for sudden stress, anxiety, anger, or overwhelm.**  
+Built with SwiftUI. Designed for simplicity, speed, and emotional clarity.
 
-Simply tap the "Calm Me Now" button to instantly immerse yourself in a peaceful soundscape, helping you find your center and breathe through any moment of stress.
+---
 
-## Features
+## 🧠 Core Idea
 
-- 🎵 Soothing sound effects to help you relax
-- 💭 Calming prompts to guide your thoughts
-- 🎨 Clean, minimalist interface
-- 🔄 Random selection of calming sounds and prompts
+A minimalist iOS app that helps users regulate their nervous system within **60 seconds** when overwhelmed by stress, panic, sadness, or anger — e.g. after being cut off in traffic, receiving bad news, or a sudden emotional spike.
 
-## Requirements
+---
 
-- iOS 15.0+
-- Xcode 13.0+
-- Swift 5.5+
+## ✅ Core Principles
 
-## Installation
+- **Zero friction**: No login, no setup, no overwhelm.
+- **Fast access**: 1-tap access to relief.
+- **Progressive clarity**: From broad emotion → specific state → tailored relief.
+- **Accessibility first**: Designed for shaky hands, racing minds, and heightened emotion.
 
-1. Clone the repository:
+---
 
-```bash
-git clone git@github.com:selftaugthdev/CalmMeNow.git
-```
+## 🎯 Target User
 
-2. Open `CalmMeNow.xcodeproj` in Xcode
+- People experiencing **panic attacks**, **emotional flooding**, or **sudden spikes** of stress or frustration.
+- ADHD, autistic, HSP, anxious or emotionally intense users.
+- Situational triggers: co-worker said something mean, social rejection, car cuts you off, bad comment, etc.
 
-3. Build and run the project (⌘R)
+---
 
-## Usage
+## 🧱 App Architecture (Current)
 
-1. Launch the app
-2. Tap the "Calm Me Now" button when you need a moment of peace
-3. Listen to the calming sound and follow the prompts
+### Home Screen
 
-## Project Structure
+- 🔘 "CALM ME DOWN NOW" (always visible/emergency top button)
+- 🧘 App icon / logo
+- 🗣️ "Tap how you feel"
+- Subtitle: "We'll help you feel better in 60 seconds."
+- 💠 Emotion Grid (3 buttons):
+  - 😰 Anxious
+  - 😡 Angry
+  - 😢 Sad
 
-- `AudioManager.swift`: Handles sound playback
-- `CalmPrompt.swift`: Defines the structure for calming prompts
-- `CalmPromptView.swift`: UI for displaying prompts
-- `ContentView.swift`: Main app interface
-- `Sounds/`: Directory containing calming sound files
+---
 
-## Contributing
+### Emotion Tap → Intensity Modal
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+When a user taps an emotion card:
 
-## License
+- Fullscreen modal:
+  - Text prompt: _"Are you feeling a little nervous or full panic?"_
+  - 2 buttons:
+    - 🟦 Mild (e.g., "A little nervous")
+    - 🟥 Severe (e.g., "Full Panic")
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+---
 
-## Author
+### Relief Experience
 
-Thierry De Belder
+Based on selection:
 
-## Acknowledgments
+#### Mild:
 
-- Sound effects from [source]
-- Inspired by the need for quick, accessible calming tools in daily life
+- Calm ambient sound (rain, ocean, etc.)
+- Short 60s animation: breathing bubble or tapping game
+- "Try another | I feel better" buttons
+
+#### Severe:
+
+- Dimmed screen
+- Focused breathing + grounding audio
+- 30–60s calming sequence with minimal interaction
+- Follow-up prompt: "Want to reflect? Try again?"
+
+---
+
+## 🌱 Planned Features (Future)
+
+- [ ] **Soothing mini-games** (bubble pop, swipe to calm, etc.)
+- [ ] **Lock screen widget**: Quick panic relief
+- [ ] **Shortcut support**: Siri or back tap trigger
+- [ ] **Breathing visual options**: Box, 4–7–8, paced
+- [ ] **Journal mode (optional)**: "What happened just now?"
+- [ ] **Streaks / gentle encouragement**: "You calmed yourself 3 days in a row"
+- [ ] **Theme customization** (light/dark, background visuals)
+- [ ] **Background looping mode** (leave the audio running)
+- [ ] **Audio personalization** (chill beats vs. nature vs. guided)
+
+---
+
+## 📱 Best Practices
+
+- Use **Haptics** for feedback (light tap, pulse at start/end of relief)
+- Add **accessibility support** (VoiceOver, larger tap zones)
+- **Store last used emotion** for quick relaunch
+- Avoid **cognitive overload** — always prioritize clarity over complexity
+
+---
+
+## 🧰 Tech Stack
+
+- **SwiftUI**
+- **Xcode 16+**
+- **Audio playback**: AVFoundation or SwiftAudio
+- (Optional) Future integrations: WidgetKit, CoreML (for emotion detection), HealthKit (for HR tracking)
+
+---
+
+## 🧪 Testing
+
+- Test in real-world stress scenarios (simulate panic → test 3-tap flow)
+- Include test users with neurodivergence
+- Measure success by:
+  - Completion rate of 60-second sequences
+  - Reduction in panic intensity (user self-rated)
+  - Re-use / return rates
+
+---
+
+## 👥 Contributors
+
+**Solo Dev:** `@thierrydebelder`  
+Designed in Cursor. Inspired by simplicity and compassion.
+
+---
+
+## 💡 Inspiration
+
+- "A friend in your pocket" — support without judgment
+- Stoic, Buddhist, and trauma-informed calming techniques
+- The idea that just 1 minute of calm can change everything
+
+---
+
+## 📦 Assets Needed
+
+- [ ] Audio files (calming, panic relief, loops)
+- [ ] Emotion icons (SVG or PNG, large format)
+- [ ] Breathing animation visuals or assets
+- [ ] SFX for game / bubble popping
+- [ ] Logo/icon export (App Store ready)
+
+---
+
+## 📲 App Store Positioning
+
+**Name idea:** _"60 Second Calm"_ or _"In-The-Moment"_  
+**Keywords:** anxiety, stress, panic, calm, relax, grounding  
+**Tagline:** "Calm your mind. In 60 seconds."
+
+---
+
+## 🧘 Closing Note
+
+This app isn't trying to be everything — it's trying to be _there_ when users need it most.  
+Fast, kind, and instantly useful.
+
+---
