@@ -7,6 +7,7 @@ struct EmergencyCalmView: View {
   @State private var isAnimating = false
   @State private var timeRemaining: Int = 60
   @State private var showCompletionOptions = false
+  @State private var showSuccessView = false
 
   var body: some View {
     ZStack {
@@ -134,7 +135,7 @@ struct EmergencyCalmView: View {
             HStack(spacing: 20) {
               Button("Better now") {
                 progressTracker.recordUsage()
-                presentationMode.wrappedValue.dismiss()
+                showSuccessView = true
               }
               .foregroundColor(.white)
               .padding(.vertical, 12)
@@ -165,6 +166,9 @@ struct EmergencyCalmView: View {
     }
     .onDisappear {
       audioManager.stopSound()
+    }
+    .sheet(isPresented: $showSuccessView) {
+      SuccessView()
     }
   }
 

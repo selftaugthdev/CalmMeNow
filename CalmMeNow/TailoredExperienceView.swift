@@ -8,6 +8,7 @@ struct TailoredExperienceView: View {
   @StateObject private var progressTracker = ProgressTracker.shared
   @State private var isAnimating = false
   @State private var showCompletionOptions = false
+  @State private var showSuccessView = false
   @State private var timeRemaining: Int = 60
 
   var body: some View {
@@ -59,6 +60,9 @@ struct TailoredExperienceView: View {
     }
     .onDisappear {
       audioManager.stopSound()
+    }
+    .sheet(isPresented: $showSuccessView) {
+      SuccessView()
     }
   }
 
@@ -235,7 +239,7 @@ struct TailoredExperienceView: View {
       HStack(spacing: 20) {
         Button("I feel better") {
           progressTracker.recordUsage()
-          presentationMode.wrappedValue.dismiss()
+          showSuccessView = true
         }
         .foregroundColor(.white)
         .padding(.vertical, 12)
@@ -330,6 +334,7 @@ struct TailoredExperienceView: View {
 
   private func startCountdown() {
     let duration = intensity == .mild ? 60 : 90  // Longer for severe
+    timeRemaining = duration
 
     Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
       if timeRemaining > 0 {
