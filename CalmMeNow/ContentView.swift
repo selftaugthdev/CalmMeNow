@@ -134,9 +134,12 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "anxious",
                   onTap: {
-                    selectedEmotion = "Anxious"
+                    selectedEmotion = "anxious"
                     selectedEmoji = "😰"
-                    showingIntensitySelection = true
+                    // Force state synchronization with delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                      showingIntensitySelection = true
+                    }
                   }
                 )
 
@@ -147,9 +150,12 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "angry",
                   onTap: {
-                    selectedEmotion = "Angry"
+                    selectedEmotion = "angry"
                     selectedEmoji = "😡"
-                    showingIntensitySelection = true
+                    // Force state synchronization with delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                      showingIntensitySelection = true
+                    }
                   }
                 )
               }
@@ -163,9 +169,12 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "sad",
                   onTap: {
-                    selectedEmotion = "Sad"
+                    selectedEmotion = "sad"
                     selectedEmoji = "😢"
-                    showingIntensitySelection = true
+                    // Force state synchronization with delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                      showingIntensitySelection = true
+                    }
                   }
                 )
 
@@ -176,9 +185,12 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "frustrated",
                   onTap: {
-                    selectedEmotion = "Frustrated"
+                    selectedEmotion = "frustrated"
                     selectedEmoji = "😖"
-                    showingIntensitySelection = true
+                    // Force state synchronization with delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                      showingIntensitySelection = true
+                    }
                   }
                 )
               }
@@ -239,7 +251,10 @@ struct ContentView: View {
           isPresented: $showingIntensitySelection,
           onIntensitySelected: { intensity in
             selectedIntensity = intensity
-            showingTailoredExperience = true
+            // Force state synchronization with delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+              showingTailoredExperience = true
+            }
           }
         )
       }
@@ -248,7 +263,9 @@ struct ContentView: View {
           emotion: selectedEmotion,
           intensity: selectedIntensity
         )
+        .id("\(selectedEmotion)-\(selectedIntensity)")  // Force recreation when values change
       }
+
       .sheet(isPresented: $showingEmergencyCalm) {
         EmergencyCalmView()
       }

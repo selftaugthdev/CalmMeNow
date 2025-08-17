@@ -11,41 +11,64 @@ struct TailoredExperienceView: View {
   @State private var showSuccessView = false
   @State private var showAdditionalHelp = false
   @State private var timeRemaining: Int = 60
+  @State private var currentPhase: ExperiencePhase = .intro
+  @State private var breathingCycle: Int = 0
+  @State private var guidanceIndex: Int = 0
+  @State private var showControls: Bool = false
+  @State private var phaseTimer: Timer?
+  @State private var hasStartedExperience = false
+
+  private var program: ReliefProgram? {
+    // Ensure we have valid data
+    guard !emotion.isEmpty else { return nil }
+    guard let emotionEnum = Emotion(rawValue: emotion.lowercased()) else { return nil }
+    return ReliefProgram.program(for: emotionEnum, intensity: intensity)
+  }
+
+  enum ExperiencePhase {
+    case intro
+    case breathing
+    case guidance
+    case stabilize
+    case complete
+  }
 
   var body: some View {
     ZStack {
-      // Background based on intensity
+      // Background based on program theme
       backgroundGradient
         .ignoresSafeArea()
 
       VStack {
-        // Header with exit option
-        HStack {
-          Button("Exit") {
-            audioManager.stopSound()
-            presentationMode.wrappedValue.dismiss()
-          }
-          .foregroundColor(.black)
-          .padding()
+        // Header with exit option (only show after delay for severe)
+        if showControls {
+          HStack {
+            Button("Exit") {
+              audioManager.stopSound()
+              presentationMode.wrappedValue.dismiss()
+            }
+            .foregroundColor(.black)
+            .padding()
 
-          Spacer()
+            Spacer()
 
-          if timeRemaining > 0 {
-            Text("\(timeRemaining)s")
-              .font(.title2)
-              .fontWeight(.bold)
-              .foregroundColor(.black)
-              .padding()
+            if timeRemaining > 0 {
+              Text("\(timeRemaining)s")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.black)
+                .padding()
+            }
           }
         }
 
         Spacer()
 
-        // Main content based on intensity
-        if intensity == .mild {
-          mildExperience
+        // Main content based on program
+        if let program = program {
+          programContent(program)
         } else {
-          severeExperience
+          fallbackContent
         }
 
         Spacer()
@@ -57,15 +80,34 @@ struct TailoredExperienceView: View {
       }
     }
     .onAppear {
-      startExperience()
+      // Delay the start to ensure the view is fully loaded
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        if !hasStartedExperience && !emotion.isEmpty {
+          hasStartedExperience = true
+          startExperience()
+        }
+      }
+    }
+    .onChange(of: emotion) { newEmotion in
+      // If emotion becomes available after onAppear, start the experience
+      if !hasStartedExperience && !newEmotion.isEmpty {
+        hasStartedExperience = true
+        startExperience()
+      }
     }
     .onDisappear {
       audioManager.stopSound()
+      phaseTimer?.invalidate()
+      hasStartedExperience = false
     }
     .sheet(isPresented: $showSuccessView) {
-      SuccessView(onReturnToHome: {
-        presentationMode.wrappedValue.dismiss()
-      })
+      SuccessView(
+        onReturnToHome: {
+          presentationMode.wrappedValue.dismiss()
+        },
+        emotionContext: emotion,
+        intensityContext: intensity == .mild ? "a little" : "full"
+      )
     }
     .sheet(isPresented: $showAdditionalHelp) {
       AdditionalHelpView()
@@ -75,108 +117,126 @@ struct TailoredExperienceView: View {
   // MARK: - Background Gradients
 
   private var backgroundGradient: LinearGradient {
-    switch emotion.lowercased() {
-    case "anxious":
+    guard let program = program else {
+      return LinearGradient(
+        gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)]),
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    }
+
+    // Emotion-specific gradients
+    switch program.emotion {
+    case .anxious:
       return LinearGradient(
         gradient: Gradient(colors: [
-          Color(hex: "#B5D8F6"),
-          Color(hex: "#D7CFF5"),
+          Color(red: 0.85, green: 0.85, blue: 0.95),  // Soft blue
+          Color(red: 0.80, green: 0.90, blue: 0.95),  // Light cyan
+          Color(red: 0.85, green: 0.95, blue: 0.85),  // Mint
         ]),
-        startPoint: .top,
-        endPoint: .bottom
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
       )
-    case "angry":
+    case .angry:
       return LinearGradient(
         gradient: Gradient(colors: [
-          Color(hex: "#FF6B6B"),
-          Color(hex: "#4ECDC4"),
+          Color(red: 0.95, green: 0.85, blue: 0.85),  // Soft pink
+          Color(red: 0.90, green: 0.80, blue: 0.90),  // Lavender
+          Color(red: 0.85, green: 0.85, blue: 0.95),  // Soft blue
         ]),
-        startPoint: .top,
-        endPoint: .bottom
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
       )
-    case "sad":
+    case .sad:
       return LinearGradient(
         gradient: Gradient(colors: [
-          Color(red: 0.95, green: 0.90, blue: 0.98),
-          Color(red: 0.98, green: 0.85, blue: 0.90),
-          Color(red: 0.98, green: 0.95, blue: 0.90),
+          Color(red: 0.95, green: 0.90, blue: 0.98),  // Soft purple
+          Color(red: 0.98, green: 0.85, blue: 0.90),  // Rose
+          Color(red: 0.98, green: 0.95, blue: 0.90),  // Cream
         ]),
-        startPoint: .top,
-        endPoint: .bottom
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
       )
-    case "frustrated":
+    case .frustrated:
       return LinearGradient(
         gradient: Gradient(colors: [
-          Color(red: 0.85, green: 0.95, blue: 0.85),
-          Color(red: 0.70, green: 0.90, blue: 0.90),
+          Color(red: 0.85, green: 0.95, blue: 0.85),  // Mint
+          Color(red: 0.70, green: 0.90, blue: 0.90),  // Teal
+          Color(red: 0.85, green: 0.85, blue: 0.95),  // Soft blue
         ]),
-        startPoint: .top,
-        endPoint: .bottom
-      )
-    default:
-      return LinearGradient(
-        gradient: Gradient(colors: [Color.blue, Color.purple]),
-        startPoint: .top,
-        endPoint: .bottom
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
       )
     }
   }
 
-  // MARK: - Mild Experience
+  // MARK: - Program Content
 
-  private var mildExperience: some View {
+  private func programContent(_ program: ReliefProgram) -> some View {
     VStack(spacing: 40) {
-      // Breathing bubble animation
+      // Header text
+      VStack(spacing: 16) {
+        Text(program.headerText)
+          .font(.largeTitle)
+          .fontWeight(.bold)
+          .foregroundColor(.black)
+          .multilineTextAlignment(.center)
+
+        Text(program.subtext)
+          .font(.title3)
+          .foregroundColor(.black.opacity(0.8))
+          .multilineTextAlignment(.center)
+      }
+      .padding(.horizontal, 40)
+      .padding(.vertical, 20)
+      .background(
+        RoundedRectangle(cornerRadius: 16)
+          .fill(Color.white.opacity(0.8))
+      )
+
+      // Main content based on phase
+      switch currentPhase {
+      case .intro:
+        introPhase(program)
+      case .breathing:
+        breathingPhase(program)
+      case .guidance:
+        guidancePhase(program)
+      case .stabilize:
+        stabilizePhase(program)
+      case .complete:
+        completePhase(program)
+      }
+    }
+  }
+
+  // MARK: - Phase Views
+
+  private func introPhase(_ program: ReliefProgram) -> some View {
+    VStack(spacing: 30) {
+      // Large calming circle
       Circle()
-        .fill(Color.white.opacity(0.8))
+        .fill(Color.white.opacity(0.9))
         .frame(width: 200, height: 200)
-        .scaleEffect(isAnimating ? 1.2 : 0.8)
+        .scaleEffect(isAnimating ? 1.1 : 0.9)
         .animation(
-          Animation.easeInOut(duration: 4)
+          Animation.easeInOut(duration: 3)
             .repeatForever(autoreverses: true),
           value: isAnimating
         )
         .shadow(color: .white.opacity(0.6), radius: 20, x: 0, y: 0)
 
-      // Instructions
-      Text(mildInstructions)
+      Text("You're safe. I'm with you.")
         .font(.title2)
         .fontWeight(.medium)
-        .foregroundColor(.black)  // Darker text for better readability
+        .foregroundColor(.black)
         .multilineTextAlignment(.center)
-        .padding(.horizontal, 40)
-        .padding(.vertical, 20)  // Add vertical padding
-        .background(
-          RoundedRectangle(cornerRadius: 12)
-            .fill(Color.white.opacity(0.8))
-        )
-
-      // Tap to slow game
-      Button(action: {
-        // Simple tap interaction
-        withAnimation(.easeInOut(duration: 0.3)) {
-          // Visual feedback
-        }
-      }) {
-        Text("Tap to slow down")
-          .font(.title3)
-          .fontWeight(.semibold)
-          .foregroundColor(.white)
-          .padding(.vertical, 16)
-          .padding(.horizontal, 32)
-          .background(
-            RoundedRectangle(cornerRadius: 25)
-              .fill(Color.black.opacity(0.6))
-          )
-      }
     }
   }
 
-  // MARK: - Severe Experience
-
-  private var severeExperience: some View {
+  private func breathingPhase(_ program: ReliefProgram) -> some View {
     VStack(spacing: 30) {
-      // Large breathing visual
+      // Breathing circle
       ZStack {
         // Outer circle
         Circle()
@@ -189,43 +249,122 @@ struct TailoredExperienceView: View {
           .frame(width: 200, height: 200)
           .scaleEffect(isAnimating ? 1.3 : 0.7)
           .animation(
-            Animation.easeInOut(duration: 6)
+            Animation.easeInOut(duration: getBreathingDuration(program.breathing))
               .repeatForever(autoreverses: true),
             value: isAnimating
           )
           .shadow(color: .white.opacity(0.7), radius: 25, x: 0, y: 0)
 
         // Breathing text
-        Text(breathingText)
+        Text(getCurrentBreathingInstruction(program))
           .font(.title)
           .fontWeight(.bold)
-          .foregroundColor(.black)  // Darker text
+          .foregroundColor(.black)
           .opacity(isAnimating ? 1.0 : 0.7)
           .animation(
-            Animation.easeInOut(duration: 3)
+            Animation.easeInOut(duration: getBreathingDuration(program.breathing) / 2)
               .repeatForever(autoreverses: true),
             value: isAnimating
           )
-          .padding(.horizontal, 20)  // Add horizontal padding
-          .padding(.vertical, 12)  // Add vertical padding
+          .padding(.horizontal, 20)
+          .padding(.vertical, 12)
           .background(
             RoundedRectangle(cornerRadius: 8)
               .fill(Color.white.opacity(0.8))
           )
       }
+    }
+  }
 
-      // Grounding message
-      Text(severeInstructions)
+  private func guidancePhase(_ program: ReliefProgram) -> some View {
+    VStack(spacing: 30) {
+      // Guidance circle
+      Circle()
+        .fill(Color.white.opacity(0.8))
+        .frame(width: 200, height: 200)
+        .overlay(
+          Text(getCurrentGuidanceInstruction(program))
+            .font(.title2)
+            .fontWeight(.medium)
+            .foregroundColor(.black)
+            .multilineTextAlignment(.center)
+            .padding(20)
+        )
+        .scaleEffect(isAnimating ? 1.05 : 0.95)
+        .animation(
+          Animation.easeInOut(duration: 2)
+            .repeatForever(autoreverses: true),
+          value: isAnimating
+        )
+
+      // Progress indicator
+      HStack(spacing: 8) {
+        ForEach(0..<program.getGuidanceInstructions().count, id: \.self) { index in
+          Circle()
+            .fill(index <= guidanceIndex ? Color.white : Color.white.opacity(0.3))
+            .frame(width: 12, height: 12)
+        }
+      }
+    }
+  }
+
+  private func stabilizePhase(_ program: ReliefProgram) -> some View {
+    VStack(spacing: 30) {
+      // Stabilizing circle
+      Circle()
+        .fill(Color.white.opacity(0.9))
+        .frame(width: 200, height: 200)
+        .scaleEffect(isAnimating ? 1.1 : 0.9)
+        .animation(
+          Animation.easeInOut(duration: 4)
+            .repeatForever(autoreverses: true),
+          value: isAnimating
+        )
+        .shadow(color: .white.opacity(0.6), radius: 20, x: 0, y: 0)
+
+      Text("Let your body settle...")
         .font(.title2)
         .fontWeight(.medium)
-        .foregroundColor(.black)  // Darker text for better readability
+        .foregroundColor(.black)
         .multilineTextAlignment(.center)
-        .padding(.horizontal, 40)
-        .padding(.vertical, 20)  // Add vertical padding
-        .background(
-          RoundedRectangle(cornerRadius: 12)
-            .fill(Color.white.opacity(0.8))
+    }
+  }
+
+  private func completePhase(_ program: ReliefProgram) -> some View {
+    VStack(spacing: 30) {
+      // Completion circle
+      Circle()
+        .fill(Color.white.opacity(0.9))
+        .frame(width: 200, height: 200)
+        .overlay(
+          Text("✓")
+            .font(.system(size: 80))
+            .foregroundColor(.green)
         )
+        .scaleEffect(isAnimating ? 1.1 : 0.9)
+        .animation(
+          Animation.easeInOut(duration: 2)
+            .repeatForever(autoreverses: true),
+          value: isAnimating
+        )
+
+      Text("You've done it.")
+        .font(.title2)
+        .fontWeight(.medium)
+        .foregroundColor(.black)
+        .multilineTextAlignment(.center)
+    }
+  }
+
+  // MARK: - Fallback Content
+
+  private var fallbackContent: some View {
+    VStack(spacing: 40) {
+      Text("Finding your calm...")
+        .font(.title2)
+        .fontWeight(.medium)
+        .foregroundColor(.black)
+        .multilineTextAlignment(.center)
     }
   }
 
@@ -236,7 +375,7 @@ struct TailoredExperienceView: View {
       Text("How are you feeling now?")
         .font(.title3)
         .fontWeight(.medium)
-        .foregroundColor(.black)  // Darker text
+        .foregroundColor(.black)
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .background(
@@ -274,86 +413,160 @@ struct TailoredExperienceView: View {
     .padding(.bottom, 40)
   }
 
-  // MARK: - Computed Properties
-
-  private var mildInstructions: String {
-    switch emotion.lowercased() {
-    case "anxious":
-      return "Take gentle breaths. You're safe here."
-    case "angry":
-      return "Feel the tension release with each breath."
-    case "sad":
-      return "It's okay to feel this way. You're not alone."
-    case "frustrated":
-      return "Step back and find your center."
-    default:
-      return "Breathe deeply and find your calm."
-    }
-  }
-
-  private var severeInstructions: String {
-    switch emotion.lowercased() {
-    case "anxious":
-      return "You're safe. Focus on your breath. This will pass."
-    case "angry":
-      return "Let the anger flow through you. Don't hold onto it."
-    case "sad":
-      return "Your feelings are valid. Let them be without judgment."
-    case "frustrated":
-      return "This moment is temporary. Find your inner strength."
-    default:
-      return "Stay present. This too shall pass."
-    }
-  }
-
-  private var breathingText: String {
-    // Cycle through breathing prompts
-    let prompts = ["Breathe in...", "Hold...", "Breathe out..."]
-    let index = (timeRemaining / 2) % prompts.count
-    return prompts[index]
-  }
-
   // MARK: - Helper Functions
 
   private func startExperience() {
+    print("🎯 DEBUG: startExperience() called")
+    print("   - emotion: '\(emotion)'")
+    print("   - intensity: \(intensity)")
+    print("   - program available: \(program != nil)")
+
+    // Try to get program immediately
+    if let program = program {
+      print("   ✅ Starting program immediately")
+      startProgram(program)
+    } else {
+      print("   ⏳ Program not ready, retrying...")
+      // Retry with increasing delays
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+        print("   🔄 Retry 1 - program available: \(self.program != nil)")
+        if let program = self.program {
+          print("   ✅ Starting program on retry 1")
+          self.startProgram(program)
+        } else {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            print("   🔄 Retry 2 - program available: \(self.program != nil)")
+            if let program = self.program {
+              print("   ✅ Starting program on retry 2")
+              self.startProgram(program)
+            } else {
+              print("   ❌ Failed to start program after all retries")
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private func startProgram(_ program: ReliefProgram) {
     isAnimating = true
     progressTracker.recordUsage()
 
-    // Start audio based on emotion and intensity
-    let soundName = getSoundForExperience()
-    audioManager.playSound(soundName)
+    // Start audio with looping for severe intensity
+    let shouldLoop = program.intensity == .severe
+    audioManager.playSound(program.audio, loop: shouldLoop)
 
-    // Start countdown timer
-    startCountdown()
-  }
+    // Set initial duration
+    timeRemaining = Int(program.duration)
 
-  private func getSoundForExperience() -> String {
-    switch emotion.lowercased() {
-    case "anxious":
-      return "mixkit-serene-anxious"
-    case "angry":
-      return "mixkit-just-chill-angry"
-    case "sad":
-      return "mixkit-jazz-sad"
-    case "frustrated":
-      return "perfect-beauty-1-min"
-    default:
-      return "perfect-beauty-1-min"
+    // Show controls after delay for severe
+    if program.showControlsAfter > 0 {
+      DispatchQueue.main.asyncAfter(deadline: .now() + program.showControlsAfter) {
+        showControls = true
+      }
+    } else {
+      showControls = true
     }
+
+    // Start phase progression
+    startPhaseProgression(program)
   }
 
-  private func startCountdown() {
-    let duration = intensity == .mild ? 60 : 90  // Longer for severe
-    timeRemaining = duration
+  private func startPhaseProgression(_ program: ReliefProgram) {
+    if program.intensity == .mild {
+      // Simple 60-second experience for mild
+      phaseTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+        if timeRemaining > 0 {
+          timeRemaining -= 1
+        } else {
+          timer.invalidate()
+          showCompletionOptions = true
+          audioManager.stopSound()
+        }
+      }
+    } else {
+      // Complex phase progression for severe
+      let introDuration: TimeInterval = 5
+      let breathingDuration: TimeInterval = 50
+      let guidanceDuration: TimeInterval = 35
+      let stabilizeDuration: TimeInterval = 30
 
-    Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-      if timeRemaining > 0 {
-        timeRemaining -= 1
-      } else {
-        timer.invalidate()
+      // Intro phase
+      DispatchQueue.main.asyncAfter(deadline: .now() + introDuration) {
+        currentPhase = .breathing
+      }
+
+      // Breathing phase
+      DispatchQueue.main.asyncAfter(deadline: .now() + introDuration + breathingDuration) {
+        currentPhase = .guidance
+        startGuidanceProgression(program)
+      }
+
+      // Guidance phase
+      DispatchQueue.main.asyncAfter(
+        deadline: .now() + introDuration + breathingDuration + guidanceDuration
+      ) {
+        currentPhase = .stabilize
+      }
+
+      // Stabilize phase
+      DispatchQueue.main.asyncAfter(
+        deadline: .now() + introDuration + breathingDuration + guidanceDuration + stabilizeDuration
+      ) {
+        currentPhase = .complete
         showCompletionOptions = true
         audioManager.stopSound()
       }
+
+      // Countdown timer
+      phaseTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+        if timeRemaining > 0 {
+          timeRemaining -= 1
+        } else {
+          timer.invalidate()
+        }
+      }
     }
+  }
+
+  private func startGuidanceProgression(_ program: ReliefProgram) {
+    let guidanceInstructions = program.getGuidanceInstructions()
+    let interval = 6.0  // 6 seconds per instruction
+
+    for (index, _) in guidanceInstructions.enumerated() {
+      DispatchQueue.main.asyncAfter(deadline: .now() + interval * Double(index)) {
+        guidanceIndex = index
+      }
+    }
+  }
+
+  private func getBreathingDuration(_ pattern: BreathingPattern) -> Double {
+    switch pattern {
+    case .fiveFive:
+      return 10.0  // 5s inhale + 5s exhale
+    case .fourSix:
+      return 10.0  // 4s inhale + 6s exhale
+    case .box:
+      return 16.0  // 4s inhale + 4s hold + 4s exhale + 4s hold
+    case .physiologicalSigh:
+      return 8.0  // 2s inhale + 2s inhale + 4s exhale
+    case .none:
+      return 10.0
+    }
+  }
+
+  private func getCurrentBreathingInstruction(_ program: ReliefProgram) -> String {
+    let instructions = program.getBreathingInstructions()
+    let cycleDuration = getBreathingDuration(program.breathing)
+    let currentTime = program.duration - TimeInterval(timeRemaining)
+    let cycleTime = currentTime.truncatingRemainder(dividingBy: cycleDuration)
+    let instructionIndex = Int(cycleTime / (cycleDuration / Double(instructions.count)))
+
+    return instructions[min(instructionIndex, instructions.count - 1)]
+  }
+
+  private func getCurrentGuidanceInstruction(_ program: ReliefProgram) -> String {
+    let instructions = program.getGuidanceInstructions()
+    return instructions[min(guidanceIndex, instructions.count - 1)]
   }
 }

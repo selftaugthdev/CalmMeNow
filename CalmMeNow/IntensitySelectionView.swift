@@ -156,11 +156,11 @@ struct IntensitySelectionView: View {
   private var mildButtonText: String {
     switch emotion.lowercased() {
     case "anxious":
-      return "A Little Nervous"
+      return "A Little Anxious"
     case "angry":
-      return "A Little Annoyed"
+      return "A Little Angry"
     case "sad":
-      return "A Bit Down"
+      return "A Bit Sad"
     case "frustrated":
       return "Slightly Frustrated"
     default:
@@ -173,9 +173,9 @@ struct IntensitySelectionView: View {
     case "anxious":
       return "Full Panic Mode"
     case "angry":
-      return "Full-on Rage"
+      return "Full Rage Mode"
     case "sad":
-      return "Completely Crushed"
+      return "Completely Devastated"
     case "frustrated":
       return "Completely Overwhelmed"
     default:
