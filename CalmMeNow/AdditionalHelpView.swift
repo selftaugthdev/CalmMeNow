@@ -174,37 +174,4 @@ struct AdditionalHelpView: View {
 
 // MARK: - Placeholder Views (to be implemented later)
 
-struct BreathingExerciseView: View {
-  @Environment(\.presentationMode) var presentationMode
-
-  var body: some View {
-    ZStack {
-      Color(hex: "#A0C4FF")
-        .ignoresSafeArea()
-
-      VStack(spacing: 30) {
-        Text("🌬️ Breathing Exercise")
-          .font(.largeTitle)
-          .fontWeight(.bold)
-          .foregroundColor(.black)
-
-        Text("Coming soon!")
-          .font(.title2)
-          .foregroundColor(.black)
-
-        Button("Close") {
-          presentationMode.wrappedValue.dismiss()
-        }
-        .foregroundColor(.white)
-        .padding(.vertical, 12)
-        .padding(.horizontal, 24)
-        .background(
-          RoundedRectangle(cornerRadius: 20)
-            .fill(Color.black.opacity(0.6))
-        )
-      }
-    }
-  }
-}
-
 // JournalingView is now implemented in JournalingView.swift
