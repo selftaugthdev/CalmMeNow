@@ -62,7 +62,9 @@ struct TailoredExperienceView: View {
       audioManager.stopSound()
     }
     .sheet(isPresented: $showSuccessView) {
-      SuccessView()
+      SuccessView(onReturnToHome: {
+        presentationMode.wrappedValue.dismiss()
+      })
     }
   }
 
@@ -122,7 +124,7 @@ struct TailoredExperienceView: View {
     VStack(spacing: 40) {
       // Breathing bubble animation
       Circle()
-        .fill(Color.white.opacity(0.3))
+        .fill(Color.white.opacity(0.8))
         .frame(width: 200, height: 200)
         .scaleEffect(isAnimating ? 1.2 : 0.8)
         .animation(
@@ -130,6 +132,7 @@ struct TailoredExperienceView: View {
             .repeatForever(autoreverses: true),
           value: isAnimating
         )
+        .shadow(color: .white.opacity(0.6), radius: 20, x: 0, y: 0)
 
       // Instructions
       Text(mildInstructions)
@@ -173,12 +176,12 @@ struct TailoredExperienceView: View {
       ZStack {
         // Outer circle
         Circle()
-          .stroke(Color.white.opacity(0.3), lineWidth: 3)
+          .stroke(Color.white.opacity(0.6), lineWidth: 4)
           .frame(width: 300, height: 300)
 
         // Breathing circle
         Circle()
-          .fill(Color.white.opacity(0.6))
+          .fill(Color.white.opacity(0.9))
           .frame(width: 200, height: 200)
           .scaleEffect(isAnimating ? 1.3 : 0.7)
           .animation(
@@ -186,6 +189,7 @@ struct TailoredExperienceView: View {
               .repeatForever(autoreverses: true),
             value: isAnimating
           )
+          .shadow(color: .white.opacity(0.7), radius: 25, x: 0, y: 0)
 
         // Breathing text
         Text(breathingText)

@@ -4,6 +4,7 @@ struct SuccessView: View {
   @Environment(\.presentationMode) var presentationMode
   @State private var isAnimating = false
   @State private var showOptions = false
+  var onReturnToHome: (() -> Void)?
   
   var body: some View {
     ZStack {
@@ -53,26 +54,29 @@ struct SuccessView: View {
           Text("🎉 That's great to hear!")
             .font(.largeTitle)
             .fontWeight(.bold)
-            .foregroundColor(.white)
+            .foregroundColor(.black)
             .multilineTextAlignment(.center)
+            .shadow(color: .white, radius: 2, x: 0, y: 1)
           
           Text("You did it.")
             .font(.title2)
             .fontWeight(.medium)
-            .foregroundColor(.white.opacity(0.9))
+            .foregroundColor(.black)
             .multilineTextAlignment(.center)
+            .shadow(color: .white, radius: 2, x: 0, y: 1)
           
           Text("Come back anytime — we've got you.")
             .font(.title3)
-            .foregroundColor(.white.opacity(0.8))
+            .foregroundColor(.black)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 40)
+            .shadow(color: .white, radius: 2, x: 0, y: 1)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 24)
         .background(
           RoundedRectangle(cornerRadius: 16)
-            .fill(Color.white.opacity(0.2))
+            .fill(Color.white.opacity(0.9))
         )
         
         Spacer()
@@ -82,34 +86,37 @@ struct SuccessView: View {
           VStack(spacing: 16) {
             Button("Return to Home") {
               presentationMode.wrappedValue.dismiss()
+              onReturnToHome?()
             }
-            .foregroundColor(.white)
+            .foregroundColor(.black)
             .padding(.vertical, 16)
             .padding(.horizontal, 32)
             .background(
               RoundedRectangle(cornerRadius: 25)
-                .fill(Color.white.opacity(0.3))
+                .fill(Color.white.opacity(0.9))
             )
             .overlay(
               RoundedRectangle(cornerRadius: 25)
-                .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                .stroke(Color.black.opacity(0.2), lineWidth: 1)
             )
+            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
             
             Button("Journal this moment") {
               // TODO: Implement journaling functionality
               presentationMode.wrappedValue.dismiss()
             }
-            .foregroundColor(.white)
+            .foregroundColor(.black)
             .padding(.vertical, 16)
             .padding(.horizontal, 32)
             .background(
               RoundedRectangle(cornerRadius: 25)
-                .fill(Color.white.opacity(0.2))
+                .fill(Color.white.opacity(0.8))
             )
             .overlay(
               RoundedRectangle(cornerRadius: 25)
-                .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                .stroke(Color.black.opacity(0.2), lineWidth: 1)
             )
+            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
           }
           .transition(.opacity.combined(with: .move(edge: .bottom)))
         }

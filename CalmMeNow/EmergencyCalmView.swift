@@ -168,7 +168,9 @@ struct EmergencyCalmView: View {
       audioManager.stopSound()
     }
     .sheet(isPresented: $showSuccessView) {
-      SuccessView()
+      SuccessView(onReturnToHome: {
+        presentationMode.wrappedValue.dismiss()
+      })
     }
   }
 
