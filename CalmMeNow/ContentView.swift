@@ -17,6 +17,7 @@ struct ContentView: View {
   @State private var showingIntensitySelection = false
   @State private var showingTailoredExperience = false
   @State private var showingEmergencyCalm = false
+
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
   @State private var selectedIntensity: IntensityLevel = .mild
@@ -231,6 +232,7 @@ struct ContentView: View {
       .sheet(isPresented: $showingEmergencyCalm) {
         EmergencyCalmView()
       }
+
     }
   }
 

@@ -8,13 +8,13 @@ struct AdditionalHelpView: View {
   @State private var showBubbleGame = false
   @State private var showBreathingExercise = false
   @State private var showJournaling = false
-  
+
   enum HelpOption: String, CaseIterable {
     case anotherSound = "Try another calming sound"
     case bubbleGame = "Play a relaxing game"
     case breathingExercise = "Do a breathing exercise"
     case journaling = "Write out what's bothering you"
-    
+
     var emoji: String {
       switch self {
       case .anotherSound: return "🎧"
@@ -23,7 +23,7 @@ struct AdditionalHelpView: View {
       case .journaling: return "📝"
       }
     }
-    
+
     var description: String {
       switch self {
       case .anotherSound: return "Listen to a different soothing sound"
@@ -33,7 +33,7 @@ struct AdditionalHelpView: View {
       }
     }
   }
-  
+
   var body: some View {
     ZStack {
       // Gentle background gradient
@@ -46,7 +46,7 @@ struct AdditionalHelpView: View {
         endPoint: .bottomTrailing
       )
       .ignoresSafeArea()
-      
+
       VStack(spacing: 30) {
         // Header
         VStack(spacing: 16) {
@@ -54,7 +54,7 @@ struct AdditionalHelpView: View {
             .font(.largeTitle)
             .fontWeight(.bold)
             .foregroundColor(.black)
-          
+
           Text("Let's try something else to help you feel better.")
             .font(.title2)
             .fontWeight(.medium)
@@ -69,7 +69,7 @@ struct AdditionalHelpView: View {
             .fill(Color.white.opacity(0.9))
         )
         .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-        
+
         // Help options
         VStack(spacing: 16) {
           ForEach(HelpOption.allCases, id: \.self) { option in
@@ -80,20 +80,20 @@ struct AdditionalHelpView: View {
               HStack(spacing: 16) {
                 Text(option.emoji)
                   .font(.title2)
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                   Text(option.rawValue)
                     .font(.headline)
                     .fontWeight(.semibold)
                     .foregroundColor(.black)
-                  
+
                   Text(option.description)
                     .font(.subheadline)
                     .foregroundColor(.black.opacity(0.7))
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
                   .font(.title3)
                   .foregroundColor(.black.opacity(0.5))
@@ -113,9 +113,9 @@ struct AdditionalHelpView: View {
           }
         }
         .padding(.horizontal, 20)
-        
+
         Spacer()
-        
+
         // Back to home option
         Button("Return to Home") {
           presentationMode.wrappedValue.dismiss()
@@ -146,23 +146,26 @@ struct AdditionalHelpView: View {
       JournalingView()
     }
   }
-  
+
   private func handleOptionSelection(_ option: HelpOption) {
     progressTracker.recordStillNeedHelp(option: option.rawValue)
-    
+
     switch option {
     case .anotherSound:
       // Play a different calming sound
-      let sounds = ["perfect-beauty-1-min", "mixkit-serene-anxious", "mixkit-just-chill-angry", "mixkit-jazz-sad"]
+      let sounds = [
+        "perfect-beauty-1-min", "mixkit-serene-anxious", "mixkit-just-chill-angry",
+        "mixkit-jazz-sad",
+      ]
       let randomSound = sounds.randomElement() ?? "perfect-beauty-1-min"
       audioManager.playSound(randomSound)
-      
+
     case .bubbleGame:
       showBubbleGame = true
-      
+
     case .breathingExercise:
       showBreathingExercise = true
-      
+
     case .journaling:
       showJournaling = true
     }
@@ -171,57 +174,24 @@ struct AdditionalHelpView: View {
 
 // MARK: - Placeholder Views (to be implemented later)
 
-struct BubbleGameView: View {
-  @Environment(\.presentationMode) var presentationMode
-  
-  var body: some View {
-    ZStack {
-      Color(hex: "#A0C4FF")
-        .ignoresSafeArea()
-      
-      VStack(spacing: 30) {
-        Text("🫧 Bubble Game")
-          .font(.largeTitle)
-          .fontWeight(.bold)
-          .foregroundColor(.black)
-        
-        Text("Coming soon!")
-          .font(.title2)
-          .foregroundColor(.black)
-        
-        Button("Close") {
-          presentationMode.wrappedValue.dismiss()
-        }
-        .foregroundColor(.white)
-        .padding(.vertical, 12)
-        .padding(.horizontal, 24)
-        .background(
-          RoundedRectangle(cornerRadius: 20)
-            .fill(Color.black.opacity(0.6))
-        )
-      }
-    }
-  }
-}
-
 struct BreathingExerciseView: View {
   @Environment(\.presentationMode) var presentationMode
-  
+
   var body: some View {
     ZStack {
       Color(hex: "#A0C4FF")
         .ignoresSafeArea()
-      
+
       VStack(spacing: 30) {
         Text("🌬️ Breathing Exercise")
           .font(.largeTitle)
           .fontWeight(.bold)
           .foregroundColor(.black)
-        
+
         Text("Coming soon!")
           .font(.title2)
           .foregroundColor(.black)
-        
+
         Button("Close") {
           presentationMode.wrappedValue.dismiss()
         }
