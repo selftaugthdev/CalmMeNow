@@ -1,0 +1,62 @@
+# Project Structure
+---
+
+## 🧠 `Implementation.md`
+
+```markdown
+# Implementation Notes
+
+## Core Logic
+Each emotion button triggers:
+1. A corresponding audio file playback using `AVAudioPlayer`.
+2. Optionally tracks the selected emotion in a state variable.
+
+## Audio Playback
+- Use AVFoundation to play bundled `.mp3` files.
+- Ensure fallback if playback fails.
+
+## Onboarding
+Simple `NavigationStack` or `fullScreenCover` from `App.swift`:
+- Use `@AppStorage("hasLaunchedBefore")` to check if onboarding is needed.
+
+## Breathing UI
+- Use `withAnimation` and `Circle()` in SwiftUI for inhale → hold → exhale cycle.
+
+## Navigation Flow
+1. Home → AudioPlayerView → FeedbackView
+2. If "Still overwhelmed" → BreathingView
+
+## Sound Storage
+Bundle `.mp3` files inside the app to avoid download needs.
+```
+
+## 🎨 `UI/UX Design`
+
+```markdown
+# UI/UX Design
+
+## Goal
+Let users regain control of their emotions in < 1 minute with no friction.
+
+## Design Principles
+- Minimal decisions.
+- Big touch targets.
+- Gentle, friendly tone.
+- Instant relief (no loading, no login).
+
+## Color Palette
+- Background: Soft gradient (blue → mint)
+- Buttons: Bright blue with emojis
+- Text: Black on white/light gray
+
+## Interaction Flow
+1. Launch app → Emotion screen
+2. Tap emotion → 1-minute sound
+3. After sound: Feedback screen
+4. If still overwhelmed → Breathing screen
+
+## Accessibility
+- Large fonts
+- High contrast
+- VoiceOver compatible if possible
+``` 

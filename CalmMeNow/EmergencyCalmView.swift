@@ -85,10 +85,11 @@ struct EmergencyCalmView: View {
                   .repeatForever(autoreverses: true),
                 value: isAnimating
               )
+              .padding(.horizontal, 20)
+              .padding(.vertical, 12)
               .background(
                 RoundedRectangle(cornerRadius: 12)
                   .fill(Color.white.opacity(0.9))
-                  .padding(.horizontal, 16)
               )
           }
 
@@ -106,10 +107,11 @@ struct EmergencyCalmView: View {
               .multilineTextAlignment(.center)
               .padding(.horizontal, 40)
           }
+          .padding(.horizontal, 20)
+          .padding(.vertical, 16)
           .background(
             RoundedRectangle(cornerRadius: 16)
               .fill(Color.white.opacity(0.9))
-              .padding(.horizontal, 20)
           )
         }
 
@@ -122,10 +124,11 @@ struct EmergencyCalmView: View {
               .font(.title3)
               .fontWeight(.medium)
               .foregroundColor(.black)
+              .padding(.horizontal, 16)
+              .padding(.vertical, 8)
               .background(
                 RoundedRectangle(cornerRadius: 8)
                   .fill(Color.white.opacity(0.9))
-                  .padding(.horizontal, 10)
               )
 
             HStack(spacing: 20) {

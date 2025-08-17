@@ -138,8 +138,6 @@ struct TailoredExperienceView: View {
         .background(
           RoundedRectangle(cornerRadius: 12)
             .fill(Color.white.opacity(0.8))
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)  // Add vertical padding to background
         )
 
       // Tap to slow game
@@ -201,8 +199,6 @@ struct TailoredExperienceView: View {
           .background(
             RoundedRectangle(cornerRadius: 8)
               .fill(Color.white.opacity(0.8))
-              .padding(.horizontal, 10)
-              .padding(.vertical, 5)  // Add vertical padding to background
           )
       }
 
@@ -217,8 +213,6 @@ struct TailoredExperienceView: View {
         .background(
           RoundedRectangle(cornerRadius: 12)
             .fill(Color.white.opacity(0.8))
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)  // Add vertical padding to background
         )
     }
   }
@@ -231,10 +225,11 @@ struct TailoredExperienceView: View {
         .font(.title3)
         .fontWeight(.medium)
         .foregroundColor(.black)  // Darker text
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
         .background(
           RoundedRectangle(cornerRadius: 8)
             .fill(Color.white.opacity(0.8))
-            .padding(.horizontal, 10)
         )
 
       HStack(spacing: 20) {

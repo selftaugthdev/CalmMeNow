@@ -24,12 +24,11 @@ struct ContentView: View {
   var body: some View {
     NavigationView {
       ZStack {
-        // Background gradient
+        // Background gradient - Teal to Soft Purple (stability + healing)
         LinearGradient(
           gradient: Gradient(colors: [
-            Color(red: 0.85, green: 0.85, blue: 0.95),  // Deeper lavender
-            Color(red: 0.80, green: 0.90, blue: 0.95),  // Richer blue
-            Color(red: 0.85, green: 0.95, blue: 0.85),  // Deeper mint
+            Color(hex: "#A0C4FF"),  // Teal
+            Color(hex: "#D0BFFF"),  // Soft Purple
           ]),
           startPoint: .topLeading,
           endPoint: .bottomTrailing
@@ -45,10 +44,10 @@ struct ContentView: View {
             // Emergency Quick Calm Button at TOP - instant relief
             VStack(spacing: 8) {
               Text("🚨 EMERGENCY CALM")
-                .font(.caption)
+                .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.red)
-                .opacity(0.8)
+                .opacity(0.9)
 
               Button(action: {
                 isQuickCalmPressed = true
