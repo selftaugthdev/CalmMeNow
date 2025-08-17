@@ -8,6 +8,7 @@ struct EmergencyCalmView: View {
   @State private var timeRemaining: Int = 60
   @State private var showCompletionOptions = false
   @State private var showSuccessView = false
+  @State private var showAdditionalHelp = false
 
   var body: some View {
     ZStack {
@@ -135,6 +136,7 @@ struct EmergencyCalmView: View {
             HStack(spacing: 20) {
               Button("Better now") {
                 progressTracker.recordUsage()
+                progressTracker.recordReliefOutcome(.betterNow)
                 showSuccessView = true
               }
               .foregroundColor(.white)
@@ -145,8 +147,9 @@ struct EmergencyCalmView: View {
                   .fill(Color.green.opacity(0.8))
               )
 
-              Button("Need more help") {
-                presentationMode.wrappedValue.dismiss()
+              Button("I still need help") {
+                progressTracker.recordReliefOutcome(.stillNeedHelp)
+                showAdditionalHelp = true
               }
               .foregroundColor(.white)
               .padding(.vertical, 12)
@@ -171,6 +174,9 @@ struct EmergencyCalmView: View {
       SuccessView(onReturnToHome: {
         presentationMode.wrappedValue.dismiss()
       })
+    }
+    .sheet(isPresented: $showAdditionalHelp) {
+      AdditionalHelpView()
     }
   }
 

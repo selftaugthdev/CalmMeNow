@@ -1,18 +1,27 @@
 import Foundation
 import SwiftUI
 
+enum ReliefOutcome: String, CaseIterable {
+  case betterNow = "Better Now"
+  case stillNeedHelp = "Still Need Help"
+}
+
 class ProgressTracker: ObservableObject {
   static let shared = ProgressTracker()
 
   @Published var weeklyUsage: Int = 0
   @Published var totalUsage: Int = 0
   @Published var lastUsedDate: Date?
+  @Published var reliefOutcomes: [ReliefOutcome] = []
+  @Published var helpOptionsUsed: [String] = []
 
   private let userDefaults = UserDefaults.standard
   private let weeklyUsageKey = "weeklyUsage"
   private let totalUsageKey = "totalUsage"
   private let lastUsedDateKey = "lastUsedDate"
   private let weekStartDateKey = "weekStartDate"
+  private let reliefOutcomesKey = "reliefOutcomes"
+  private let helpOptionsUsedKey = "helpOptionsUsed"
 
   init() {
     loadData()
@@ -24,6 +33,16 @@ class ProgressTracker: ObservableObject {
     weeklyUsage += 1
     lastUsedDate = Date()
 
+    saveData()
+  }
+  
+  func recordReliefOutcome(_ outcome: ReliefOutcome) {
+    reliefOutcomes.append(outcome)
+    saveData()
+  }
+  
+  func recordStillNeedHelp(option: String) {
+    helpOptionsUsed.append(option)
     saveData()
   }
 
@@ -52,12 +71,27 @@ class ProgressTracker: ObservableObject {
     weeklyUsage = userDefaults.integer(forKey: weeklyUsageKey)
     totalUsage = userDefaults.integer(forKey: totalUsageKey)
     lastUsedDate = userDefaults.object(forKey: lastUsedDateKey) as? Date
+    
+    // Load relief outcomes
+    if let outcomeData = userDefaults.array(forKey: reliefOutcomesKey) as? [String] {
+      reliefOutcomes = outcomeData.compactMap { ReliefOutcome(rawValue: $0) }
+    }
+    
+    // Load help options used
+    helpOptionsUsed = userDefaults.stringArray(forKey: helpOptionsUsedKey) ?? []
   }
 
   private func saveData() {
     userDefaults.set(weeklyUsage, forKey: weeklyUsageKey)
     userDefaults.set(totalUsage, forKey: totalUsageKey)
     userDefaults.set(lastUsedDate, forKey: lastUsedDateKey)
+    
+    // Save relief outcomes
+    let outcomeStrings = reliefOutcomes.map { $0.rawValue }
+    userDefaults.set(outcomeStrings, forKey: reliefOutcomesKey)
+    
+    // Save help options used
+    userDefaults.set(helpOptionsUsed, forKey: helpOptionsUsedKey)
   }
 
   func getUsageMessage() -> String {

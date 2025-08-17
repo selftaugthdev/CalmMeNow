@@ -9,6 +9,7 @@ struct TailoredExperienceView: View {
   @State private var isAnimating = false
   @State private var showCompletionOptions = false
   @State private var showSuccessView = false
+  @State private var showAdditionalHelp = false
   @State private var timeRemaining: Int = 60
 
   var body: some View {
@@ -24,7 +25,7 @@ struct TailoredExperienceView: View {
             audioManager.stopSound()
             presentationMode.wrappedValue.dismiss()
           }
-          .foregroundColor(.white)
+          .foregroundColor(.black)
           .padding()
 
           Spacer()
@@ -33,7 +34,7 @@ struct TailoredExperienceView: View {
             Text("\(timeRemaining)s")
               .font(.title2)
               .fontWeight(.bold)
-              .foregroundColor(.white)
+              .foregroundColor(.black)
               .padding()
           }
         }
@@ -65,6 +66,9 @@ struct TailoredExperienceView: View {
       SuccessView(onReturnToHome: {
         presentationMode.wrappedValue.dismiss()
       })
+    }
+    .sheet(isPresented: $showAdditionalHelp) {
+      AdditionalHelpView()
     }
   }
 
@@ -243,6 +247,7 @@ struct TailoredExperienceView: View {
       HStack(spacing: 20) {
         Button("I feel better") {
           progressTracker.recordUsage()
+          progressTracker.recordReliefOutcome(.betterNow)
           showSuccessView = true
         }
         .foregroundColor(.white)
@@ -253,8 +258,9 @@ struct TailoredExperienceView: View {
             .fill(Color.green.opacity(0.8))
         )
 
-        Button("Try something else") {
-          presentationMode.wrappedValue.dismiss()
+        Button("I still need help") {
+          progressTracker.recordReliefOutcome(.stillNeedHelp)
+          showAdditionalHelp = true
         }
         .foregroundColor(.white)
         .padding(.vertical, 12)

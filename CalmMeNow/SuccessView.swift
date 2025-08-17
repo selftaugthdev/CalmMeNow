@@ -4,6 +4,7 @@ struct SuccessView: View {
   @Environment(\.presentationMode) var presentationMode
   @State private var isAnimating = false
   @State private var showOptions = false
+  @State private var showJournaling = false
   var onReturnToHome: (() -> Void)?
   
   var body: some View {
@@ -102,8 +103,7 @@ struct SuccessView: View {
             .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
             
             Button("Journal this moment") {
-              // TODO: Implement journaling functionality
-              presentationMode.wrappedValue.dismiss()
+              showJournaling = true
             }
             .foregroundColor(.black)
             .padding(.vertical, 16)
@@ -122,6 +122,9 @@ struct SuccessView: View {
         }
       }
       .padding(.bottom, 60)
+    }
+    .sheet(isPresented: $showJournaling) {
+      JournalingView()
     }
     .onAppear {
       isAnimating = true
