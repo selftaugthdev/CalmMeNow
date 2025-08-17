@@ -198,48 +198,10 @@ struct ContentView: View {
             .padding(.horizontal, 40)  // Increased horizontal padding for breathing room
             .padding(.bottom, 40)  // Breathing room before achievement card
 
-            // Progress tracking as achievement card
-            VStack(spacing: 12) {
-              // Achievement icon
-              Text("🏆")
-                .font(.system(size: 32))
-                .padding(.top, 20)
-
-              // Main usage message
-              Text(progressTracker.getUsageMessage())
-                .font(.headline)
-                .fontWeight(.medium)
-                .foregroundColor(.primary)
-                .multilineTextAlignment(.center)
-
-              // Total usage message
-              Text(progressTracker.getTotalUsageMessage())
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.bottom, 20)
-            }
-            .frame(maxWidth: .infinity)
-            .background(
-              RoundedRectangle(cornerRadius: 20)
-                .fill(
-                  LinearGradient(
-                    gradient: Gradient(colors: [
-                      Color.white.opacity(0.9),
-                      Color.white.opacity(0.7),
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                  )
-                )
-                .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
-            )
-            .overlay(
-              RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.blue.opacity(0.2), lineWidth: 1)
-            )
-            .padding(.horizontal, 40)
-            .padding(.bottom, 60)  // Add bottom padding for scroll space
+            // Streak tracking and gamification
+            StreakCardView(progressTracker: progressTracker)
+              .padding(.horizontal, 40)
+              .padding(.bottom, 60)  // Add bottom padding for scroll space
           }
         }
       }
