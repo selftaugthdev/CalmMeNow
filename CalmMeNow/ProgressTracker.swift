@@ -146,7 +146,7 @@ class ProgressTracker: ObservableObject {
     let today = Date()
     var activity: [DayActivity] = []
 
-    for i in 89...0 {
+    for i in 0...89 {
       if let date = calendar.date(byAdding: .day, value: -i, to: today) {
         let wasActive = calendar.isDate(date, inSameDayAs: lastUsedDate ?? Date.distantPast)
         let usageCount = wasActive ? 1 : 0
