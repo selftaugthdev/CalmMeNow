@@ -14,6 +14,15 @@ struct CatMascot: View {
 
   var body: some View {
     ZStack {
+      // Tail (behind body)
+      TailShape()
+        .stroke(primary, lineWidth: 16)
+        .frame(width: 140, height: 140)
+        .rotationEffect(.degrees(tailWag ? 8 : -8), anchor: .bottomLeading)
+        .offset(x: 90, y: 70)
+        .shadow(radius: 0.1)
+        .animation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true), value: tailWag)
+
       // Body (breathing)
       VStack(spacing: 0) {
         // Head
@@ -122,15 +131,6 @@ struct CatMascot: View {
       }
       .scaleEffect(breathe ? 1.02 : 0.98)
       .animation(.easeInOut(duration: 3).repeatForever(autoreverses: true), value: breathe)
-
-      // Tail (behind body)
-      TailShape()
-        .stroke(primary, lineWidth: 18)
-        .frame(width: 160, height: 160)
-        .rotationEffect(.degrees(tailWag ? 12 : -6), anchor: .topLeading)
-        .offset(x: 84, y: 70)
-        .shadow(radius: 0.1)
-        .animation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true), value: tailWag)
     }
     .onAppear {
       breathe = true
@@ -223,10 +223,17 @@ struct WhiskerRight: Shape {
 struct TailShape: Shape {
   func path(in rect: CGRect) -> Path {
     var p = Path()
-    p.move(to: CGPoint(x: rect.minX + 10, y: rect.maxY - 10))
-    p.addQuadCurve(
-      to: CGPoint(x: rect.maxX - 20, y: rect.minY + 20),
-      control: CGPoint(x: rect.midX + 10, y: rect.midY + 40))
+
+    // Start at the base of the tail (bottom left)
+    p.move(to: CGPoint(x: rect.minX + 15, y: rect.maxY - 15))
+
+    // Create a flowing, curved tail that goes up and to the right
+    p.addCurve(
+      to: CGPoint(x: rect.maxX - 25, y: rect.minY + 30),
+      control1: CGPoint(x: rect.midX - 20, y: rect.maxY - 40),
+      control2: CGPoint(x: rect.midX + 30, y: rect.midY - 20)
+    )
+
     return p
   }
 }
