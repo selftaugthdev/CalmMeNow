@@ -76,6 +76,7 @@ struct CooldownView: View {
         }
 
         Button(action: {
+          HapticManager.shared.audioControl()
           if audioManager.isPlaying {
             audioManager.stopSound()
           } else {

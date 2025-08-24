@@ -118,6 +118,7 @@ struct EmergencyCalmView: View {
 
             HStack(spacing: 20) {
               Button("Better now") {
+                HapticManager.shared.success()
                 progressTracker.recordUsage()
                 progressTracker.recordReliefOutcome(.betterNow)
                 showSuccessView = true
@@ -131,6 +132,7 @@ struct EmergencyCalmView: View {
               )
 
               Button("I still need help") {
+                HapticManager.shared.mediumImpact()
                 progressTracker.recordReliefOutcome(.stillNeedHelp)
                 showAdditionalHelp = true
               }

@@ -44,6 +44,7 @@ struct TailoredExperienceView: View {
         if showControls {
           HStack {
             Button("Exit") {
+              HapticManager.shared.cancelButtonTap()
               audioManager.stopSound()
               presentationMode.wrappedValue.dismiss()
             }
@@ -360,6 +361,7 @@ struct TailoredExperienceView: View {
 
       HStack(spacing: 20) {
         Button("I feel better") {
+          HapticManager.shared.success()
           progressTracker.recordUsage()
           progressTracker.recordReliefOutcome(.betterNow)
           showSuccessView = true
@@ -373,6 +375,7 @@ struct TailoredExperienceView: View {
         )
 
         Button("I still need help") {
+          HapticManager.shared.mediumImpact()
           progressTracker.recordReliefOutcome(.stillNeedHelp)
           showAdditionalHelp = true
         }

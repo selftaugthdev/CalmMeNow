@@ -50,6 +50,7 @@ struct ContentView: View {
                 .opacity(0.9)
 
               Button(action: {
+                HapticManager.shared.emergencyButtonTap()
                 isQuickCalmPressed = true
                 progressTracker.recordUsage()
                 showingEmergencyCalm = true
@@ -117,6 +118,7 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "anxious",
                   onTap: {
+                    HapticManager.shared.emotionButtonTap()
                     selectedEmotion = "anxious"
                     selectedEmoji = "😰"
                     // Force state synchronization with delay
@@ -133,6 +135,7 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "angry",
                   onTap: {
+                    HapticManager.shared.emotionButtonTap()
                     selectedEmotion = "angry"
                     selectedEmoji = "😡"
                     // Force state synchronization with delay
@@ -152,6 +155,7 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "sad",
                   onTap: {
+                    HapticManager.shared.emotionButtonTap()
                     selectedEmotion = "sad"
                     selectedEmoji = "😢"
                     // Force state synchronization with delay
@@ -168,6 +172,7 @@ struct ContentView: View {
                   subtext: "Tap to feel better in 60 seconds",
                   isSelected: selectedButton == "frustrated",
                   onTap: {
+                    HapticManager.shared.emotionButtonTap()
                     selectedEmotion = "frustrated"
                     selectedEmoji = "😖"
                     // Force state synchronization with delay

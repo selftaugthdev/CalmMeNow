@@ -48,6 +48,7 @@ struct IntensitySelectionView: View {
           VStack(spacing: 20) {
             // Mild button
             Button(action: {
+              HapticManager.shared.intensitySelection()
               selectedIntensity = .mild
             }) {
               HStack {
@@ -74,6 +75,7 @@ struct IntensitySelectionView: View {
 
             // Severe button
             Button(action: {
+              HapticManager.shared.intensitySelection()
               selectedIntensity = .severe
             }) {
               HStack {
@@ -103,6 +105,7 @@ struct IntensitySelectionView: View {
           // Continue button
           if selectedIntensity != nil {
             Button(action: {
+              HapticManager.shared.continueButtonTap()
               if let intensity = selectedIntensity {
                 onIntensitySelected?(intensity)
                 isPresented = false
@@ -129,6 +132,7 @@ struct IntensitySelectionView: View {
       .navigationBarTitleDisplayMode(.inline)
       .navigationBarItems(
         leading: Button("Cancel") {
+          HapticManager.shared.cancelButtonTap()
           isPresented = false
         }
         .foregroundColor(.blue)
