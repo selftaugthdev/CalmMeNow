@@ -104,16 +104,10 @@ struct CooldownView: View {
   // MARK: - Animation Views
 
   private var breathingAnimation: some View {
-    VStack {
-      Circle()
-        .fill(Color.white.opacity(0.6))
-        .frame(width: 200, height: 200)
-        .scaleEffect(isAnimating ? 1.5 : 0.8)
-        .animation(
-          Animation.easeInOut(duration: 6)
-            .repeatForever(autoreverses: true),
-          value: isAnimating
-        )
+    VStack(spacing: 40) {
+      CatMascot()
+        .frame(width: 180, height: 220)
+        .padding(.vertical, 20)
 
       Text("Let it go...")
         .font(.title2)

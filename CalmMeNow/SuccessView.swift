@@ -93,7 +93,7 @@ struct SuccessView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 24)
-        .frame(maxWidth: .infinity, minHeight: 120)
+        .frame(maxWidth: 320, minHeight: 120)  // Constrain width instead of stretching to infinity
         .background(
           RoundedRectangle(cornerRadius: 16)
             .fill(Color.white.opacity(0.9))

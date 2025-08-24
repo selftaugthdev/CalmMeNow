@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E4FC06412E55124F00444E67 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = E4FC06402E55124F00444E67 /* Lottie */; };
+		E4FC06452E55136500444E67 /* Sloth meditate.json in Resources */ = {isa = PBXBuildFile; fileRef = E4FC06442E55136500444E67 /* Sloth meditate.json */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		E4DB97BD2DDBAD3E0084C498 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,7 @@
 		E4DB97AF2DDBAD3C0084C498 /* CalmMeNow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CalmMeNow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4DB97BC2DDBAD3E0084C498 /* CalmMeNowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalmMeNowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4DB97C62DDBAD3E0084C498 /* CalmMeNowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalmMeNowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4FC06442E55136500444E67 /* Sloth meditate.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "Sloth meditate.json"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -65,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E4FC06412E55124F00444E67 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +95,7 @@
 		E4DB97A62DDBAD3C0084C498 = {
 			isa = PBXGroup;
 			children = (
+				E4FC06442E55136500444E67 /* Sloth meditate.json */,
 				E4DB97B12DDBAD3C0084C498 /* CalmMeNow */,
 				E4DB97BF2DDBAD3E0084C498 /* CalmMeNowTests */,
 				E4DB97C92DDBAD3E0084C498 /* CalmMeNowUITests */,
@@ -125,6 +133,7 @@
 			);
 			name = CalmMeNow;
 			packageProductDependencies = (
+				E4FC06402E55124F00444E67 /* Lottie */,
 			);
 			productName = CalmMeNow;
 			productReference = E4DB97AF2DDBAD3C0084C498 /* CalmMeNow.app */;
@@ -208,6 +217,9 @@
 			);
 			mainGroup = E4DB97A62DDBAD3C0084C498;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E4FC063F2E55124F00444E67 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E4DB97B02DDBAD3C0084C498 /* Products */;
 			projectDirPath = "";
@@ -225,6 +237,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E4FC06452E55136500444E67 /* Sloth meditate.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -563,6 +576,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E4FC063F2E55124F00444E67 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E4FC06402E55124F00444E67 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E4FC063F2E55124F00444E67 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E4DB97A72DDBAD3C0084C498 /* Project object */;
 }

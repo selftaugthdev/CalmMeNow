@@ -65,7 +65,7 @@ extension ReliefProgram {
       duration: 60,
       theme: .pastel,
       headerText: "A little anxious",
-      subtext: "One minute. Breathe with the circle or just listen.",
+      subtext: "One minute. Breathe with the circle or just close your eyes and listen.",
       voiceOverEnabled: false,
       hapticsEnabled: true
     ),

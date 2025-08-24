@@ -12,7 +12,6 @@ struct ContentView: View {
   @StateObject private var progressTracker = ProgressTracker.shared
   @State private var selectedButton: String? = nil
   @State private var isQuickCalmPressed = false
-  @State private var isBreathing = false
   // Modal presentation states
   @State private var showingIntensitySelection = false
   @State private var showingTailoredExperience = false
@@ -94,23 +93,6 @@ struct ContentView: View {
             .padding(.horizontal, 30)
             .padding(.top, 60)  // Add top padding to avoid Dynamic Island
             .padding(.bottom, 50)  // Breathing room after emergency button
-
-            // Logo with breathing animation
-            Image("CalmMeNow Logo Homepage")
-              .resizable()
-              .scaledToFit()
-              .frame(height: 80)
-              .scaleEffect(isBreathing ? 1.05 : 1.0)
-              .opacity(isBreathing ? 0.9 : 1.0)
-              .animation(
-                Animation.easeInOut(duration: 4)
-                  .repeatForever(autoreverses: true),
-                value: isBreathing
-              )
-              .onAppear {
-                isBreathing = true
-              }
-              .padding(.bottom, 40)  // Breathing room after logo
 
             Text("Tap how you feel.")
               .font(.title2)
@@ -203,6 +185,10 @@ struct ContentView: View {
             StreakCardView(progressTracker: progressTracker)
               .padding(.horizontal, 40)
               .padding(.bottom, 60)  // Add bottom padding for scroll space
+              .onLongPressGesture(minimumDuration: 3) {
+                // Debug: Reset streak data on long press
+                progressTracker.resetStreakData()
+              }
           }
         }
       }

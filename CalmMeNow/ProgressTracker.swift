@@ -1,4 +1,3 @@
-
 import Foundation
 import SwiftUI
 
@@ -51,10 +50,28 @@ class ProgressTracker: ObservableObject {
   func recordUsage() {
     totalUsage += 1
     weeklyUsage += 1
+
+    let calendar = Calendar.current
+    let today = Date()
+
+    // Check if this is the first usage today
+    let isFirstUsageToday =
+      lastUsedDate == nil || !calendar.isDate(lastUsedDate!, inSameDayAs: today)
+
     lastUsedDate = Date()
 
     // Update streaks
     updateStreaks()
+
+    // Increment streak if this is the first usage today
+    if isFirstUsageToday {
+      currentStreak += 1
+      // Update longest streak
+      if currentStreak > longestStreak {
+        longestStreak = currentStreak
+      }
+    }
+
     generateLast90DaysActivity()
 
     saveData()
@@ -97,23 +114,23 @@ class ProgressTracker: ObservableObject {
     let calendar = Calendar.current
     let today = Date()
 
-    // Calculate current streak
+    // Calculate current streak based on last usage
     if let lastUsed = lastUsedDate {
       let daysSinceLastUse = calendar.dateComponents([.day], from: lastUsed, to: today).day ?? 0
 
       if daysSinceLastUse == 0 {
-        // Used today, increment streak
-        currentStreak += 1
+        // Used today, maintain current streak (don't increment here)
+        // Streak will be incremented when recordUsage() is called
       } else if daysSinceLastUse == 1 {
         // Used yesterday, maintain streak
         // currentStreak stays the same
       } else {
-        // Gap of 2+ days, reset streak
-        currentStreak = 1
+        // Gap of 2+ days, reset streak to 0 (not 1)
+        currentStreak = 0
       }
     } else {
-      // First time using
-      currentStreak = 1
+      // First time using, no streak yet
+      currentStreak = 0
     }
 
     // Update longest streak
@@ -247,5 +264,37 @@ class ProgressTracker: ObservableObject {
     } else {
       return "Total: \(totalUsage) sessions"
     }
+  }
+
+  // MARK: - Debug/Reset Methods
+
+  func resetStreakData() {
+    currentStreak = 0
+    longestStreak = 0
+    lastUsedDate = nil
+    saveData()
+  }
+
+  func resetAllData() {
+    weeklyUsage = 0
+    totalUsage = 0
+    lastUsedDate = nil
+    currentStreak = 0
+    longestStreak = 0
+    reliefOutcomes = []
+    helpOptionsUsed = []
+    daysThisWeek = 0
+    last90DaysActivity = []
+
+    // Clear UserDefaults
+    userDefaults.removeObject(forKey: weeklyUsageKey)
+    userDefaults.removeObject(forKey: totalUsageKey)
+    userDefaults.removeObject(forKey: lastUsedDateKey)
+    userDefaults.removeObject(forKey: weekStartDateKey)
+    userDefaults.removeObject(forKey: currentStreakKey)
+    userDefaults.removeObject(forKey: longestStreakKey)
+    userDefaults.removeObject(forKey: reliefOutcomesKey)
+    userDefaults.removeObject(forKey: helpOptionsUsedKey)
+    userDefaults.removeObject(forKey: last90DaysActivityKey)
   }
 }

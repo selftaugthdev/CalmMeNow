@@ -214,17 +214,10 @@ struct TailoredExperienceView: View {
 
   private func introPhase(_ program: ReliefProgram) -> some View {
     VStack(spacing: 30) {
-      // Large calming circle
-      Circle()
-        .fill(Color.white.opacity(0.9))
-        .frame(width: 200, height: 200)
-        .scaleEffect(isAnimating ? 1.1 : 0.9)
-        .animation(
-          Animation.easeInOut(duration: 3)
-            .repeatForever(autoreverses: true),
-          value: isAnimating
-        )
-        .shadow(color: .white.opacity(0.6), radius: 20, x: 0, y: 0)
+      // Cat mascot for intro
+      CatMascot()
+        .frame(width: 180, height: 220)
+        .padding(.vertical, 20)
 
       Text("You're safe. I'm with you.")
         .font(.title2)
@@ -236,66 +229,56 @@ struct TailoredExperienceView: View {
 
   private func breathingPhase(_ program: ReliefProgram) -> some View {
     VStack(spacing: 30) {
-      // Breathing circle
+      // Breathing sloth mascot
       ZStack {
-        // Outer circle
-        Circle()
-          .stroke(Color.white.opacity(0.6), lineWidth: 4)
-          .frame(width: 300, height: 300)
+        // Cat mascot with breathing speed
+        CatMascot()
+          .frame(width: 250, height: 250)
+          .padding(.vertical, 30)
 
-        // Breathing circle
-        Circle()
-          .fill(Color.white.opacity(0.9))
-          .frame(width: 200, height: 200)
-          .scaleEffect(isAnimating ? 1.3 : 0.7)
-          .animation(
-            Animation.easeInOut(duration: getBreathingDuration(program.breathing))
-              .repeatForever(autoreverses: true),
-            value: isAnimating
-          )
-          .shadow(color: .white.opacity(0.7), radius: 25, x: 0, y: 0)
-
-        // Breathing text
-        Text(getCurrentBreathingInstruction(program))
-          .font(.title)
-          .fontWeight(.bold)
-          .foregroundColor(.black)
-          .opacity(isAnimating ? 1.0 : 0.7)
-          .animation(
-            Animation.easeInOut(duration: getBreathingDuration(program.breathing) / 2)
-              .repeatForever(autoreverses: true),
-            value: isAnimating
-          )
-          .padding(.horizontal, 20)
-          .padding(.vertical, 12)
-          .background(
-            RoundedRectangle(cornerRadius: 8)
-              .fill(Color.white.opacity(0.8))
-          )
+        // Breathing text overlay
+        VStack {
+          Spacer()
+          Text(getCurrentBreathingInstruction(program))
+            .font(.title)
+            .fontWeight(.bold)
+            .foregroundColor(.black)
+            .opacity(isAnimating ? 1.0 : 0.7)
+            .animation(
+              Animation.easeInOut(duration: getBreathingDuration(program.breathing) / 2)
+                .repeatForever(autoreverses: true),
+              value: isAnimating
+            )
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(
+              RoundedRectangle(cornerRadius: 8)
+                .fill(Color.white.opacity(0.8))
+            )
+        }
       }
     }
   }
 
   private func guidancePhase(_ program: ReliefProgram) -> some View {
     VStack(spacing: 30) {
-      // Guidance circle
-      Circle()
-        .fill(Color.white.opacity(0.8))
-        .frame(width: 200, height: 200)
-        .overlay(
-          Text(getCurrentGuidanceInstruction(program))
-            .font(.title2)
-            .fontWeight(.medium)
-            .foregroundColor(.black)
-            .multilineTextAlignment(.center)
-            .padding(20)
-        )
-        .scaleEffect(isAnimating ? 1.05 : 0.95)
-        .animation(
-          Animation.easeInOut(duration: 2)
-            .repeatForever(autoreverses: true),
-          value: isAnimating
-        )
+      // Guidance sloth mascot
+      VStack(spacing: 20) {
+        CatMascot()
+          .frame(width: 180, height: 220)
+          .padding(.vertical, 20)
+
+        Text(getCurrentGuidanceInstruction(program))
+          .font(.title2)
+          .fontWeight(.medium)
+          .foregroundColor(.black)
+          .multilineTextAlignment(.center)
+          .padding(20)
+          .background(
+            RoundedRectangle(cornerRadius: 12)
+              .fill(Color.white.opacity(0.8))
+          )
+      }
 
       // Progress indicator
       HStack(spacing: 8) {
@@ -310,17 +293,10 @@ struct TailoredExperienceView: View {
 
   private func stabilizePhase(_ program: ReliefProgram) -> some View {
     VStack(spacing: 30) {
-      // Stabilizing circle
-      Circle()
-        .fill(Color.white.opacity(0.9))
-        .frame(width: 200, height: 200)
-        .scaleEffect(isAnimating ? 1.1 : 0.9)
-        .animation(
-          Animation.easeInOut(duration: 4)
-            .repeatForever(autoreverses: true),
-          value: isAnimating
-        )
-        .shadow(color: .white.opacity(0.6), radius: 20, x: 0, y: 0)
+      // Stabilizing cat mascot
+      CatMascot()
+        .frame(width: 180, height: 220)
+        .padding(.vertical, 20)
 
       Text("Let your body settle...")
         .font(.title2)
@@ -332,20 +308,19 @@ struct TailoredExperienceView: View {
 
   private func completePhase(_ program: ReliefProgram) -> some View {
     VStack(spacing: 30) {
-      // Completion circle
-      Circle()
-        .fill(Color.white.opacity(0.9))
-        .frame(width: 200, height: 200)
+      // Completion cat mascot
+      CatMascot()
+        .frame(width: 180, height: 220)
+        .padding(.vertical, 20)
         .overlay(
           Text("✓")
-            .font(.system(size: 80))
+            .font(.system(size: 60))
             .foregroundColor(.green)
-        )
-        .scaleEffect(isAnimating ? 1.1 : 0.9)
-        .animation(
-          Animation.easeInOut(duration: 2)
-            .repeatForever(autoreverses: true),
-          value: isAnimating
+            .background(
+              Circle()
+                .fill(Color.white.opacity(0.9))
+                .frame(width: 80, height: 80)
+            )
         )
 
       Text("You've done it.")
@@ -568,5 +543,20 @@ struct TailoredExperienceView: View {
   private func getCurrentGuidanceInstruction(_ program: ReliefProgram) -> String {
     let instructions = program.getGuidanceInstructions()
     return instructions[min(guidanceIndex, instructions.count - 1)]
+  }
+
+  private func getBreathingSpeed(_ pattern: BreathingPattern) -> CGFloat {
+    switch pattern {
+    case .fiveFive:
+      return 0.6  // Slower for 5-5 breathing
+    case .fourSix:
+      return 0.7  // Medium for 4-6 breathing
+    case .box:
+      return 0.5  // Slowest for box breathing
+    case .physiologicalSigh:
+      return 0.8  // Faster for physiological sigh
+    case .none:
+      return 0.6  // Default speed
+    }
   }
 }

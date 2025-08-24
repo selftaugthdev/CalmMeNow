@@ -503,24 +503,22 @@ struct BreathingOrb: View {
           .opacity(opacity * 0.5)
       }
 
-      // Main orb
-      Circle()
-        .fill(
-          LinearGradient(
-            gradient: Gradient(colors: [
-              Color.blue.opacity(0.8),
-              Color.purple.opacity(0.6),
-            ]),
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-          )
-        )
+      // Cat mascot instead of orb
+      CatMascot()
+        .frame(width: 180, height: 220)
         .scaleEffect(scale)
         .opacity(opacity)
-        .overlay(
-          Circle()
-            .stroke(Color.white.opacity(0.3), lineWidth: 2)
-        )
+    }
+  }
+
+  private func getBreathingSpeed(_ technique: BreathingTechnique) -> CGFloat {
+    switch technique {
+    case .physiologicalSigh:
+      return 0.8
+    case .boxBreathing:
+      return 0.5
+    case .coherenceBreathing:
+      return 0.6
     }
   }
 }

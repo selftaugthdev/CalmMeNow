@@ -5,15 +5,15 @@
 //  Created by Thierry De Belder on 19/05/2025.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct CalmMeNowApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-        .modelContainer(for: JournalEntry.self)
+  var body: some Scene {
+    WindowGroup {
+      MainTabView()
     }
+    .modelContainer(for: JournalEntry.self)
+  }
 }

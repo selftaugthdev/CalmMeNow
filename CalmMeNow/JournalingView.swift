@@ -441,7 +441,7 @@ struct NewJournalEntryView: View {
         return "I felt \(emotion.lowercased()) today..."
       }
     } else {
-      return "I felt really anxious today after someone cut me off in traffic."
+      return "How are you feeling today? What's on your mind?"
     }
   }
 }

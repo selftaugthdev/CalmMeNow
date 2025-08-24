@@ -49,50 +49,33 @@ struct EmergencyCalmView: View {
 
         // Emergency calming content
         VStack(spacing: 40) {
-          // Large breathing circle
+          // Large breathing cat
           ZStack {
-            // Outer calming circle
-            Circle()
-              .stroke(Color.blue.opacity(0.3), lineWidth: 4)
-              .frame(width: 320, height: 320)
-
-            // Breathing circle
-            Circle()
-              .fill(
-                LinearGradient(
-                  gradient: Gradient(colors: [
-                    Color.blue.opacity(0.6),
-                    Color.purple.opacity(0.4),
-                  ]),
-                  startPoint: .topLeading,
-                  endPoint: .bottomTrailing
-                )
-              )
+            // Cat mascot for emergency calm
+            CatMascot()
               .frame(width: 240, height: 240)
-              .scaleEffect(isAnimating ? 1.4 : 0.8)
-              .animation(
-                Animation.easeInOut(duration: 5)
-                  .repeatForever(autoreverses: true),
-                value: isAnimating
-              )
+              .padding(.vertical, 30)
 
-            // Breathing text
-            Text(breathingText)
-              .font(.largeTitle)
-              .fontWeight(.bold)
-              .foregroundColor(.black)
-              .opacity(isAnimating ? 1.0 : 0.8)
-              .animation(
-                Animation.easeInOut(duration: 2.5)
-                  .repeatForever(autoreverses: true),
-                value: isAnimating
-              )
-              .padding(.horizontal, 20)
-              .padding(.vertical, 12)
-              .background(
-                RoundedRectangle(cornerRadius: 12)
-                  .fill(Color.white.opacity(0.9))
-              )
+            // Breathing text overlay
+            VStack {
+              Spacer()
+              Text(breathingText)
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .foregroundColor(.black)
+                .opacity(isAnimating ? 1.0 : 0.8)
+                .animation(
+                  Animation.easeInOut(duration: 2.5)
+                    .repeatForever(autoreverses: true),
+                  value: isAnimating
+                )
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.9))
+                )
+            }
           }
 
           // Emergency calming message
