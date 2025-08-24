@@ -8,14 +8,19 @@ class JournalEntry {
   var timestamp: Date
   var emotion: String?
   var intensity: String?
+  var contributingFactors: [String]?
   var isLocked: Bool
-  
-  init(content: String, emotion: String? = nil, intensity: String? = nil) {
+
+  init(
+    content: String, emotion: String? = nil, intensity: String? = nil,
+    contributingFactors: [String]? = nil
+  ) {
     self.id = UUID()
     self.content = content
     self.timestamp = Date()
     self.emotion = emotion
     self.intensity = intensity
+    self.contributingFactors = contributingFactors ?? []
     self.isLocked = false
   }
 }

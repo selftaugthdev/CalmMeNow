@@ -184,9 +184,11 @@ struct JournalListView: View {
     }
     .sheet(isPresented: $showingNewEntry) {
       NewJournalEntryView(
-        onSave: { content in
-          addNewEntry(content: content)
-        }
+        onSave: { content, factors in
+          addNewEntry(content: content, contributingFactors: factors)
+        },
+        emotionContext: nil,
+        intensityContext: nil
       )
     }
     .sheet(isPresented: $showingEntryDetail) {
@@ -202,8 +204,11 @@ struct JournalListView: View {
     }
   }
 
-  private func addNewEntry(content: String) {
-    let newEntry = JournalEntry(content: content)
+  private func addNewEntry(content: String, contributingFactors: [String] = []) {
+    let newEntry = JournalEntry(
+      content: content,
+      contributingFactors: contributingFactors
+    )
     modelContext.insert(newEntry)
 
     do {

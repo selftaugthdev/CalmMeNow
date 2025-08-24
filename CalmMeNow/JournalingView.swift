@@ -197,8 +197,8 @@ struct JournalingView: View {
     }
     .sheet(isPresented: $showingNewEntry) {
       NewJournalEntryView(
-        onSave: { content in
-          addNewEntry(content: content)
+        onSave: { content, factors in
+          addNewEntry(content: content, contributingFactors: factors)
         },
         emotionContext: emotionContext,
         intensityContext: intensityContext
@@ -219,11 +219,12 @@ struct JournalingView: View {
     }
   }
 
-  private func addNewEntry(content: String) {
+  private func addNewEntry(content: String, contributingFactors: [String] = []) {
     let newEntry = JournalEntry(
       content: content,
       emotion: emotionContext,
-      intensity: intensityContext
+      intensity: intensityContext,
+      contributingFactors: contributingFactors.isEmpty ? nil : contributingFactors
     )
     modelContext.insert(newEntry)
 
@@ -288,6 +289,13 @@ struct JournalEntryCard: View {
                 }
               }
             }
+
+            // Contributing factors
+            if let factors = entry.contributingFactors, !factors.isEmpty {
+              Text("Factors: \(factors.prefix(3).joined(separator: ", "))")
+                .font(.caption2)
+                .foregroundColor(.black.opacity(0.6))
+            }
           }
 
           Spacer()
@@ -332,24 +340,23 @@ struct JournalEntryCard: View {
 struct NewJournalEntryView: View {
   @Environment(\.presentationMode) var presentationMode
   @State private var entryText = ""
-  let onSave: (String) -> Void
+  @State private var selectedFactors: Set<String> = []
+  @State private var customFactor = ""
+  @State private var showingFactorsSection = false
+  let onSave: (String, [String]) -> Void
   let emotionContext: String?
   let intensityContext: String?
 
-  init(
-    onSave: @escaping (String) -> Void, emotionContext: String? = nil,
-    intensityContext: String? = nil
-  ) {
-    self.onSave = onSave
-    self.emotionContext = emotionContext
-    self.intensityContext = intensityContext
-  }
+  private let commonFactors = [
+    "Stress", "Work", "Family", "Health", "Sleep", "Caffeine", "Alcohol", "Exercise",
+    "Social Media", "News", "Financial", "Relationship", "Weather", "Crowds", "Noise", "Hunger",
+    "Pain", "Medication", "Travel", "Change",
+  ]
 
   var body: some View {
     NavigationView {
       ZStack {
-        Color(hex: "#A0C4FF")
-          .ignoresSafeArea()
+        Color(hex: "#A0C4FF").ignoresSafeArea()
 
         VStack(spacing: 20) {
           Text("Write Your Thoughts")
@@ -364,72 +371,162 @@ struct NewJournalEntryView: View {
             .multilineTextAlignment(.center)
             .padding(.horizontal, 40)
 
-          TextEditor(text: $entryText)
-            .font(.body)
-            .foregroundColor(.black)
-            .padding(16)
-            .background(
-              RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.9))
-            )
-            .overlay(
-              RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.black.opacity(0.1), lineWidth: 1)
-            )
-            .frame(minHeight: 200)
-            .padding(.horizontal, 20)
-            .overlay(
-              Group {
-                if entryText.isEmpty {
-                  VStack {
-                    HStack {
-                      Text(getPlaceholderText())
-                        .font(.body)
-                        .foregroundColor(.gray.opacity(0.6))
-                        .padding(.leading, 36)  // Increased from 20 to account for TextEditor padding
-                        .padding(.top, 24)
-                      Spacer()
-                    }
-                    Spacer()
+          ScrollView {
+            VStack(spacing: 20) {
+
+              // Simple Contributing Factors Section
+              VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                  Text("Contributing Factors")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.black)
+
+                  Spacer()
+
+                  Button(action: {
+                    showingFactorsSection.toggle()
+                  }) {
+                    Image(systemName: showingFactorsSection ? "chevron.up" : "chevron.down")
+                      .foregroundColor(.black.opacity(0.6))
                   }
                 }
-              }
-            )
 
-          HStack(spacing: 16) {
-            Button("Cancel") {
-              presentationMode.wrappedValue.dismiss()
-            }
-            .foregroundColor(.black.opacity(0.6))
-            .padding(.vertical, 12)
-            .padding(.horizontal, 24)
-            .background(
-              RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.8))
-            )
+                if showingFactorsSection {
+                  VStack(alignment: .leading, spacing: 8) {
+                    Text("Common factors:")
+                      .font(.caption)
+                      .fontWeight(.medium)
+                      .foregroundColor(.black)
 
-            Button("Save") {
-              if !entryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                onSave(entryText)
-                presentationMode.wrappedValue.dismiss()
+                    LazyVGrid(
+                      columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 4
+                    ) {
+                      ForEach(commonFactors, id: \.self) { factor in
+                        Button(action: {
+                          if selectedFactors.contains(factor) {
+                            selectedFactors.remove(factor)
+                          } else {
+                            selectedFactors.insert(factor)
+                          }
+                        }) {
+                          Text(factor)
+                            .font(.caption)
+                            .foregroundColor(selectedFactors.contains(factor) ? .white : .black)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                              RoundedRectangle(cornerRadius: 4)
+                                .fill(
+                                  selectedFactors.contains(factor)
+                                    ? Color.blue : Color.white.opacity(0.8))
+                            )
+                            .overlay(
+                              RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color.black.opacity(0.2), lineWidth: 1)
+                            )
+                        }
+                      }
+                    }
+
+                    HStack {
+                      TextField("Add custom factor...", text: $customFactor)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .font(.caption)
+
+                      Button("Add") {
+                        if !customFactor.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                          selectedFactors.insert(
+                            customFactor.trimmingCharacters(in: .whitespacesAndNewlines))
+                          customFactor = ""
+                        }
+                      }
+                      .disabled(
+                        customFactor.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+
+                    if !selectedFactors.isEmpty {
+                      Text("Selected: \(Array(selectedFactors).joined(separator: ", "))")
+                        .font(.caption)
+                        .foregroundColor(.black)
+                    }
+                  }
+                  .padding(8)
+                  .background(Color.white.opacity(0.9))
+                  .cornerRadius(8)
+                }
               }
+              .padding(.horizontal, 20)
+
+              TextEditor(text: $entryText)
+                .font(.body)
+                .foregroundColor(.black)
+                .padding(16)
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.9))
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                )
+                .frame(minHeight: 200)
+                .padding(.horizontal, 20)
+                .overlay(
+                  Group {
+                    if entryText.isEmpty {
+                      VStack {
+                        HStack {
+                          Text(getPlaceholderText())
+                            .font(.body)
+                            .foregroundColor(.gray.opacity(0.6))
+                            .padding(.leading, 36)
+                            .padding(.top, 24)
+                          Spacer()
+                        }
+                        Spacer()
+                      }
+                    }
+                  }
+                )
+
+              Spacer()
+
+              HStack(spacing: 16) {
+                Button("Cancel") {
+                  presentationMode.wrappedValue.dismiss()
+                }
+                .foregroundColor(.black.opacity(0.6))
+                .padding(.vertical, 12)
+                .padding(.horizontal, 24)
+                .background(
+                  RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white.opacity(0.8))
+                )
+
+                Button("Save") {
+                  if !entryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    onSave(entryText, Array(selectedFactors))
+                    presentationMode.wrappedValue.dismiss()
+                  }
+                }
+                .foregroundColor(.white)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 24)
+                .background(
+                  RoundedRectangle(cornerRadius: 20)
+                    .fill(
+                      entryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        ? Color.gray : Color.black.opacity(0.7))
+                )
+                .disabled(entryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+              }
+              .padding(.bottom, 20)
             }
-            .foregroundColor(.white)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 24)
-            .background(
-              RoundedRectangle(cornerRadius: 20)
-                .fill(
-                  entryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    ? Color.gray : Color.black.opacity(0.7))
-            )
-            .disabled(entryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
           }
-
-          Spacer()
         }
+        .navigationBarHidden(true)
       }
-      .navigationBarHidden(true)
     }
   }
 
@@ -492,6 +589,34 @@ struct JournalEntryDetailView: View {
                     )
                 }
               }
+
+              // Contributing factors in detail view
+              if let factors = entry.contributingFactors, !factors.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                  Divider()
+                    .background(Color.black.opacity(0.2))
+
+                  Text("Contributing Factors")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.black)
+
+                  LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8)
+                  {
+                    ForEach(entry.contributingFactors ?? [], id: \.self) { factor in
+                      Text(factor)
+                        .font(.body)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(
+                          RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.blue)
+                        )
+                    }
+                  }
+                }
+              }
             }
             .padding(20)
             .background(
@@ -524,5 +649,167 @@ struct JournalEntryDetailView: View {
     formatter.dateStyle = .full
     formatter.timeStyle = .short
     return formatter.string(from: date)
+  }
+}
+
+// MARK: - Contributing Factors View
+struct ContributingFactorsView: View {
+  @Binding var selectedFactors: Set<String>
+  @Binding var customFactor: String
+  @Binding var showingFactorsSection: Bool
+  let commonFactors: [String]
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack {
+        Text("Contributing Factors")
+          .font(.headline)
+          .fontWeight(.semibold)
+          .foregroundColor(.black)
+
+        Spacer()
+
+        Button(action: {
+          withAnimation(.easeInOut(duration: 0.3)) {
+            showingFactorsSection.toggle()
+          }
+        }) {
+          Image(systemName: showingFactorsSection ? "chevron.up" : "chevron.down")
+            .foregroundColor(.black.opacity(0.6))
+        }
+      }
+
+      if showingFactorsSection {
+        VStack(alignment: .leading, spacing: 12) {
+          // Common factors grid
+          LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 6) {
+            ForEach(commonFactors, id: \.self) { factor in
+              FactorButton(
+                factor: factor,
+                isSelected: selectedFactors.contains(factor),
+                onTap: {
+                  if selectedFactors.contains(factor) {
+                    selectedFactors.remove(factor)
+                  } else {
+                    selectedFactors.insert(factor)
+                  }
+                }
+              )
+            }
+          }
+
+          // Custom factor input
+          HStack {
+            Text("Custom:")
+              .font(.caption)
+              .fontWeight(.medium)
+              .foregroundColor(.black)
+
+            TextField("Add custom factor...", text: $customFactor)
+              .textFieldStyle(RoundedBorderTextFieldStyle())
+              .font(.caption)
+
+            Button(action: {
+              if !customFactor.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                selectedFactors.insert(customFactor.trimmingCharacters(in: .whitespacesAndNewlines))
+                customFactor = ""
+              }
+            }) {
+              Image(systemName: "plus.circle.fill")
+                .foregroundColor(.blue)
+                .font(.title3)
+            }
+            .disabled(customFactor.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+          }
+
+          // Selected factors display
+          if !selectedFactors.isEmpty {
+            SelectedFactorsView(selectedFactors: $selectedFactors)
+          }
+        }
+        .padding(12)
+        .background(
+          RoundedRectangle(cornerRadius: 10)
+            .fill(Color.white.opacity(0.9))
+        )
+        .overlay(
+          RoundedRectangle(cornerRadius: 10)
+            .stroke(Color.black.opacity(0.1), lineWidth: 1)
+        )
+      }
+    }
+    .padding(.horizontal, 20)
+  }
+}
+
+struct FactorButton: View {
+  let factor: String
+  let isSelected: Bool
+  let onTap: () -> Void
+
+  var body: some View {
+    Button(action: onTap) {
+      HStack {
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+          .foregroundColor(isSelected ? .blue : .gray)
+          .font(.caption)
+        Text(factor)
+          .font(.caption)
+          .foregroundColor(.black)
+          .lineLimit(1)
+        Spacer()
+      }
+      .padding(.horizontal, 8)
+      .padding(.vertical, 6)
+      .background(
+        RoundedRectangle(cornerRadius: 6)
+          .fill(isSelected ? Color.blue.opacity(0.1) : Color.white.opacity(0.8))
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 6)
+          .stroke(isSelected ? Color.blue : Color.black.opacity(0.2), lineWidth: 1)
+      )
+    }
+    .buttonStyle(PlainButtonStyle())
+  }
+}
+
+struct SelectedFactorsView: View {
+  @Binding var selectedFactors: Set<String>
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text("Selected:")
+        .font(.caption)
+        .fontWeight(.medium)
+        .foregroundColor(.black)
+
+      LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 4) {
+        ForEach(Array(selectedFactors), id: \.self) { factor in
+          HStack {
+            Text(factor)
+              .font(.caption2)
+              .foregroundColor(.white)
+              .lineLimit(1)
+
+            Spacer()
+
+            Button(action: {
+              selectedFactors.remove(factor)
+            }) {
+              Image(systemName: "xmark.circle.fill")
+                .foregroundColor(.white.opacity(0.8))
+                .font(.caption2)
+            }
+          }
+          .padding(.horizontal, 6)
+          .padding(.vertical, 3)
+          .background(
+            RoundedRectangle(cornerRadius: 4)
+              .fill(Color.blue)
+          )
+        }
+      }
+    }
   }
 }
