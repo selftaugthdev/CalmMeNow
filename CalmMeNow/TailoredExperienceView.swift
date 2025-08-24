@@ -17,6 +17,7 @@ struct TailoredExperienceView: View {
   @State private var showControls: Bool = false
   @State private var phaseTimer: Timer?
   @State private var hasStartedExperience = false
+  @State private var isAboutToComplete = false
 
   private var program: ReliefProgram? {
     // Ensure we have valid data
@@ -45,7 +46,7 @@ struct TailoredExperienceView: View {
           HStack {
             Button("Exit") {
               HapticManager.shared.cancelButtonTap()
-              audioManager.stopSound()
+              audioManager.stopSoundImmediately()
               presentationMode.wrappedValue.dismiss()
             }
             .foregroundColor(.black)
@@ -433,6 +434,7 @@ struct TailoredExperienceView: View {
     // Start audio with looping for severe intensity
     let shouldLoop = program.intensity == .severe
     audioManager.playSound(program.audio, loop: shouldLoop)
+    audioManager.setAboutToComplete()  // Set flag early to prevent natural finish from resetting state
 
     // Set initial duration
     timeRemaining = Int(program.duration)
@@ -458,7 +460,9 @@ struct TailoredExperienceView: View {
           timeRemaining -= 1
         } else {
           timer.invalidate()
+          isAboutToComplete = true
           showCompletionOptions = true
+          audioManager.setAboutToComplete()
           audioManager.stopSound()
         }
       }
@@ -492,7 +496,9 @@ struct TailoredExperienceView: View {
         deadline: .now() + introDuration + breathingDuration + guidanceDuration + stabilizeDuration
       ) {
         currentPhase = .complete
+        isAboutToComplete = true
         showCompletionOptions = true
+        audioManager.setAboutToComplete()
         audioManager.stopSound()
       }
 

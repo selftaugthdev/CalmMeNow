@@ -98,7 +98,7 @@ struct CooldownView: View {
     }
     .navigationBarTitleDisplayMode(.inline)
     .onDisappear {
-      audioManager.stopSound()
+      audioManager.stopSoundImmediately()
     }
   }
 

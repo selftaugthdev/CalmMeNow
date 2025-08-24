@@ -153,7 +153,7 @@ struct EmergencyCalmView: View {
       startEmergencyCalm()
     }
     .onDisappear {
-      audioManager.stopSound()
+      audioManager.stopSoundImmediately()
     }
     .sheet(isPresented: $showSuccessView) {
       SuccessView(onReturnToHome: {
