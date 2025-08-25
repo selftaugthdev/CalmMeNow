@@ -38,6 +38,21 @@ struct WatchCalmView: View {
             Text("Calm Now").font(.headline)
           }
         }
+
+        // Test buttons for debugging
+        HStack {
+          Button("Test Stop") {
+            WCSessionDelegateHelper.shared.sendStopAudio()
+          }
+          .font(.caption)
+          .foregroundColor(.orange)
+
+          Button("Ping") {
+            WCSessionDelegateHelper.shared.sendPing()
+          }
+          .font(.caption)
+          .foregroundColor(.blue)
+        }
       } else {
         ZStack {
           Circle().stroke(.gray.opacity(0.25), lineWidth: 8)

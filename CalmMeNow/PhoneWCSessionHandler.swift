@@ -17,6 +17,10 @@ final class PhoneWCSessionHandler: NSObject, WCSessionDelegate {
         "📱 state → isPaired:", s.isPaired,
         "watchAppInstalled:", s.isWatchAppInstalled,
         "reachable:", s.isReachable)
+
+      // Test UserDefaults
+      let endBehavior = UserDefaults.standard.integer(forKey: "endBehavior")
+      print("🔧 Initial endBehavior setting:", endBehavior)
     }
   }
 
@@ -51,6 +55,8 @@ final class PhoneWCSessionHandler: NSObject, WCSessionDelegate {
   }
 
   private func handle(_ message: [String: Any]) {
+    print("🔍 Handling message:", message)
+
     if message["action"] as? String == "startAudio",
       let length = message["length"] as? Int
     {
@@ -60,7 +66,7 @@ final class PhoneWCSessionHandler: NSObject, WCSessionDelegate {
         AudioManager.shared.playSound("mixkit-serene-anxious")  // TODO: change to your preferred filename
 
         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(length)) {
-          print("🛑 Stopping calm audio")
+          print("🛑 Stopping calm audio (auto-stop)")
           AudioManager.shared.stopSound()
         }
       }
@@ -69,21 +75,28 @@ final class PhoneWCSessionHandler: NSObject, WCSessionDelegate {
 
       // Check user preference for end behavior
       let endBehavior = UserDefaults.standard.integer(forKey: "endBehavior")
+      print("🔧 Current endBehavior setting:", endBehavior)
 
       switch endBehavior {
       case 0:  // Ask every time
         // For now, just stop audio. In a full implementation, you'd show an alert
         print("📋 User preference: Ask every time - stopping audio")
-        AudioManager.shared.stopSound()
+        DispatchQueue.main.async {
+          AudioManager.shared.stopSound()
+        }
       case 1:  // Continue audio
         print("🎵 User preference: Continue audio - keeping audio playing")
       // Do nothing, let audio continue
       case 2:  // Stop audio
         print("🛑 User preference: Stop audio - stopping audio")
-        AudioManager.shared.stopSound()
+        DispatchQueue.main.async {
+          AudioManager.shared.stopSound()
+        }
       default:
         print("🛑 Default behavior: Stop audio")
-        AudioManager.shared.stopSound()
+        DispatchQueue.main.async {
+          AudioManager.shared.stopSound()
+        }
       }
       return
     } else if message["ping"] != nil {
