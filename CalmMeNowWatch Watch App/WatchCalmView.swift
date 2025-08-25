@@ -27,32 +27,49 @@ struct WatchCalmView: View {
           Text("60s").tag(60.0)
           Text("120s").tag(120.0)
         }
-        .pickerStyle(.wheel)
+        .pickerStyle(.segmented)
 
         Button {
           startSession()
         } label: {
-          VStack {
-            CatMascotWatch(scale: .constant(1.0))
-              .frame(width: 120, height: 120)
-            Text("Calm Now").font(.headline)
-          }
+          Text("Calm Now").font(.headline)
         }
+        // If you still want a tiny mascot here, uncomment:
+        // CatMascotWatch(scale: .constant(1.0))
+        //     .frame(width: 68, height: 68)
       } else {
-        ZStack {
-          Circle().stroke(.gray.opacity(0.25), lineWidth: 8)
-          Circle()
-            .trim(from: 0, to: progress)
-            .stroke(.green, style: .init(lineWidth: 8, lineCap: .round))
-            .rotationEffect(.degrees(-90))
-            .animation(.linear(duration: 0.1), value: progress)
+        GeometryReader { geo in
+          let D = min(geo.size.width, geo.size.height)  // ring diameter
+          let ringWidth: CGFloat = 8
+          let safeInset = D * 0.18  // space from ring to mascot
+          // Base mascot size chosen so max scale (~1.08) still fits inside ring:
+          let mascotSize = D - (2 * safeInset)
 
-          VStack(spacing: 6) {
-            CatMascotWatch(scale: $catScale)
-              .frame(width: 120, height: 120)
-            Text(phase.rawValue).font(.caption).foregroundColor(.secondary)
-            Text("\(Int(max(0, totalLength - elapsed)))s").font(.headline)
+          ZStack {
+            Circle()
+              .stroke(.gray.opacity(0.25), lineWidth: ringWidth)
+              .frame(width: D, height: D)
+
+            Circle()
+              .trim(from: 0, to: progress)
+              .stroke(.green, style: .init(lineWidth: ringWidth, lineCap: .round))
+              .rotationEffect(.degrees(-90))
+              .frame(width: D, height: D)
+              .animation(.linear(duration: 0.1), value: progress)
+
+            VStack(spacing: 6) {
+              CatMascotWatch(scale: $catScale)
+                .frame(width: mascotSize, height: mascotSize)
+
+              Text(phase.rawValue)
+                .font(.caption)
+                .foregroundColor(.secondary)
+
+              Text("\(Int(max(0, totalLength - elapsed)))s")
+                .font(.headline)
+            }
           }
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(height: 190)
 
