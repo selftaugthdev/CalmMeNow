@@ -10,6 +10,11 @@ import SwiftUI
 
 @main
 struct CalmMeNowApp: App {
+  init() {
+    // Activate Watch Connectivity session
+    PhoneWCSessionHandler.shared.activate()
+  }
+
   var body: some Scene {
     WindowGroup {
       MainTabView()

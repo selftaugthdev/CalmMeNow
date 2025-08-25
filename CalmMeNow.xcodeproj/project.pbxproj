@@ -7,11 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E4057D122E5C7C2C0013E917 /* CalmMeNowWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = E4057D082E5C7C2B0013E917 /* CalmMeNowWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E4057D242E5C7E4A0013E917 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4057D232E5C7E4A0013E917 /* WatchConnectivity.framework */; };
+		E4057D262E5C7E740013E917 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4057D252E5C7E740013E917 /* WatchConnectivity.framework */; };
 		E4FC06412E55124F00444E67 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = E4FC06402E55124F00444E67 /* Lottie */; };
 		E4FC06452E55136500444E67 /* Sloth meditate.json in Resources */ = {isa = PBXBuildFile; fileRef = E4FC06442E55136500444E67 /* Sloth meditate.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		E4057D102E5C7C2C0013E917 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E4DB97A72DDBAD3C0084C498 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E4057D072E5C7C2B0013E917;
+			remoteInfo = "CalmMeNowWatch Watch App";
+		};
 		E4DB97BD2DDBAD3E0084C498 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E4DB97A72DDBAD3C0084C498 /* Project object */;
@@ -28,7 +38,24 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		E4057CF72E5C6C0C0013E917 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				E4057D122E5C7C2C0013E917 /* CalmMeNowWatch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		E4057D082E5C7C2B0013E917 /* CalmMeNowWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CalmMeNowWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4057D232E5C7E4A0013E917 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS11.5.sdk/System/Library/Frameworks/WatchConnectivity.framework; sourceTree = DEVELOPER_DIR; };
+		E4057D252E5C7E740013E917 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 		E4DB97AF2DDBAD3C0084C498 /* CalmMeNow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CalmMeNow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4DB97BC2DDBAD3E0084C498 /* CalmMeNowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalmMeNowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4DB97C62DDBAD3E0084C498 /* CalmMeNowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalmMeNowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -46,6 +73,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		E4057CED2E5C6C0B0013E917 /* CalmMeNowWatch Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "CalmMeNowWatch Watch App";
+			sourceTree = "<group>";
+		};
 		E4DB97B12DDBAD3C0084C498 /* CalmMeNow */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -67,10 +99,19 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		E4057D052E5C7C2B0013E917 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E4057D242E5C7E4A0013E917 /* WatchConnectivity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E4DB97AC2DDBAD3C0084C498 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E4057D262E5C7E740013E917 /* WatchConnectivity.framework in Frameworks */,
 				E4FC06412E55124F00444E67 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -92,6 +133,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E4057D222E5C7E4A0013E917 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E4057D252E5C7E740013E917 /* WatchConnectivity.framework */,
+				E4057D232E5C7E4A0013E917 /* WatchConnectivity.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		E4DB97A62DDBAD3C0084C498 = {
 			isa = PBXGroup;
 			children = (
@@ -99,6 +149,8 @@
 				E4DB97B12DDBAD3C0084C498 /* CalmMeNow */,
 				E4DB97BF2DDBAD3E0084C498 /* CalmMeNowTests */,
 				E4DB97C92DDBAD3E0084C498 /* CalmMeNowUITests */,
+				E4057CED2E5C6C0B0013E917 /* CalmMeNowWatch Watch App */,
+				E4057D222E5C7E4A0013E917 /* Frameworks */,
 				E4DB97B02DDBAD3C0084C498 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -109,6 +161,7 @@
 				E4DB97AF2DDBAD3C0084C498 /* CalmMeNow.app */,
 				E4DB97BC2DDBAD3E0084C498 /* CalmMeNowTests.xctest */,
 				E4DB97C62DDBAD3E0084C498 /* CalmMeNowUITests.xctest */,
+				E4057D082E5C7C2B0013E917 /* CalmMeNowWatch Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -116,6 +169,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		E4057D072E5C7C2B0013E917 /* CalmMeNowWatch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E4057D132E5C7C2C0013E917 /* Build configuration list for PBXNativeTarget "CalmMeNowWatch Watch App" */;
+			buildPhases = (
+				E4057D042E5C7C2B0013E917 /* Sources */,
+				E4057D052E5C7C2B0013E917 /* Frameworks */,
+				E4057D062E5C7C2B0013E917 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E4057CED2E5C6C0B0013E917 /* CalmMeNowWatch Watch App */,
+			);
+			name = "CalmMeNowWatch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "CalmMeNowWatch Watch App";
+			productReference = E4057D082E5C7C2B0013E917 /* CalmMeNowWatch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
 		E4DB97AE2DDBAD3C0084C498 /* CalmMeNow */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E4DB97D02DDBAD3E0084C498 /* Build configuration list for PBXNativeTarget "CalmMeNow" */;
@@ -123,10 +198,12 @@
 				E4DB97AB2DDBAD3C0084C498 /* Sources */,
 				E4DB97AC2DDBAD3C0084C498 /* Frameworks */,
 				E4DB97AD2DDBAD3C0084C498 /* Resources */,
+				E4057CF72E5C6C0C0013E917 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E4057D112E5C7C2C0013E917 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				E4DB97B12DDBAD3C0084C498 /* CalmMeNow */,
@@ -192,9 +269,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1630;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1630;
 				TargetAttributes = {
+					E4057D072E5C7C2B0013E917 = {
+						CreatedOnToolsVersion = 16.4;
+					};
 					E4DB97AE2DDBAD3C0084C498 = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -228,11 +308,19 @@
 				E4DB97AE2DDBAD3C0084C498 /* CalmMeNow */,
 				E4DB97BB2DDBAD3E0084C498 /* CalmMeNowTests */,
 				E4DB97C52DDBAD3E0084C498 /* CalmMeNowUITests */,
+				E4057D072E5C7C2B0013E917 /* CalmMeNowWatch Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		E4057D062E5C7C2B0013E917 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E4DB97AD2DDBAD3C0084C498 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -258,6 +346,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		E4057D042E5C7C2B0013E917 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E4DB97AB2DDBAD3C0084C498 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -282,6 +377,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		E4057D112E5C7C2C0013E917 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E4057D072E5C7C2B0013E917 /* CalmMeNowWatch Watch App */;
+			targetProxy = E4057D102E5C7C2C0013E917 /* PBXContainerItemProxy */;
+		};
 		E4DB97BE2DDBAD3E0084C498 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = E4DB97AE2DDBAD3C0084C498 /* CalmMeNow */;
@@ -295,6 +395,62 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		E4057D142E5C7C2C0013E917 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = CalmMeNowWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = info.calmmenow.CalmMeNow;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = info.calmmenow.CalmMeNow.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Debug;
+		};
+		E4057D152E5C7C2C0013E917 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = CalmMeNowWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = info.calmmenow.CalmMeNow;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = info.calmmenow.CalmMeNow.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Release;
+		};
 		E4DB97CE2DDBAD3E0084C498 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -539,6 +695,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		E4057D132E5C7C2C0013E917 /* Build configuration list for PBXNativeTarget "CalmMeNowWatch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E4057D142E5C7C2C0013E917 /* Debug */,
+				E4057D152E5C7C2C0013E917 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		E4DB97AA2DDBAD3C0084C498 /* Build configuration list for PBXProject "CalmMeNow" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

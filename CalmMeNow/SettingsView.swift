@@ -1,0 +1,190 @@
+import SwiftUI
+
+struct SettingsView: View {
+  @AppStorage("endBehavior") private var endBehavior: Int = 0
+  @AppStorage("hapticFeedbackEnabled") private var hapticFeedbackEnabled: Bool = true
+  @AppStorage("voiceGuidanceEnabled") private var voiceGuidanceEnabled: Bool = true
+
+  var body: some View {
+    NavigationView {
+      ZStack {
+        // Background gradient
+        LinearGradient(
+          gradient: Gradient(colors: [
+            Color(hex: "#A0C4FF"),  // Teal
+            Color(hex: "#D0BFFF"),  // Soft Purple
+          ]),
+          startPoint: .topLeading,
+          endPoint: .bottomTrailing
+        )
+        .ignoresSafeArea()
+
+        ScrollView {
+          VStack(spacing: 24) {
+            // Header
+            VStack(spacing: 8) {
+              Text("⚙️ Settings")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .foregroundColor(.black)
+
+              Text("Customize your experience")
+                .font(.subheadline)
+                .foregroundColor(.black.opacity(0.7))
+            }
+            .padding(.top, 20)
+
+            // Settings sections
+            VStack(spacing: 20) {
+              // Watch Integration Settings
+              SettingsSection(title: "Watch Integration") {
+                VStack(alignment: .leading, spacing: 16) {
+                  Text("When ending session")
+                    .font(.headline)
+                    .foregroundColor(.black)
+
+                  Picker("When ending session", selection: $endBehavior) {
+                    Text("Ask every time").tag(0)
+                    Text("Continue audio").tag(1)
+                    Text("Stop audio").tag(2)
+                  }
+                  .pickerStyle(.inline)
+
+                  Text("Choose what happens when you stop a session on your Apple Watch")
+                    .font(.caption)
+                    .foregroundColor(.black.opacity(0.6))
+                }
+                .padding()
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.9))
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                )
+              }
+
+              // General Settings
+              SettingsSection(title: "General") {
+                VStack(spacing: 16) {
+                  SettingsToggleRow(
+                    title: "Haptic Feedback",
+                    description: "Vibrate on button taps and interactions",
+                    isOn: $hapticFeedbackEnabled
+                  )
+
+                  Divider()
+                    .background(Color.black.opacity(0.1))
+
+                  SettingsToggleRow(
+                    title: "Voice Guidance",
+                    description: "Audio cues during breathing exercises",
+                    isOn: $voiceGuidanceEnabled
+                  )
+                }
+                .padding()
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.9))
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                )
+              }
+
+              // About Section
+              SettingsSection(title: "About") {
+                VStack(spacing: 16) {
+                  HStack {
+                    Text("Version")
+                      .foregroundColor(.black)
+                    Spacer()
+                    Text("1.0.0")
+                      .foregroundColor(.black.opacity(0.6))
+                  }
+
+                  Divider()
+                    .background(Color.black.opacity(0.1))
+
+                  HStack {
+                    Text("Build")
+                      .foregroundColor(.black)
+                    Spacer()
+                    Text("1")
+                      .foregroundColor(.black.opacity(0.6))
+                  }
+                }
+                .padding()
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.9))
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                )
+              }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer(minLength: 40)
+          }
+        }
+      }
+      .navigationBarHidden(true)
+    }
+  }
+}
+
+struct SettingsSection<Content: View>: View {
+  let title: String
+  let content: Content
+
+  init(title: String, @ViewBuilder content: () -> Content) {
+    self.title = title
+    self.content = content()
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text(title)
+        .font(.title2)
+        .fontWeight(.bold)
+        .foregroundColor(.black)
+        .padding(.horizontal, 4)
+
+      content
+    }
+  }
+}
+
+struct SettingsToggleRow: View {
+  let title: String
+  let description: String
+  @Binding var isOn: Bool
+
+  var body: some View {
+    HStack {
+      VStack(alignment: .leading, spacing: 4) {
+        Text(title)
+          .font(.headline)
+          .foregroundColor(.black)
+
+        Text(description)
+          .font(.caption)
+          .foregroundColor(.black.opacity(0.6))
+      }
+
+      Spacer()
+
+      Toggle("", isOn: $isOn)
+        .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#A0C4FF")))
+    }
+  }
+}
+
+#Preview {
+  SettingsView()
+}

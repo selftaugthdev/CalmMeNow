@@ -17,6 +17,13 @@ struct MainTabView: View {
           Image(systemName: "book.fill")
           Text("Journal")
         }
+
+      // Settings Tab
+      SettingsView()
+        .tabItem {
+          Image(systemName: "gear")
+          Text("Settings")
+        }
     }
     .accentColor(Color(hex: "#A0C4FF"))
   }
