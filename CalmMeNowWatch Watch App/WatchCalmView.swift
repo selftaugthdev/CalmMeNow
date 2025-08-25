@@ -27,7 +27,7 @@ struct WatchCalmView: View {
           Text("60s").tag(60.0)
           Text("120s").tag(120.0)
         }
-        .pickerStyle(.segmented)
+        .pickerStyle(.wheel)
 
         Button {
           startSession()
