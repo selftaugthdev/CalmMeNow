@@ -46,7 +46,8 @@ struct BreathingExerciseView: View {
   @State private var orbOpacity: Double = 0.8
   @State private var boxProgress: CGFloat = 0.0
   @State private var currentBoxSide = 0
-  @State private var voiceGuidanceEnabled = false
+  @AppStorage("prefVoice") private var voiceGuidanceEnabled = false
+  @AppStorage("prefHaptics") private var hapticsEnabled = true
 
   // Haptic feedback
   let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -304,7 +305,9 @@ struct BreathingExerciseView: View {
       orbScale = 1.3
       orbOpacity = 1.0
     }
-    impactFeedback.impactOccurred()
+    if hapticsEnabled {
+      impactFeedback.impactOccurred()
+    }
 
     // Second inhale (1 second) - with longer pause before speaking
     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
@@ -318,7 +321,9 @@ struct BreathingExerciseView: View {
         orbScale = 1.6
         orbOpacity = 1.0
       }
-      impactFeedback.impactOccurred()
+      if hapticsEnabled {
+        impactFeedback.impactOccurred()
+      }
 
       // Long exhale (5 seconds) - with longer pause before speaking
       DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -333,7 +338,9 @@ struct BreathingExerciseView: View {
           orbScale = 0.7
           orbOpacity = 0.6
         }
-        impactFeedback.impactOccurred()
+        if hapticsEnabled {
+          impactFeedback.impactOccurred()
+        }
       }
     }
   }
@@ -367,7 +374,9 @@ struct BreathingExerciseView: View {
       withAnimation(.easeInOut(duration: 4.0)) {
         boxProgress = 0.25
       }
-      impactFeedback.impactOccurred()
+      if hapticsEnabled {
+        impactFeedback.impactOccurred()
+      }
 
     case .hold:
       currentPhase = .exhale
@@ -378,7 +387,9 @@ struct BreathingExerciseView: View {
       withAnimation(.easeInOut(duration: 4.0)) {
         boxProgress = 0.5
       }
-      impactFeedback.impactOccurred()
+      if hapticsEnabled {
+        impactFeedback.impactOccurred()
+      }
 
     case .exhale:
       currentPhase = .hold2
@@ -389,7 +400,9 @@ struct BreathingExerciseView: View {
       withAnimation(.easeInOut(duration: 4.0)) {
         boxProgress = 0.75
       }
-      impactFeedback.impactOccurred()
+      if hapticsEnabled {
+        impactFeedback.impactOccurred()
+      }
 
     case .hold2:
       currentPhase = .inhale
@@ -400,7 +413,9 @@ struct BreathingExerciseView: View {
       withAnimation(.easeInOut(duration: 4.0)) {
         boxProgress = 1.0
       }
-      impactFeedback.impactOccurred()
+      if hapticsEnabled {
+        impactFeedback.impactOccurred()
+      }
     }
   }
 
@@ -427,7 +442,9 @@ struct BreathingExerciseView: View {
       orbScale = 1.4
       orbOpacity = 1.0
     }
-    impactFeedback.impactOccurred()
+    if hapticsEnabled {
+      impactFeedback.impactOccurred()
+    }
 
     // Exhale (5 seconds)
     DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
@@ -439,7 +456,9 @@ struct BreathingExerciseView: View {
         orbScale = 0.8
         orbOpacity = 0.7
       }
-      impactFeedback.impactOccurred()
+      if hapticsEnabled {
+        impactFeedback.impactOccurred()
+      }
     }
   }
 

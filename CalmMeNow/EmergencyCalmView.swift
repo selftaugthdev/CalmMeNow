@@ -4,6 +4,7 @@ struct EmergencyCalmView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
+  @AppStorage("prefSounds") private var prefSounds = true
   @State private var isAnimating = false
   @State private var timeRemaining: Int = 60
   @State private var showCompletionOptions = false
@@ -179,8 +180,10 @@ struct EmergencyCalmView: View {
     isAnimating = true
     progressTracker.recordUsage()
 
-    // Start the emergency calming sound
-    audioManager.playSound("perfect-beauty-1-min")
+    // Start the emergency calming sound (only if sounds are enabled)
+    if prefSounds {
+      audioManager.playSound("perfect-beauty-1-min")
+    }
 
     // Start countdown timer
     startCountdown()

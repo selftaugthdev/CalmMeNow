@@ -51,7 +51,7 @@ final class PhoneWCSessionHandler: NSObject, WCSessionDelegate {
       }
     } else if message["action"] as? String == "stopAudio" {
       // Check user preference for end behavior
-      let endBehavior = UserDefaults.standard.integer(forKey: "endBehavior")
+      let endBehavior = UserDefaults.standard.integer(forKey: "watchEndBehavior")
 
       switch endBehavior {
       case 0:  // Ask every time

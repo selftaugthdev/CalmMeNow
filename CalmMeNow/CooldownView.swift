@@ -4,6 +4,7 @@ struct CooldownView: View {
   let model: CooldownModel
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
+  @AppStorage("prefSounds") private var prefSounds = true
   @State private var isAnimating = false
   @State private var vibrationIntensity: CGFloat = 1.0
   @State private var colorTransition: Double = 0.0
@@ -63,10 +64,13 @@ struct CooldownView: View {
             .fixedSize(horizontal: false, vertical: true)
         }
 
-        Text("Click the button below for a soothing sound")
-          .font(.body)
-          .foregroundColor(.black.opacity(0.9))
-          .padding(.bottom, 40)
+        Text(
+          prefSounds
+            ? "Click the button below for a soothing sound" : "Sounds are disabled in settings"
+        )
+        .font(.body)
+        .foregroundColor(.black.opacity(0.9))
+        .padding(.bottom, 40)
 
         if audioManager.isPlaying {
           Text(timeString(from: audioManager.remainingTime))
@@ -79,7 +83,7 @@ struct CooldownView: View {
           HapticManager.shared.audioControl()
           if audioManager.isPlaying {
             audioManager.stopSound()
-          } else {
+          } else if prefSounds {
             audioManager.playSound(model.soundFileName)
             progressTracker.recordUsage()
           }

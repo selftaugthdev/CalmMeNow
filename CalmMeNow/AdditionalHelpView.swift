@@ -4,6 +4,7 @@ struct AdditionalHelpView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
+  @AppStorage("prefSounds") private var prefSounds = true
   @State private var selectedOption: HelpOption?
   @State private var showBubbleGame = false
   @State private var showBreathingExercise = false
@@ -152,13 +153,15 @@ struct AdditionalHelpView: View {
 
     switch option {
     case .anotherSound:
-      // Play a different calming sound
-      let sounds = [
-        "perfect-beauty-1-min", "mixkit-serene-anxious", "mixkit-just-chill-angry",
-        "mixkit-jazz-sad",
-      ]
-      let randomSound = sounds.randomElement() ?? "perfect-beauty-1-min"
-      audioManager.playSound(randomSound)
+      // Play a different calming sound (only if sounds are enabled)
+      if prefSounds {
+        let sounds = [
+          "perfect-beauty-1-min", "mixkit-serene-anxious", "mixkit-just-chill-angry",
+          "mixkit-jazz-sad",
+        ]
+        let randomSound = sounds.randomElement() ?? "perfect-beauty-1-min"
+        audioManager.playSound(randomSound)
+      }
 
     case .bubbleGame:
       showBubbleGame = true

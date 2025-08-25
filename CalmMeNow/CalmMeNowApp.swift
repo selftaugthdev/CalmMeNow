@@ -10,6 +10,8 @@ import SwiftUI
 
 @main
 struct CalmMeNowApp: App {
+  @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
   init() {
     // Activate Watch Connectivity session
     PhoneWCSessionHandler.shared.activate()
@@ -17,7 +19,11 @@ struct CalmMeNowApp: App {
 
   var body: some Scene {
     WindowGroup {
-      MainTabView()
+      if hasCompletedOnboarding {
+        MainTabView()
+      } else {
+        OnboardingView()
+      }
     }
     .modelContainer(for: JournalEntry.self)
   }

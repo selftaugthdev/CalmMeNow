@@ -6,6 +6,7 @@ struct TailoredExperienceView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
+  @AppStorage("prefSounds") private var prefSounds = true
   @State private var isAnimating = false
   @State private var showCompletionOptions = false
   @State private var showSuccessView = false
@@ -431,10 +432,12 @@ struct TailoredExperienceView: View {
     isAnimating = true
     progressTracker.recordUsage()
 
-    // Start audio with looping for severe intensity
-    let shouldLoop = program.intensity == .severe
-    audioManager.playSound(program.audio, loop: shouldLoop)
-    audioManager.setAboutToComplete()  // Set flag early to prevent natural finish from resetting state
+    // Start audio with looping for severe intensity (only if sounds are enabled)
+    if prefSounds {
+      let shouldLoop = program.intensity == .severe
+      audioManager.playSound(program.audio, loop: shouldLoop)
+      audioManager.setAboutToComplete()  // Set flag early to prevent natural finish from resetting state
+    }
 
     // Set initial duration
     timeRemaining = Int(program.duration)

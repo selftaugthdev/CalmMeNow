@@ -1,9 +1,10 @@
 import SwiftUI
 
 struct SettingsView: View {
-  @AppStorage("endBehavior") private var endBehavior: Int = 0
-  @AppStorage("hapticFeedbackEnabled") private var hapticFeedbackEnabled: Bool = true
-  @AppStorage("voiceGuidanceEnabled") private var voiceGuidanceEnabled: Bool = true
+  @AppStorage("watchEndBehavior") private var watchEndBehavior: Int = 1
+  @AppStorage("prefSounds") private var prefSounds: Bool = true
+  @AppStorage("prefHaptics") private var prefHaptics: Bool = true
+  @AppStorage("prefVoice") private var prefVoice: Bool = false
 
   var body: some View {
     NavigationView {
@@ -43,7 +44,7 @@ struct SettingsView: View {
                     .font(.headline)
                     .foregroundColor(.black)
 
-                  Picker("When ending session", selection: $endBehavior) {
+                  Picker("When ending session", selection: $watchEndBehavior) {
                     Text("Ask every time").tag(0)
                     Text("Continue audio").tag(1)
                     Text("Stop audio").tag(2)
@@ -69,18 +70,27 @@ struct SettingsView: View {
               SettingsSection(title: "General") {
                 VStack(spacing: 16) {
                   SettingsToggleRow(
-                    title: "Haptic Feedback",
-                    description: "Vibrate on button taps and interactions",
-                    isOn: $hapticFeedbackEnabled
+                    title: "Calming Sounds",
+                    description: "Play calming sounds during sessions",
+                    isOn: $prefSounds
                   )
 
                   Divider()
                     .background(Color.black.opacity(0.1))
 
                   SettingsToggleRow(
-                    title: "Voice Guidance",
+                    title: "Haptic Feedback",
+                    description: "Gentle haptics for breath cues",
+                    isOn: $prefHaptics
+                  )
+
+                  Divider()
+                    .background(Color.black.opacity(0.1))
+
+                  SettingsToggleRow(
+                    title: "Voice Prompts",
                     description: "Audio cues during breathing exercises",
-                    isOn: $voiceGuidanceEnabled
+                    isOn: $prefVoice
                   )
                 }
                 .padding()
