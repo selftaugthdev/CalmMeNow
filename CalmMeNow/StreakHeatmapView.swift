@@ -54,7 +54,7 @@ struct StreakHeatmapView: View {
     .background(
       RoundedRectangle(cornerRadius: 12)
         .fill(Color(.systemBackground))
-        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .shadow(color: Color(.sRGBLinear, white: 0, opacity: 0.05), radius: 4, x: 0, y: 2)
     )
   }
 
@@ -125,7 +125,7 @@ struct StreakCardView: View {
     .background(
       RoundedRectangle(cornerRadius: 16)
         .fill(Color(.systemBackground))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+        .shadow(color: Color(.sRGBLinear, white: 0, opacity: 0.08), radius: 8, x: 0, y: 4)
     )
   }
 }

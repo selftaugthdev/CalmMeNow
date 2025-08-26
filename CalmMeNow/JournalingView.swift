@@ -246,7 +246,7 @@ struct JournalEntryCard: View {
         HStack {
           Text(entry.content)
             .font(.body)
-            .foregroundColor(.black)
+            .foregroundColor(.primary)
             .lineLimit(3)
             .multilineTextAlignment(.leading)
 
@@ -254,14 +254,14 @@ struct JournalEntryCard: View {
 
           Image(systemName: "chevron.right")
             .font(.caption)
-            .foregroundColor(.black.opacity(0.5))
+            .foregroundColor(.secondary)
         }
 
         HStack {
           VStack(alignment: .leading, spacing: 4) {
             Text(formatDate(entry.timestamp))
               .font(.caption)
-              .foregroundColor(.black.opacity(0.6))
+              .foregroundColor(.secondary)
 
             if let emotion = entry.emotion {
               HStack(spacing: 4) {
@@ -279,12 +279,12 @@ struct JournalEntryCard: View {
                 if let intensity = entry.intensity {
                   Text(intensity.capitalized)
                     .font(.caption)
-                    .foregroundColor(.black.opacity(0.7))
+                    .foregroundColor(.secondary)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(
                       RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.black.opacity(0.1))
+                        .fill(Color(.systemGray5))
                     )
                 }
               }
@@ -294,7 +294,7 @@ struct JournalEntryCard: View {
             if let factors = entry.contributingFactors, !factors.isEmpty {
               Text("Factors: \(factors.prefix(3).joined(separator: ", "))")
                 .font(.caption2)
-                .foregroundColor(.black.opacity(0.6))
+                .foregroundColor(.secondary)
             }
           }
 
@@ -304,11 +304,11 @@ struct JournalEntryCard: View {
       .padding(16)
       .background(
         RoundedRectangle(cornerRadius: 12)
-          .fill(Color.white.opacity(0.9))
+          .fill(Color(.systemBackground))
       )
       .overlay(
         RoundedRectangle(cornerRadius: 12)
-          .stroke(Color.black.opacity(0.1), lineWidth: 1)
+          .stroke(Color(.systemGray4), lineWidth: 1)
       )
     }
     .buttonStyle(PlainButtonStyle())
@@ -362,12 +362,12 @@ struct NewJournalEntryView: View {
           Text("Write Your Thoughts")
             .font(.largeTitle)
             .fontWeight(.bold)
-            .foregroundColor(.black)
+            .foregroundColor(.primary)
             .padding(.top, 20)
 
           Text("Express what's on your mind. This is completely private.")
             .font(.body)
-            .foregroundColor(.black.opacity(0.7))
+            .foregroundColor(.secondary)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 40)
 
@@ -558,13 +558,13 @@ struct JournalEntryDetailView: View {
             Text("Journal Entry")
               .font(.largeTitle)
               .fontWeight(.bold)
-              .foregroundColor(.black)
+              .foregroundColor(.primary)
               .padding(.top, 20)
 
             VStack(alignment: .leading, spacing: 16) {
               Text(entry.content)
                 .font(.body)
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .multilineTextAlignment(.leading)
 
               Divider()
@@ -573,19 +573,19 @@ struct JournalEntryDetailView: View {
               HStack {
                 Text(formatDate(entry.timestamp))
                   .font(.caption)
-                  .foregroundColor(.black.opacity(0.6))
+                  .foregroundColor(.secondary)
 
                 Spacer()
 
                 if let emotion = entry.emotion {
                   Text(emotion)
                     .font(.caption)
-                    .foregroundColor(.black.opacity(0.7))
+                    .foregroundColor(.secondary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
                       RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.black.opacity(0.1))
+                        .fill(Color(.systemGray5))
                     )
                 }
               }

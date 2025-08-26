@@ -24,11 +24,11 @@ struct ContentView: View {
   var body: some View {
     NavigationView {
       ZStack {
-        // Background gradient - Teal to Soft Purple (stability + healing)
+        // Background gradient - adapts to light/dark mode
         LinearGradient(
           gradient: Gradient(colors: [
-            Color(hex: "#A0C4FF"),  // Teal
-            Color(hex: "#D0BFFF"),  // Soft Purple
+            Color(.systemBackground),
+            Color(.systemBackground).opacity(0.8),
           ]),
           startPoint: .topLeading,
           endPoint: .bottomTrailing
@@ -36,7 +36,7 @@ struct ContentView: View {
         .ignoresSafeArea()
 
         // Add a subtle overlay to soften the gradient
-        Color.white.opacity(0.1)
+        Color(.systemBackground).opacity(0.1)
           .ignoresSafeArea()
 
         ScrollView {
@@ -98,6 +98,7 @@ struct ContentView: View {
             Text("Tap how you feel.")
               .font(.title2)
               .fontWeight(.medium)
+              .foregroundColor(.primary)
               .padding(.bottom, 30)
 
             Text("We'll help you feel better in 60 seconds.")
@@ -278,8 +279,8 @@ struct EmotionCard: View {
       .frame(maxWidth: .infinity, minHeight: 140)  // Taller cards for better proportions
       .background(
         RoundedRectangle(cornerRadius: 20)
-          .fill(Color.white)
-          .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+          .fill(Color(.systemBackground))
+          .shadow(color: Color(.sRGBLinear, white: 0, opacity: 0.1), radius: 8, x: 0, y: 4)
       )
       .scaleEffect(isSelected ? 0.98 : 1.0)
       .animation(.easeInOut(duration: 0.1), value: isSelected)
