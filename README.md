@@ -101,8 +101,21 @@ Based on selection:
 
 - **SwiftUI**
 - **Xcode 16+**
+- **Firebase Analytics** - For tracking user interactions and app usage
 - **Audio playback**: AVFoundation or SwiftAudio
 - (Optional) Future integrations: WidgetKit, CoreML (for emotion detection), HealthKit (for HR tracking)
+
+## 🔥 Firebase Setup
+
+This app uses Firebase Analytics to track user interactions. To set up Firebase:
+
+1. **Create a Firebase project** at [Firebase Console](https://console.firebase.google.com/)
+2. **Add an iOS app** to your Firebase project
+3. **Download the `GoogleService-Info.plist`** file from Firebase Console
+4. **Place the file** in the `CalmMeNow/` directory
+5. **The file is already in `.gitignore`** to prevent committing sensitive data
+
+**Note:** A template file `GoogleService-Info.plist.template` is provided to show the required structure.
 
 ---
 
