@@ -50,6 +50,10 @@ struct IntensitySelectionView: View {
             Button(action: {
               HapticManager.shared.intensitySelection()
               selectedIntensity = .mild
+
+              // Track intensity selection
+              FirebaseAnalyticsService.shared.trackIntensitySelected(
+                emotion: emotion, intensity: "mild")
             }) {
               HStack {
                 Text("🟦")
@@ -77,6 +81,10 @@ struct IntensitySelectionView: View {
             Button(action: {
               HapticManager.shared.intensitySelection()
               selectedIntensity = .severe
+
+              // Track intensity selection
+              FirebaseAnalyticsService.shared.trackIntensitySelected(
+                emotion: emotion, intensity: "severe")
             }) {
               HStack {
                 Text("🟥")

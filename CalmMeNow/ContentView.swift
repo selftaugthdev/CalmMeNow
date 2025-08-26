@@ -53,6 +53,10 @@ struct ContentView: View {
                 HapticManager.shared.emergencyButtonTap()
                 isQuickCalmPressed = true
                 progressTracker.recordUsage()
+
+                // Track emergency calm usage
+                FirebaseAnalyticsService.shared.trackEmergencyCalmUsed()
+
                 showingEmergencyCalm = true
               }) {
                 HStack(spacing: 10) {
@@ -122,6 +126,10 @@ struct ContentView: View {
                     HapticManager.shared.emotionButtonTap()
                     selectedEmotion = "anxious"
                     selectedEmoji = "😰"
+
+                    // Track emotion selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "anxious")
+
                     // Force state synchronization with delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                       showingIntensitySelection = true
@@ -139,6 +147,10 @@ struct ContentView: View {
                     HapticManager.shared.emotionButtonTap()
                     selectedEmotion = "angry"
                     selectedEmoji = "😡"
+
+                    // Track emotion selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "angry")
+
                     // Force state synchronization with delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                       showingIntensitySelection = true
@@ -159,6 +171,10 @@ struct ContentView: View {
                     HapticManager.shared.emotionButtonTap()
                     selectedEmotion = "sad"
                     selectedEmoji = "😢"
+
+                    // Track emotion selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "sad")
+
                     // Force state synchronization with delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                       showingIntensitySelection = true
@@ -176,6 +192,10 @@ struct ContentView: View {
                     HapticManager.shared.emotionButtonTap()
                     selectedEmotion = "frustrated"
                     selectedEmoji = "😖"
+
+                    // Track emotion selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "frustrated")
+
                     // Force state synchronization with delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                       showingIntensitySelection = true

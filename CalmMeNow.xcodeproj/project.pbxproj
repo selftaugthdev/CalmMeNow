@@ -10,6 +10,8 @@
 		E4057D122E5C7C2C0013E917 /* CalmMeNowWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = E4057D082E5C7C2B0013E917 /* CalmMeNowWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E4057D242E5C7E4A0013E917 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4057D232E5C7E4A0013E917 /* WatchConnectivity.framework */; };
 		E4057D262E5C7E740013E917 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4057D252E5C7E740013E917 /* WatchConnectivity.framework */; };
+		E4F9B7172E5E685300443EC4 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = E4F9B7162E5E685300443EC4 /* FirebaseAnalytics */; };
+		E4F9B7192E5E685300443EC4 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = E4F9B7182E5E685300443EC4 /* FirebaseAnalyticsCore */; };
 		E4FC06412E55124F00444E67 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = E4FC06402E55124F00444E67 /* Lottie */; };
 		E4FC06452E55136500444E67 /* Sloth meditate.json in Resources */ = {isa = PBXBuildFile; fileRef = E4FC06442E55136500444E67 /* Sloth meditate.json */; };
 /* End PBXBuildFile section */
@@ -113,6 +115,8 @@
 			files = (
 				E4057D262E5C7E740013E917 /* WatchConnectivity.framework in Frameworks */,
 				E4FC06412E55124F00444E67 /* Lottie in Frameworks */,
+				E4F9B7172E5E685300443EC4 /* FirebaseAnalytics in Frameworks */,
+				E4F9B7192E5E685300443EC4 /* FirebaseAnalyticsCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,6 +215,8 @@
 			name = CalmMeNow;
 			packageProductDependencies = (
 				E4FC06402E55124F00444E67 /* Lottie */,
+				E4F9B7162E5E685300443EC4 /* FirebaseAnalytics */,
+				E4F9B7182E5E685300443EC4 /* FirebaseAnalyticsCore */,
 			);
 			productName = CalmMeNow;
 			productReference = E4DB97AF2DDBAD3C0084C498 /* CalmMeNow.app */;
@@ -299,6 +305,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				E4FC063F2E55124F00444E67 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				E4F9B7152E5E685300443EC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E4DB97B02DDBAD3C0084C498 /* Products */;
@@ -743,6 +750,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		E4F9B7152E5E685300443EC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.1.0;
+			};
+		};
 		E4FC063F2E55124F00444E67 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-ios";
@@ -754,6 +769,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		E4F9B7162E5E685300443EC4 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E4F9B7152E5E685300443EC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		E4F9B7182E5E685300443EC4 /* FirebaseAnalyticsCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E4F9B7152E5E685300443EC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsCore;
+		};
 		E4FC06402E55124F00444E67 /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E4FC063F2E55124F00444E67 /* XCRemoteSwiftPackageReference "lottie-ios" */;

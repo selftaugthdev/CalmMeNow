@@ -216,6 +216,9 @@ struct JournalingView: View {
         // If no biometric auth available, allow access
         biometricAuth.isAuthenticated = true
       }
+
+      // Track journal access
+      FirebaseAnalyticsService.shared.trackJournalAccessed()
     }
   }
 
@@ -230,6 +233,12 @@ struct JournalingView: View {
 
     do {
       try modelContext.save()
+
+      // Track journal entry creation
+      FirebaseAnalyticsService.shared.trackJournalEntryCreated(
+        emotion: emotionContext,
+        intensity: intensityContext
+      )
     } catch {
       print("Error saving journal entry: \(error)")
     }

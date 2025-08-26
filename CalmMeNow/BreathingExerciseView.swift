@@ -237,6 +237,9 @@ struct BreathingExerciseView: View {
     timeRemaining = selectedTechnique.duration
     currentPhase = .inhale
 
+    // Track breathing exercise access
+    FirebaseAnalyticsService.shared.trackBreathingExerciseAccessed()
+
     // Welcome message
     if voiceGuidanceEnabled {
       let welcomeMessage =

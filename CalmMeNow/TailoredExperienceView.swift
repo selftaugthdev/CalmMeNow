@@ -48,6 +48,18 @@ struct TailoredExperienceView: View {
             Button("Exit") {
               HapticManager.shared.cancelButtonTap()
               audioManager.stopSoundImmediately()
+
+              // Track relief program exit
+              if let program = program {
+                let duration = program.duration - TimeInterval(timeRemaining)
+                FirebaseAnalyticsService.shared.trackReliefProgramExited(
+                  emotion: emotion,
+                  intensity: intensity == .mild ? "mild" : "severe",
+                  programType: program.emotion.rawValue,
+                  duration: duration
+                )
+              }
+
               presentationMode.wrappedValue.dismiss()
             }
             .foregroundColor(.black)
@@ -432,6 +444,13 @@ struct TailoredExperienceView: View {
     isAnimating = true
     progressTracker.recordUsage()
 
+    // Track relief program start
+    FirebaseAnalyticsService.shared.trackReliefProgramStarted(
+      emotion: emotion,
+      intensity: intensity == .mild ? "mild" : "severe",
+      programType: program.emotion.rawValue
+    )
+
     // Start audio with looping for severe intensity (only if sounds are enabled)
     if prefSounds {
       let shouldLoop = program.intensity == .severe
@@ -467,6 +486,14 @@ struct TailoredExperienceView: View {
           showCompletionOptions = true
           audioManager.setAboutToComplete()
           audioManager.stopSound()
+
+          // Track relief program completion
+          FirebaseAnalyticsService.shared.trackReliefProgramCompleted(
+            emotion: emotion,
+            intensity: intensity == .mild ? "mild" : "severe",
+            programType: program.emotion.rawValue,
+            duration: program.duration
+          )
         }
       }
     } else {
@@ -503,6 +530,14 @@ struct TailoredExperienceView: View {
         showCompletionOptions = true
         audioManager.setAboutToComplete()
         audioManager.stopSound()
+
+        // Track relief program completion
+        FirebaseAnalyticsService.shared.trackReliefProgramCompleted(
+          emotion: emotion,
+          intensity: intensity == .mild ? "mild" : "severe",
+          programType: program.emotion.rawValue,
+          duration: program.duration
+        )
       }
 
       // Countdown timer
