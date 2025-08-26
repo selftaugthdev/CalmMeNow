@@ -30,9 +30,11 @@ struct CalmMeNowApp: App {
     // Activate Watch Connectivity session
     PhoneWCSessionHandler.shared.activate()
 
-    // Initialize Firebase Analytics
-    FirebaseAnalyticsService.shared.setUserProperties()
-    FirebaseAnalyticsService.shared.checkFirebaseConfiguration()
+    // Initialize Firebase Analytics with a delay to ensure Firebase is ready
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+      FirebaseAnalyticsService.shared.setUserProperties()
+      FirebaseAnalyticsService.shared.checkFirebaseConfiguration()
+    }
   }
 
   var body: some Scene {

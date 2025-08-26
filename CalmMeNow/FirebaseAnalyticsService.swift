@@ -1,4 +1,5 @@
 import FirebaseAnalytics
+import FirebaseCore
 import Foundation
 
 class FirebaseAnalyticsService {
@@ -10,6 +11,12 @@ class FirebaseAnalyticsService {
 
   /// Track when a user selects an emotion
   func trackEmotionSelected(emotion: String) {
+    // Check if Firebase is ready
+    guard FirebaseApp.app() != nil else {
+      print("⚠️ Firebase not ready yet, skipping emotion tracking")
+      return
+    }
+
     Analytics.logEvent(
       "emotion_selected",
       parameters: [
@@ -25,6 +32,12 @@ class FirebaseAnalyticsService {
 
   /// Track when a user selects intensity level
   func trackIntensitySelected(emotion: String, intensity: String) {
+    // Check if Firebase is ready
+    guard FirebaseApp.app() != nil else {
+      print("⚠️ Firebase not ready yet, skipping intensity tracking")
+      return
+    }
+
     Analytics.logEvent(
       "intensity_selected",
       parameters: [
