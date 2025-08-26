@@ -18,6 +18,9 @@ class FirebaseAnalyticsService {
       ])
 
     print("📊 Analytics: Emotion '\(emotion)' selected")
+
+    // Force analytics to send immediately (for debugging)
+    Analytics.logEvent(AnalyticsEventAppOpen, parameters: nil)
   }
 
   /// Track when a user selects intensity level
@@ -175,5 +178,22 @@ class FirebaseAnalyticsService {
     Analytics.setUserProperty("calm_me_now", forName: "app_name")
 
     print("📊 Analytics: User properties set")
+  }
+
+  // MARK: - Debug Methods
+
+  /// Check if Firebase Analytics is properly configured
+  func checkFirebaseConfiguration() {
+    print("📊 Analytics: Checking Firebase configuration...")
+
+    // Log a test event
+    Analytics.logEvent(
+      "firebase_test",
+      parameters: [
+        "test": "configuration_check",
+        "timestamp": Date().timeIntervalSince1970,
+      ])
+
+    print("📊 Analytics: Test event logged")
   }
 }

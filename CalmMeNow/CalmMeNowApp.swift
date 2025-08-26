@@ -32,6 +32,7 @@ struct CalmMeNowApp: App {
 
     // Initialize Firebase Analytics
     FirebaseAnalyticsService.shared.setUserProperties()
+    FirebaseAnalyticsService.shared.checkFirebaseConfiguration()
   }
 
   var body: some Scene {
