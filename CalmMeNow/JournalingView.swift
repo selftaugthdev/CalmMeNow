@@ -304,11 +304,11 @@ struct JournalEntryCard: View {
       .padding(16)
       .background(
         RoundedRectangle(cornerRadius: 12)
-          .fill(Color(.systemBackground))
+          .fill(Color.white.opacity(0.9))
       )
       .overlay(
         RoundedRectangle(cornerRadius: 12)
-          .stroke(Color(.systemGray4), lineWidth: 1)
+          .stroke(Color.black.opacity(0.1), lineWidth: 1)
       )
     }
     .buttonStyle(PlainButtonStyle())
