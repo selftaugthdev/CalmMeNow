@@ -246,7 +246,7 @@ struct JournalEntryCard: View {
         HStack {
           Text(entry.content)
             .font(.body)
-            .foregroundColor(.primary)
+            .foregroundColor(.black)
             .lineLimit(3)
             .multilineTextAlignment(.leading)
 
@@ -254,14 +254,14 @@ struct JournalEntryCard: View {
 
           Image(systemName: "chevron.right")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundColor(.black.opacity(0.5))
         }
 
         HStack {
           VStack(alignment: .leading, spacing: 4) {
             Text(formatDate(entry.timestamp))
               .font(.caption)
-              .foregroundColor(.secondary)
+              .foregroundColor(.black.opacity(0.6))
 
             if let emotion = entry.emotion {
               HStack(spacing: 4) {
@@ -279,12 +279,12 @@ struct JournalEntryCard: View {
                 if let intensity = entry.intensity {
                   Text(intensity.capitalized)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.black.opacity(0.7))
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(
                       RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(.systemGray5))
+                        .fill(Color.black.opacity(0.1))
                     )
                 }
               }
@@ -294,7 +294,7 @@ struct JournalEntryCard: View {
             if let factors = entry.contributingFactors, !factors.isEmpty {
               Text("Factors: \(factors.prefix(3).joined(separator: ", "))")
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundColor(.black.opacity(0.6))
             }
           }
 
@@ -362,12 +362,12 @@ struct NewJournalEntryView: View {
           Text("Write Your Thoughts")
             .font(.largeTitle)
             .fontWeight(.bold)
-            .foregroundColor(.primary)
+            .foregroundColor(.black)
             .padding(.top, 20)
 
           Text("Express what's on your mind. This is completely private.")
             .font(.body)
-            .foregroundColor(.secondary)
+            .foregroundColor(.black.opacity(0.7))
             .multilineTextAlignment(.center)
             .padding(.horizontal, 40)
 
@@ -558,13 +558,13 @@ struct JournalEntryDetailView: View {
             Text("Journal Entry")
               .font(.largeTitle)
               .fontWeight(.bold)
-              .foregroundColor(.primary)
+              .foregroundColor(.black)
               .padding(.top, 20)
 
             VStack(alignment: .leading, spacing: 16) {
               Text(entry.content)
                 .font(.body)
-                .foregroundColor(.primary)
+                .foregroundColor(.black)
                 .multilineTextAlignment(.leading)
 
               Divider()
@@ -573,19 +573,19 @@ struct JournalEntryDetailView: View {
               HStack {
                 Text(formatDate(entry.timestamp))
                   .font(.caption)
-                  .foregroundColor(.secondary)
+                  .foregroundColor(.black.opacity(0.6))
 
                 Spacer()
 
                 if let emotion = entry.emotion {
                   Text(emotion)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.black.opacity(0.7))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
                       RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(.systemGray5))
+                        .fill(Color.black.opacity(0.1))
                     )
                 }
               }

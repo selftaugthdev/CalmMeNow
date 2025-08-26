@@ -98,7 +98,7 @@ struct ContentView: View {
             Text("Tap how you feel.")
               .font(.title2)
               .fontWeight(.medium)
-              .foregroundColor(.primary)
+              .foregroundColor(.black)
               .padding(.bottom, 30)
 
             Text("We'll help you feel better in 60 seconds.")
@@ -106,7 +106,7 @@ struct ContentView: View {
               .multilineTextAlignment(.center)
               .padding(.horizontal, 40)
               .padding(.bottom, 50)  // More breathing room before cards
-              .foregroundColor(.secondary)
+              .foregroundColor(.black.opacity(0.7))
 
             // Clean Emotion Cards - 4 cards in 2x2 grid
             VStack(spacing: 20) {  // Increased spacing between rows
@@ -266,12 +266,12 @@ struct EmotionCard: View {
         Text(emotion)
           .font(.title2)
           .fontWeight(.semibold)
-          .foregroundColor(.primary)
+          .foregroundColor(.black)
 
         // Tiny subtext
         Text(subtext)
           .font(.caption)
-          .foregroundColor(.secondary)
+          .foregroundColor(.black.opacity(0.6))
           .multilineTextAlignment(.center)
           .padding(.horizontal, 16)
           .padding(.bottom, 20)

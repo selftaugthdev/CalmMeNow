@@ -37,7 +37,7 @@ struct StreakHeatmapView: View {
             .frame(width: 12, height: 12)
           Text("No activity")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundColor(.black.opacity(0.6))
         }
 
         HStack(spacing: 4) {
@@ -46,7 +46,7 @@ struct StreakHeatmapView: View {
             .frame(width: 12, height: 12)
           Text("Calmed")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundColor(.black.opacity(0.6))
         }
       }
     }
@@ -78,7 +78,7 @@ struct StreakCardView: View {
           .font(.title3)
           .fontWeight(.medium)
           .multilineTextAlignment(.center)
-          .foregroundColor(.primary)
+          .foregroundColor(.black)
 
         if progressTracker.currentStreak > 0 {
           Text("\(progressTracker.currentStreak)")
@@ -87,7 +87,7 @@ struct StreakCardView: View {
 
           Text("days")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundColor(.black.opacity(0.6))
         }
       }
 
@@ -96,11 +96,11 @@ struct StreakCardView: View {
         VStack(alignment: .leading, spacing: 4) {
           Text(progressTracker.getWeeklyMessage())
             .font(.subheadline)
-            .foregroundColor(.secondary)
+            .foregroundColor(.black.opacity(0.7))
 
           Text(progressTracker.getLongestStreakMessage())
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundColor(.black.opacity(0.6))
         }
 
         Spacer()
