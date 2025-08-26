@@ -27,6 +27,9 @@ class ProgressTracker: ObservableObject {
   @Published var daysThisWeek: Int = 0
   @Published var last90DaysActivity: [DayActivity] = []
 
+  // NEW: Track all days the user has used the app
+  @Published var allUsageDates: Set<Date> = []
+
   private let userDefaults = UserDefaults.standard
   private let weeklyUsageKey = "weeklyUsage"
   private let totalUsageKey = "totalUsage"
@@ -39,6 +42,7 @@ class ProgressTracker: ObservableObject {
   private let currentStreakKey = "currentStreak"
   private let longestStreakKey = "longestStreak"
   private let last90DaysActivityKey = "last90DaysActivity"
+  private let allUsageDatesKey = "allUsageDates"
 
   init() {
     loadData()
@@ -51,26 +55,15 @@ class ProgressTracker: ObservableObject {
     totalUsage += 1
     weeklyUsage += 1
 
-    let calendar = Calendar.current
     let today = Date()
-
-    // Check if this is the first usage today
-    let isFirstUsageToday =
-      lastUsedDate == nil || !calendar.isDate(lastUsedDate!, inSameDayAs: today)
 
     lastUsedDate = Date()
 
-    // Update streaks
-    updateStreaks()
+    // Add today to the set of usage dates
+    allUsageDates.insert(today)
 
-    // Increment streak if this is the first usage today
-    if isFirstUsageToday {
-      currentStreak += 1
-      // Update longest streak
-      if currentStreak > longestStreak {
-        longestStreak = currentStreak
-      }
-    }
+    // Update streaks (this will calculate current streak properly)
+    updateStreaks()
 
     generateLast90DaysActivity()
 
@@ -114,24 +107,30 @@ class ProgressTracker: ObservableObject {
     let calendar = Calendar.current
     let today = Date()
 
-    // Calculate current streak based on last usage
-    if let lastUsed = lastUsedDate {
-      let daysSinceLastUse = calendar.dateComponents([.day], from: lastUsed, to: today).day ?? 0
+    // Calculate current streak based on consecutive days
+    var consecutiveDays = 0
+    var checkDate = today
 
-      if daysSinceLastUse == 0 {
-        // Used today, maintain current streak (don't increment here)
-        // Streak will be incremented when recordUsage() is called
-      } else if daysSinceLastUse == 1 {
-        // Used yesterday, maintain streak
-        // currentStreak stays the same
-      } else {
-        // Gap of 2+ days, reset streak to 0 (not 1)
-        currentStreak = 0
+    // Count backwards from today to find consecutive days
+    while true {
+      var foundUsageOnThisDay = false
+      for usageDate in allUsageDates {
+        if calendar.isDate(checkDate, inSameDayAs: usageDate) {
+          foundUsageOnThisDay = true
+          break
+        }
       }
-    } else {
-      // First time using, no streak yet
-      currentStreak = 0
+
+      if foundUsageOnThisDay {
+        consecutiveDays += 1
+        // Move to previous day
+        checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
+      } else {
+        break  // Found a gap, stop counting
+      }
     }
+
+    currentStreak = consecutiveDays
 
     // Update longest streak
     if currentStreak > longestStreak {
@@ -150,8 +149,12 @@ class ProgressTracker: ObservableObject {
     var daysCount = 0
     for i in 0..<7 {
       if let date = calendar.date(byAdding: .day, value: i, to: weekStart) {
-        if calendar.isDate(date, inSameDayAs: lastUsedDate ?? Date.distantPast) {
-          daysCount += 1
+        // Check if any usage date matches this day
+        for usageDate in allUsageDates {
+          if calendar.isDate(date, inSameDayAs: usageDate) {
+            daysCount += 1
+            break  // Only count each day once
+          }
         }
       }
     }
@@ -166,7 +169,14 @@ class ProgressTracker: ObservableObject {
 
     for i in 0...89 {
       if let date = calendar.date(byAdding: .day, value: -i, to: today) {
-        let wasActive = calendar.isDate(date, inSameDayAs: lastUsedDate ?? Date.distantPast)
+        // Check if any usage date matches this day
+        var wasActive = false
+        for usageDate in allUsageDates {
+          if calendar.isDate(date, inSameDayAs: usageDate) {
+            wasActive = true
+            break
+          }
+        }
         let usageCount = wasActive ? 1 : 0
         activity.append(DayActivity(date: date, usageCount: usageCount, wasActive: wasActive))
       }
@@ -229,6 +239,11 @@ class ProgressTracker: ObservableObject {
 
     // Load help options used
     helpOptionsUsed = userDefaults.stringArray(forKey: helpOptionsUsedKey) ?? []
+
+    // Load all usage dates
+    if let datesData = userDefaults.object(forKey: allUsageDatesKey) as? [Date] {
+      allUsageDates = Set(datesData)
+    }
   }
 
   private func saveData() {
@@ -246,6 +261,9 @@ class ProgressTracker: ObservableObject {
 
     // Save help options used
     userDefaults.set(helpOptionsUsed, forKey: helpOptionsUsedKey)
+
+    // Save all usage dates
+    userDefaults.set(Array(allUsageDates), forKey: allUsageDatesKey)
   }
 
   func getUsageMessage() -> String {
@@ -272,6 +290,31 @@ class ProgressTracker: ObservableObject {
     currentStreak = 0
     longestStreak = 0
     lastUsedDate = nil
+    allUsageDates.removeAll()
+    saveData()
+  }
+
+  // Debug method to add usage for specific dates (for testing)
+  func addUsageForDate(_ date: Date) {
+    allUsageDates.insert(date)
+    updateStreaks()
+    generateLast90DaysActivity()
+    saveData()
+  }
+
+  // Debug method to add usage for multiple consecutive days (for testing)
+  func addUsageForConsecutiveDays(_ count: Int) {
+    let calendar = Calendar.current
+    let today = Date()
+
+    for i in 0..<count {
+      if let date = calendar.date(byAdding: .day, value: -i, to: today) {
+        allUsageDates.insert(date)
+      }
+    }
+
+    updateStreaks()
+    generateLast90DaysActivity()
     saveData()
   }
 
@@ -285,6 +328,7 @@ class ProgressTracker: ObservableObject {
     helpOptionsUsed = []
     daysThisWeek = 0
     last90DaysActivity = []
+    allUsageDates = []  // Reset all usage dates
 
     // Clear UserDefaults
     userDefaults.removeObject(forKey: weeklyUsageKey)
@@ -296,5 +340,6 @@ class ProgressTracker: ObservableObject {
     userDefaults.removeObject(forKey: reliefOutcomesKey)
     userDefaults.removeObject(forKey: helpOptionsUsedKey)
     userDefaults.removeObject(forKey: last90DaysActivityKey)
+    userDefaults.removeObject(forKey: allUsageDatesKey)
   }
 }

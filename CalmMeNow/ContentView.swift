@@ -194,6 +194,17 @@ struct ContentView: View {
                 // Debug: Reset streak data on long press
                 progressTracker.resetStreakData()
               }
+              .onTapGesture(count: 2) {
+                // Debug: Add test usage for yesterday
+                let calendar = Calendar.current
+                if let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) {
+                  progressTracker.addUsageForDate(yesterday)
+                }
+              }
+              .onTapGesture(count: 3) {
+                // Debug: Add test usage for 5 consecutive days
+                progressTracker.addUsageForConsecutiveDays(5)
+              }
           }
         }
       }
