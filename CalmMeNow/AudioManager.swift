@@ -28,23 +28,23 @@ class AudioManager: NSObject, ObservableObject {
   }
 
   func playSound(_ soundName: String, loop: Bool = false) {
-    print("Attempting to play sound: \(soundName), loop: \(loop)")
+    print("AudioManager: Attempting to play sound: \(soundName), loop: \(loop)")
 
     // Try .mp3 first
     if let url = Bundle.main.url(forResource: soundName, withExtension: "mp3") {
-      print("Found .mp3 file: \(url)")
+      print("AudioManager: Found .mp3 file: \(url)")
       playAudioFromURL(url, loop: loop)
       return
     }
 
     // Try .m4a if .mp3 not found
     if let url = Bundle.main.url(forResource: soundName, withExtension: "m4a") {
-      print("Found .m4a file: \(url)")
+      print("AudioManager: Found .m4a file: \(url)")
       playAudioFromURL(url, loop: loop)
       return
     }
 
-    print("Sound not found: \(soundName)")
+    print("AudioManager: Sound not found: \(soundName)")
   }
 
   private func playAudioFromURL(_ url: URL, loop: Bool = false) {
@@ -56,6 +56,10 @@ class AudioManager: NSObject, ObservableObject {
       player?.play()
       isPlaying = true
       remainingTime = player?.duration ?? 0
+
+      print(
+        "AudioManager: Started playing audio - duration: \(player?.duration ?? 0), loop: \(loop), numberOfLoops: \(player?.numberOfLoops ?? 0)"
+      )
 
       // Start the timer
       timer?.invalidate()
@@ -69,16 +73,27 @@ class AudioManager: NSObject, ObservableObject {
       // Fade in the audio
       fadeInAudio(duration: 1.5)
 
-      // Schedule automatic fade-out 2 seconds before the audio ends
-      if let duration = player?.duration, duration > 2.0 {
+      // Only schedule automatic fade-out for non-looping audio that's longer than 30 seconds
+      if !loop, let duration = player?.duration, duration > 30.0 {
         let fadeOutStartTime = duration - 2.0
+        print("AudioManager: Scheduling fade-out in \(fadeOutStartTime) seconds")
         DispatchQueue.main.asyncAfter(deadline: .now() + fadeOutStartTime) { [weak self] in
-          guard let self = self, self.isPlaying else { return }
+          guard let self = self, self.isPlaying, !self.isAboutToComplete else {
+            print(
+              "AudioManager: Fade-out cancelled - isPlaying: \(self?.isPlaying ?? false), isAboutToComplete: \(self?.isAboutToComplete ?? false)"
+            )
+            return
+          }
+          print("AudioManager: Starting automatic fade-out")
           self.fadeOutAndStop()
         }
+      } else {
+        print(
+          "AudioManager: No automatic fade-out scheduled - loop: \(loop), duration: \(player?.duration ?? 0)"
+        )
       }
     } catch {
-      print("Failed to play sound: \(error)")
+      print("AudioManager: Failed to play sound: \(error)")
     }
   }
 
@@ -112,6 +127,9 @@ class AudioManager: NSObject, ObservableObject {
   }
 
   func stopSound() {
+    print(
+      "AudioManager: stopSound called, isFadingOut: \(isFadingOut), isAboutToComplete: \(isAboutToComplete)"
+    )
     if !isFadingOut {
       fadeOutAndStop()
     }
@@ -134,8 +152,13 @@ class AudioManager: NSObject, ObservableObject {
   }
 
   private func fadeOutAndStop(duration: TimeInterval = 2.0) {
+    print(
+      "AudioManager: fadeOutAndStop called - isFadingOut: \(isFadingOut), isAboutToComplete: \(isAboutToComplete)"
+    )
+
     // Prevent multiple fade-outs
     if isFadingOut {
+      print("AudioManager: Already fading out, ignoring")
       return
     }
 
@@ -147,6 +170,7 @@ class AudioManager: NSObject, ObservableObject {
 
     // Check if we have a player and it's either playing or we're about to complete
     guard let player = player, player.isPlaying || isPlaying || isAboutToComplete else {
+      print("AudioManager: Player not available or not playing, stopping immediately")
       isFadingOut = false
       stopSoundImmediately()
       return
@@ -183,6 +207,12 @@ extension AudioManager: AVAudioPlayerDelegate {
   func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
     // Don't reset state if we're in the middle of a fade-out or about to complete
     if !isFadingOut && !isAboutToComplete {
+      // For looping audio, don't reset the state when it finishes one cycle
+      if player.numberOfLoops == -1 {
+        // Audio is set to loop infinitely, so we don't need to do anything
+        return
+      }
+
       isPlaying = false
       remainingTime = 0
       timer?.invalidate()
