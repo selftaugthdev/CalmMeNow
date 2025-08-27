@@ -27,11 +27,11 @@ struct SettingsView: View {
               Text("⚙️ Settings")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
 
               Text("Customize your experience")
                 .font(.subheadline)
-                .foregroundColor(.black.opacity(0.7))
+                .foregroundColor(.primary.opacity(0.7))
             }
             .padding(.top, 20)
 
@@ -42,7 +42,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 16) {
                   Text("When ending session")
                     .font(.headline)
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
 
                   Picker("When ending session", selection: $watchEndBehavior) {
                     Text("Ask every time").tag(0)
@@ -53,7 +53,7 @@ struct SettingsView: View {
 
                   Text("Choose what happens when you stop a session on your Apple Watch")
                     .font(.caption)
-                    .foregroundColor(.black.opacity(0.6))
+                    .foregroundColor(.primary.opacity(0.6))
                 }
                 .padding()
                 .background(
@@ -109,21 +109,21 @@ struct SettingsView: View {
                 VStack(spacing: 16) {
                   HStack {
                     Text("Version")
-                      .foregroundColor(.black)
+                      .foregroundColor(.primary)
                     Spacer()
                     Text("1.0.0")
-                      .foregroundColor(.black.opacity(0.6))
+                      .foregroundColor(.primary.opacity(0.6))
                   }
 
                   Divider()
-                    .background(Color.black.opacity(0.1))
+                    .background(Color.primary.opacity(0.1))
 
                   HStack {
                     Text("Build")
-                      .foregroundColor(.black)
+                      .foregroundColor(.primary)
                     Spacer()
                     Text("1")
-                      .foregroundColor(.black.opacity(0.6))
+                      .foregroundColor(.primary.opacity(0.6))
                   }
                 }
                 .padding()
@@ -162,7 +162,7 @@ struct SettingsSection<Content: View>: View {
       Text(title)
         .font(.title2)
         .fontWeight(.bold)
-        .foregroundColor(.black)
+        .foregroundColor(.primary)
         .padding(.horizontal, 4)
 
       content
@@ -180,11 +180,11 @@ struct SettingsToggleRow: View {
       VStack(alignment: .leading, spacing: 4) {
         Text(title)
           .font(.headline)
-          .foregroundColor(.black)
+          .foregroundColor(.primary)
 
         Text(description)
           .font(.caption)
-          .foregroundColor(.black.opacity(0.6))
+          .foregroundColor(.primary.opacity(0.6))
       }
 
       Spacer()

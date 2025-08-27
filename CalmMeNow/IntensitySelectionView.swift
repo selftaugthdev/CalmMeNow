@@ -33,7 +33,7 @@ struct IntensitySelectionView: View {
             Text(emotion)
               .font(.largeTitle)
               .fontWeight(.bold)
-              .foregroundColor(.primary)
+              .foregroundColor(.black)
           }
 
           // Question text
@@ -42,7 +42,7 @@ struct IntensitySelectionView: View {
             .fontWeight(.medium)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 40)
-            .foregroundColor(.primary)
+            .foregroundColor(.black)
 
           // Intensity buttons
           VStack(spacing: 20) {

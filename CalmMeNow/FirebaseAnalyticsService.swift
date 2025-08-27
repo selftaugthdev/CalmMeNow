@@ -28,6 +28,9 @@ class FirebaseAnalyticsService {
 
     // Force analytics to send immediately (for debugging)
     Analytics.logEvent(AnalyticsEventAppOpen, parameters: nil)
+
+    // Force Firebase to send events immediately
+    Analytics.logEvent("debug_force_send", parameters: ["test": "immediate"])
   }
 
   /// Track when a user selects intensity level

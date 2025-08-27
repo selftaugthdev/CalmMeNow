@@ -75,7 +75,7 @@ struct CooldownView: View {
         if audioManager.isPlaying {
           Text(timeString(from: audioManager.remainingTime))
             .font(.title)
-            .foregroundColor(.white)
+            .foregroundColor(.black)
             .padding(.bottom, 20)
         }
 

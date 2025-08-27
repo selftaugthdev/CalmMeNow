@@ -26,6 +26,7 @@ struct MainTabView: View {
         }
     }
     .accentColor(Color(hex: "#A0C4FF"))
+    .preferredColorScheme(.light)  // Force light mode for tab bar
   }
 }
 

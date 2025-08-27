@@ -5,6 +5,7 @@
 //  Created by Thierry De Belder on 19/05/2025.
 //
 
+import FirebaseAnalytics
 import FirebaseCore
 import SwiftData
 import SwiftUI
@@ -15,6 +16,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     FirebaseApp.configure()
+
+    // Enable Firebase Analytics debug mode
+    #if DEBUG
+      Analytics.setAnalyticsCollectionEnabled(true)
+    #endif
 
     return true
   }

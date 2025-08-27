@@ -92,7 +92,7 @@ struct ContentView: View {
 
               Text("For immediate relief from panic attacks")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(.black)
                 .multilineTextAlignment(.center)
             }
             .padding(.horizontal, 30)

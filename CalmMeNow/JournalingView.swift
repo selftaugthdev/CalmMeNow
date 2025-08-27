@@ -469,7 +469,7 @@ struct NewJournalEntryView: View {
 
               TextEditor(text: $entryText)
                 .font(.body)
-                .foregroundColor(.white)
+                .foregroundColor(.black)
                 .padding(16)
                 .background(
                   RoundedRectangle(cornerRadius: 12)
