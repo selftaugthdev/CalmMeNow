@@ -16,6 +16,13 @@ struct ContentView: View {
   @State private var showingIntensitySelection = false
   @State private var showingTailoredExperience = false
   @State private var showingEmergencyCalm = false
+  @State private var showingBubbleGame = false
+  @State private var showingMemoryGame = false
+  @State private var showingColoringGame = false
+  @State private var showingGameSelection = false
+  @State private var showingPersonalizedPlan = false
+  @State private var showingDailyCoach = false
+  @State private var showingEmergencyCompanion = false
 
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
@@ -99,61 +106,61 @@ struct ContentView: View {
             .padding(.top, 60)  // Add top padding to avoid Dynamic Island
             .padding(.bottom, 50)  // Breathing room after emergency button
 
-            Text("Tap how you feel.")
+            Text("Choose your path to calm")
               .font(.title2)
               .fontWeight(.medium)
               .foregroundColor(.black)
               .padding(.bottom, 30)
 
-            Text("We'll help you feel better in 60 seconds.")
+            Text("Find the right tool for your moment.")
               .font(.body)
               .multilineTextAlignment(.center)
               .padding(.horizontal, 40)
               .padding(.bottom, 50)  // More breathing room before cards
               .foregroundColor(.black.opacity(0.7))
 
-            // Clean Emotion Cards - 4 cards in 2x2 grid
+            // Core Differentiators - 4 cards in 2x2 grid
             VStack(spacing: 20) {  // Increased spacing between rows
               // Top row - 2 cards
               HStack(spacing: 20) {  // Increased spacing between cards
-                // Anxious Card
+                // Games Card
                 EmotionCard(
-                  emoji: "😰",
-                  emotion: "Anxious",
-                  subtext: "Tap to feel better in 60 seconds",
-                  isSelected: selectedButton == "anxious",
+                  emoji: "🎮",
+                  emotion: "Games",
+                  subtext: "Play calming mini-games to distract and relax",
+                  isSelected: selectedButton == "games",
                   onTap: {
                     HapticManager.shared.emotionButtonTap()
-                    selectedEmotion = "anxious"
-                    selectedEmoji = "😰"
+                    selectedEmotion = "games"
+                    selectedEmoji = "🎮"
 
-                    // Track emotion selection
-                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "anxious")
+                    // Track feature selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "games")
 
-                    // Force state synchronization with delay
+                    // Show game selection menu
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      showingIntensitySelection = true
+                      showingGameSelection = true
                     }
                   }
                 )
 
-                // Angry Card
+                // Personalized Panic Plan Card
                 EmotionCard(
-                  emoji: "😡",
-                  emotion: "Angry",
-                  subtext: "Tap to feel better in 60 seconds",
-                  isSelected: selectedButton == "angry",
+                  emoji: "🧩",
+                  emotion: "Panic Plan",
+                  subtext: "Your personalized emergency response plan",
+                  isSelected: selectedButton == "panic_plan",
                   onTap: {
                     HapticManager.shared.emotionButtonTap()
-                    selectedEmotion = "angry"
-                    selectedEmoji = "😡"
+                    selectedEmotion = "panic_plan"
+                    selectedEmoji = "🧩"
 
-                    // Track emotion selection
-                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "angry")
+                    // Track feature selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "panic_plan")
 
-                    // Force state synchronization with delay
+                    // Navigate to personalized plan
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      showingIntensitySelection = true
+                      showingPersonalizedPlan = true
                     }
                   }
                 )
@@ -161,44 +168,45 @@ struct ContentView: View {
 
               // Bottom row - 2 cards
               HStack(spacing: 20) {  // Increased spacing between cards
-                // Sad Card
+                // Daily Check-in Coach Card
                 EmotionCard(
-                  emoji: "😢",
-                  emotion: "Sad",
-                  subtext: "Tap to feel better in 60 seconds",
-                  isSelected: selectedButton == "sad",
+                  emoji: "📅",
+                  emotion: "Daily Coach",
+                  subtext: "Daily check-ins and progress tracking",
+                  isSelected: selectedButton == "daily_coach",
                   onTap: {
                     HapticManager.shared.emotionButtonTap()
-                    selectedEmotion = "sad"
-                    selectedEmoji = "😢"
+                    selectedEmotion = "daily_coach"
+                    selectedEmoji = "📅"
 
-                    // Track emotion selection
-                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "sad")
+                    // Track feature selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "daily_coach")
 
-                    // Force state synchronization with delay
+                    // Navigate to daily coach
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      showingIntensitySelection = true
+                      showingDailyCoach = true
                     }
                   }
                 )
 
-                // Frustrated Card
+                // Emergency Companion Card
                 EmotionCard(
-                  emoji: "😖",
-                  emotion: "Frustrated",
-                  subtext: "Tap to feel better in 60 seconds",
-                  isSelected: selectedButton == "frustrated",
+                  emoji: "🤖",
+                  emotion: "Emergency",
+                  subtext: "AI companion for crisis moments",
+                  isSelected: selectedButton == "emergency_companion",
                   onTap: {
                     HapticManager.shared.emotionButtonTap()
-                    selectedEmotion = "frustrated"
-                    selectedEmoji = "😖"
+                    selectedEmotion = "emergency_companion"
+                    selectedEmoji = "🤖"
 
-                    // Track emotion selection
-                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "frustrated")
+                    // Track feature selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(
+                      emotion: "emergency_companion")
 
-                    // Force state synchronization with delay
+                    // Navigate to emergency companion
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      showingIntensitySelection = true
+                      showingEmergencyCompanion = true
                     }
                   }
                 )
@@ -254,6 +262,31 @@ struct ContentView: View {
 
       .sheet(isPresented: $showingEmergencyCalm) {
         EmergencyCalmView()
+      }
+      .sheet(isPresented: $showingBubbleGame) {
+        BubbleGameView()
+      }
+      .sheet(isPresented: $showingMemoryGame) {
+        MemoryGameView()
+      }
+      .sheet(isPresented: $showingColoringGame) {
+        CalmColoringView()
+      }
+      .sheet(isPresented: $showingGameSelection) {
+        GameSelectionView(
+          showingBubbleGame: $showingBubbleGame,
+          showingMemoryGame: $showingMemoryGame,
+          showingColoringGame: $showingColoringGame
+        )
+      }
+      .sheet(isPresented: $showingPersonalizedPlan) {
+        PersonalizedPanicPlanView()
+      }
+      .sheet(isPresented: $showingDailyCoach) {
+        DailyCoachView()
+      }
+      .sheet(isPresented: $showingEmergencyCompanion) {
+        EmergencyCompanionView()
       }
 
     }
