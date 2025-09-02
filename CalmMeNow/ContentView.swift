@@ -270,7 +270,7 @@ struct ContentView: View {
         MemoryGameView()
       }
       .sheet(isPresented: $showingColoringGame) {
-        CalmColoringView()
+        ColoringPageWithTraceView()
       }
       .sheet(isPresented: $showingGameSelection) {
         GameSelectionView(
