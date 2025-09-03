@@ -11,6 +11,7 @@ struct ContentView: View {
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
   @StateObject private var paywallManager = PaywallManager.shared
+  @State private var showingPaywall = false
   @State private var selectedButton: String? = nil
   @State private var isQuickCalmPressed = false
   @State private var calmButtonPulse = false
@@ -339,7 +340,12 @@ struct ContentView: View {
       }
 
     }
-    .paywallGuard()  // Shows paywall when AI features are accessed without subscription
+    .sheet(isPresented: $showingPaywall) {
+      PaywallView()
+    }
+    .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
+      showingPaywall = shouldShow
+    }
   }
 
   private func timeString(from timeInterval: TimeInterval) -> String {

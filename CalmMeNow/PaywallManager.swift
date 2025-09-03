@@ -94,17 +94,6 @@ final class PaywallManager: ObservableObject {
   private var cancellables = Set<AnyCancellable>()
 }
 
-// MARK: - View Extension for Paywall
-extension View {
-  /// Shows paywall when AI features are accessed without subscription
-  func paywallGuard() -> some View {
-    self
-      .sheet(isPresented: PaywallManager.shared.$shouldShowPaywall) {
-        PaywallView()
-      }
-  }
-}
-
 // MARK: - Usage Examples
 /*
 
@@ -126,7 +115,9 @@ extension View {
          }
        }
      }
-     .paywallGuard() // This will show paywall when needed
+     .sheet(isPresented: paywallManager.$shouldShowPaywall) {
+       PaywallView()
+     }
    }
 
    private func generatePlan() async {
