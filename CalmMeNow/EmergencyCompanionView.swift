@@ -125,6 +125,34 @@ struct EmergencyCompanionView: View {
                 }
               )
               .padding(.horizontal, 20)
+
+              // AI Emergency Companion Button
+              Button(action: {
+                // Present the AI Emergency Companion
+                let aiView = EmergencyCompanionAIView()
+                let hostingController = UIHostingController(rootView: aiView)
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let window = windowScene.windows.first
+                {
+                  window.rootViewController?.present(hostingController, animated: true)
+                }
+              }) {
+                HStack(spacing: 12) {
+                  Image(systemName: "bolt.fill")
+                    .font(.title2)
+                  Text("AI Emergency Companion")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                  RoundedRectangle(cornerRadius: 25)
+                    .fill(Color.red)
+                )
+              }
+              .padding(.horizontal, 20)
             }
 
             // Text input

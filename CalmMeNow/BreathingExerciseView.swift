@@ -58,7 +58,7 @@ struct BreathingExerciseView: View {
       LinearGradient(
         gradient: Gradient(colors: [
           Color.blue.opacity(0.1),
-          Color.purple.opacity(0.1),
+          Color(hex: "#98D8C8").opacity(0.1),
           Color.mint.opacity(0.1),
         ]),
         startPoint: .topLeading,

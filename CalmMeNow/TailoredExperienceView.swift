@@ -134,7 +134,7 @@ struct TailoredExperienceView: View {
   private var backgroundGradient: LinearGradient {
     guard let program = program else {
       return LinearGradient(
-        gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)]),
+        gradient: Gradient(colors: [Color.blue.opacity(0.1), Color(hex: "#98D8C8").opacity(0.1)]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
       )
@@ -165,7 +165,7 @@ struct TailoredExperienceView: View {
     case .sad:
       return LinearGradient(
         gradient: Gradient(colors: [
-          Color(red: 0.95, green: 0.90, blue: 0.98),  // Soft purple
+          Color(hex: "#E8F5F2"),  // Light Mint
           Color(red: 0.98, green: 0.85, blue: 0.90),  // Rose
           Color(red: 0.98, green: 0.95, blue: 0.90),  // Cream
         ]),

@@ -108,7 +108,7 @@ struct PaywallView: View {
                 .padding(.vertical, 18)
                 .background(
                   LinearGradient(
-                    gradient: Gradient(colors: [Color.blue, Color.purple]),
+                    gradient: Gradient(colors: [Color.blue, Color(hex: "#98D8C8")]),
                     startPoint: .leading,
                     endPoint: .trailing
                   )

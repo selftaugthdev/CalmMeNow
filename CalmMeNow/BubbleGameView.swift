@@ -21,7 +21,7 @@ struct BubbleGameView: View {
   // Calming colors for bubbles
   private let bubbleColors: [Color] = [
     Color.blue.opacity(0.6),
-    Color.purple.opacity(0.6),
+    Color(hex: "#98D8C8").opacity(0.6),
     Color.pink.opacity(0.6),
     Color.cyan.opacity(0.6),
     Color.mint.opacity(0.6),
@@ -33,7 +33,7 @@ struct BubbleGameView: View {
       // Calming gradient background
       LinearGradient(
         gradient: Gradient(colors: [
-          Color.purple.opacity(0.1),
+          Color(hex: "#98D8C8").opacity(0.1),
           Color.blue.opacity(0.1),
           Color.mint.opacity(0.1),
         ]),

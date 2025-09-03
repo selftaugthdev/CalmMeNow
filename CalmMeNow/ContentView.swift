@@ -35,11 +35,11 @@ struct ContentView: View {
   var body: some View {
     NavigationView {
       ZStack {
-        // Background gradient - Teal to Soft Purple (stability + healing)
+        // Background gradient - Teal to Mint (stability + healing)
         LinearGradient(
           gradient: Gradient(colors: [
-            Color(hex: "#A0C4FF"),  // Teal
-            Color(hex: "#D0BFFF"),  // Soft Purple
+            Color(hex: "#4A9B8C"),  // Deep Teal
+            Color(hex: "#98D8C8"),  // Soft Mint
           ]),
           startPoint: .topLeading,
           endPoint: .bottomTrailing

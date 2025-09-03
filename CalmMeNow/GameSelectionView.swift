@@ -12,7 +12,7 @@ struct GameSelectionView: View {
         // Calming gradient background
         LinearGradient(
           gradient: Gradient(colors: [
-            Color.purple.opacity(0.1),
+            Color(hex: "#98D8C8").opacity(0.1),
             Color.blue.opacity(0.1),
             Color.mint.opacity(0.1),
           ]),
@@ -56,7 +56,7 @@ struct GameSelectionView: View {
               emoji: "🧠",
               title: "Memory Match",
               description: "Find matching pairs to focus your mind",
-              color: .purple
+              color: Color(hex: "#98D8C8")
             ) {
               presentationMode.wrappedValue.dismiss()
               DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {

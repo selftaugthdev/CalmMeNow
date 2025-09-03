@@ -29,7 +29,7 @@ struct JournalingView: View {
         LinearGradient(
           gradient: Gradient(colors: [
             Color(hex: "#A0C4FF"),  // Teal
-            Color(hex: "#D0BFFF"),  // Soft Purple
+            Color(hex: "#98D8C8"),  // Soft Mint
           ]),
           startPoint: .topLeading,
           endPoint: .bottomTrailing
@@ -337,7 +337,7 @@ struct JournalEntryCard: View {
     case "angry":
       return Color.red
     case "sad":
-      return Color.purple
+      return Color(hex: "#98D8C8")
     case "frustrated":
       return Color.orange
     default:

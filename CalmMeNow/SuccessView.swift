@@ -24,7 +24,7 @@ struct SuccessView: View {
       LinearGradient(
         gradient: Gradient(colors: [
           Color(hex: "#A0C4FF"),  // Teal
-          Color(hex: "#D0BFFF"),  // Soft Purple
+          Color(hex: "#98D8C8"),  // Soft Mint
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing

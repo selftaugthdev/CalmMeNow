@@ -23,7 +23,7 @@ struct MemoryGameView: View {
   private let symbols = ["🌸", "🌿", "🌊", "☁️", "🕊️", "🍃", "🌙", "⭐"]
   private let cardColors: [Color] = [
     Color.blue.opacity(0.8),
-    Color.purple.opacity(0.8),
+    Color(hex: "#98D8C8").opacity(0.8),
     Color.mint.opacity(0.8),
     Color.pink.opacity(0.8),
     Color.indigo.opacity(0.8),
@@ -37,7 +37,7 @@ struct MemoryGameView: View {
       // Calming gradient background
       LinearGradient(
         gradient: Gradient(colors: [
-          Color.purple.opacity(0.1),
+          Color(hex: "#98D8C8").opacity(0.1),
           Color.blue.opacity(0.1),
           Color.mint.opacity(0.1),
         ]),

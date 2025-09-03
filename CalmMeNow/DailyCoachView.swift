@@ -2,22 +2,14 @@ import SwiftUI
 
 struct DailyCoachView: View {
   @Environment(\.presentationMode) var presentationMode
-  @StateObject private var progressTracker = ProgressTracker.shared
-  @State private var showingDailyCheckIn = false
-  @State private var showingProgressReport = false
-  @State private var selectedDate = Date()
-
-  // Sample daily check-in data
-  @State private var dailyCheckIns: [DailyCheckIn] = [
-    DailyCheckIn(
-      id: UUID().uuidString,
-      date: Date(),
-      mood: .good,
-      stressLevel: .medium,
-      notes: "Feeling more balanced today",
-      completedActivities: ["breathing", "journaling"]
-    )
-  ]
+  @State private var mood: Int = 4  // 1-10
+  @State private var tags: Set<String> = ["tired"]
+  @State private var note: String = ""
+  @State private var checkinResult: [String: Any]?
+  @State private var isLoading = false
+  @State private var error: String?
+  @State private var showingPanicPlan = false
+  @State private var showingExercise = false
 
   var body: some View {
     NavigationView {
@@ -25,9 +17,9 @@ struct DailyCoachView: View {
         // Background gradient
         LinearGradient(
           gradient: Gradient(colors: [
+            Color(hex: "#E8F4FD"),
             Color(hex: "#F0F8FF"),
             Color(hex: "#E6F3FF"),
-            Color(hex: "#D1ECF1"),
           ]),
           startPoint: .topLeading,
           endPoint: .bottomTrailing
@@ -38,109 +30,227 @@ struct DailyCoachView: View {
           VStack(spacing: 24) {
             // Header
             VStack(spacing: 12) {
-              Text("📅")
+              Text("📊")
                 .font(.system(size: 60))
 
-              Text("Daily Coach")
+              Text("Daily Check-in Coach")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-                .foregroundColor(.primary)
+                .foregroundColor(Color(.label))
 
-              Text("Track your daily progress and build healthy habits")
+              Text("Quick 30-second check-in to get personalized support")
                 .font(.body)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(.secondaryLabel))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
             }
             .padding(.top, 20)
 
-            // Today's Check-in Status
-            VStack(spacing: 16) {
-              Text("Today's Check-in")
-                .font(.title2)
+            // Check-in Form
+            VStack(spacing: 20) {
+              Text("How are you feeling today?")
+                .font(.headline)
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
+                .foregroundColor(Color(.label))
 
-              if let todayCheckIn = dailyCheckIns.first(where: {
-                Calendar.current.isDate($0.date, inSameDayAs: Date())
-              }) {
-                TodayCheckInCard(checkIn: todayCheckIn)
-              } else {
-                Button(action: {
-                  showingDailyCheckIn = true
-                }) {
-                  VStack(spacing: 12) {
-                    Image(systemName: "plus.circle.fill")
-                      .font(.system(size: 40))
-                      .foregroundColor(.blue)
+              // Mood Slider
+              VStack(spacing: 8) {
+                HStack {
+                  Text("😢")
+                    .font(.title2)
+                  Spacer()
+                  Text("😊")
+                    .font(.title2)
+                }
 
-                    Text("Complete Today's Check-in")
-                      .font(.headline)
-                      .fontWeight(.semibold)
-                      .foregroundColor(.blue)
-
-                    Text("Take a moment to reflect on your day")
-                      .font(.caption)
-                      .foregroundColor(.secondary)
-                  }
-                  .padding(24)
-                  .background(
-                    RoundedRectangle(cornerRadius: 16)
-                      .fill(Color.white)
-                      .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+                HStack {
+                  Text("1")
+                    .font(.caption)
+                    .foregroundColor(Color(.secondaryLabel))
+                  Slider(
+                    value: Binding(
+                      get: { Double(mood) },
+                      set: { mood = Int($0) }
+                    ), in: 1...10, step: 1
                   )
+                  .accentColor(.blue)
+                  Text("10")
+                    .font(.caption)
+                    .foregroundColor(Color(.secondaryLabel))
                 }
-                .buttonStyle(PlainButtonStyle())
-              }
-            }
-            .padding(.horizontal, 20)
 
-            // Progress Overview
-            VStack(spacing: 16) {
-              HStack {
-                Text("Progress Overview")
-                  .font(.title2)
+                Text("Mood: \(mood)")
+                  .font(.headline)
+                  .fontWeight(.medium)
+                  .foregroundColor(Color(.label))
+              }
+              .padding(.horizontal, 20)
+
+              // Tags
+              VStack(alignment: .leading, spacing: 12) {
+                Text("What's on your mind?")
+                  .font(.headline)
                   .fontWeight(.semibold)
-                  .foregroundColor(.primary)
+                  .foregroundColor(Color(.label))
 
-                Spacer()
-
-                Button("View Report") {
-                  showingProgressReport = true
-                }
-                .font(.caption)
-                .foregroundColor(.blue)
+                TagPicker(
+                  tags: [
+                    "tired", "work", "social", "health", "family", "sleep", "anxious",
+                    "overwhelmed",
+                  ],
+                  selection: $tags
+                )
               }
+              .padding(.horizontal, 20)
 
-              ProgressOverviewCard(progressTracker: progressTracker)
+              // Note
+              VStack(alignment: .leading, spacing: 8) {
+                Text("Any specific thoughts? (optional)")
+                  .font(.headline)
+                  .fontWeight(.semibold)
+                  .foregroundColor(Color(.label))
+
+                TextField("Share what's on your mind...", text: $note, axis: .vertical)
+                  .textFieldStyle(RoundedBorderTextFieldStyle())
+                  .lineLimit(3...6)
+              }
+              .padding(.horizontal, 20)
+
+              // Check-in Button
+              Button(action: runCheckIn) {
+                HStack(spacing: 12) {
+                  if isLoading {
+                    ProgressView()
+                      .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                      .scaleEffect(0.8)
+                  } else {
+                    Image(systemName: "heart.fill")
+                      .font(.title2)
+                  }
+                  Text(isLoading ? "Processing..." : "Run Check-in")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                  RoundedRectangle(cornerRadius: 25)
+                    .fill(Color.blue)
+                )
+              }
+              .disabled(isLoading)
+              .padding(.horizontal, 20)
             }
+            .padding(20)
+            .background(
+              RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+            )
             .padding(.horizontal, 20)
 
-            // Recent Check-ins
-            VStack(spacing: 16) {
-              Text("Recent Check-ins")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
+            // Results Section
+            if let result = checkinResult {
+              VStack(spacing: 20) {
+                Text("Your Check-in Results")
+                  .font(.title2)
+                  .fontWeight(.bold)
+                  .foregroundColor(Color(.label))
 
-              LazyVStack(spacing: 12) {
-                ForEach(dailyCheckIns.prefix(5)) { checkIn in
-                  CheckInHistoryCard(checkIn: checkIn)
+                // Severity Display
+                if let severity = result["severity"] as? Int {
+                  SeverityCard(severity: severity)
+                }
+
+                // Action Buttons
+                if let severity = result["severity"] as? Int, severity >= 2 {
+                  // High severity - show exercise and panic plan options
+                  VStack(spacing: 16) {
+                    Button(action: { showingExercise = true }) {
+                      HStack(spacing: 12) {
+                        Image(systemName: "figure.mind.and.body")
+                          .font(.title2)
+                        Text("Do an Exercise Now")
+                          .font(.headline)
+                          .fontWeight(.semibold)
+                      }
+                      .foregroundColor(.white)
+                      .frame(maxWidth: .infinity)
+                      .padding(.vertical, 16)
+                      .background(
+                        RoundedRectangle(cornerRadius: 25)
+                          .fill(Color.orange)
+                      )
+                    }
+
+                    Button(action: { showingPanicPlan = true }) {
+                      HStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                          .font(.title2)
+                        Text("Open Panic Plan")
+                          .font(.headline)
+                          .fontWeight(.semibold)
+                      }
+                      .foregroundColor(.white)
+                      .frame(maxWidth: .infinity)
+                      .padding(.vertical, 16)
+                      .background(
+                        RoundedRectangle(cornerRadius: 25)
+                          .fill(Color.red)
+                      )
+                    }
+                  }
+                  .padding(.horizontal, 20)
+                } else {
+                  // Low severity - show micro-exercise
+                  if let exercise = result["exercise"] as? [String: Any] {
+                    MicroExerciseCard(exercise: exercise)
+                  }
+                }
+
+                // Debug Info (can be removed in production)
+                if let debugInfo = result["debug"] as? String {
+                  Text(debugInfo)
+                    .font(.caption)
+                    .foregroundColor(Color(.secondaryLabel))
+                    .padding(.horizontal, 20)
                 }
               }
+              .padding(20)
+              .background(
+                RoundedRectangle(cornerRadius: 16)
+                  .fill(Color(.systemBackground))
+                  .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+              )
+              .padding(.horizontal, 20)
             }
-            .padding(.horizontal, 20)
 
-            // Daily Tips
-            VStack(spacing: 16) {
-              Text("Today's Tip")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
+            // Error Display
+            if let error = error {
+              VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                  .font(.title)
+                  .foregroundColor(.red)
 
-              DailyTipCard()
+                Text("Something went wrong")
+                  .font(.headline)
+                  .fontWeight(.semibold)
+                  .foregroundColor(Color(.label))
+
+                Text(error)
+                  .font(.body)
+                  .foregroundColor(Color(.secondaryLabel))
+                  .multilineTextAlignment(.center)
+              }
+              .padding(20)
+              .background(
+                RoundedRectangle(cornerRadius: 16)
+                  .fill(Color(.systemBackground))
+                  .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+              )
+              .padding(.horizontal, 20)
             }
-            .padding(.horizontal, 20)
 
             Spacer(minLength: 40)
           }
@@ -153,475 +263,283 @@ struct DailyCoachView: View {
         }
         .foregroundColor(.blue)
       )
-      .sheet(isPresented: $showingDailyCheckIn) {
-        DailyCheckInView()
+      .sheet(isPresented: $showingPanicPlan) {
+        PersonalizedPanicPlanView()
       }
-      .sheet(isPresented: $showingProgressReport) {
-        ProgressReportView(progressTracker: progressTracker)
+      .sheet(isPresented: $showingExercise) {
+        // TODO: Create ExerciseView for the micro-exercise
+        Text("Exercise View - Coming Soon!")
+      }
+    }
+  }
+
+  private func runCheckIn() {
+    isLoading = true
+    error = nil
+    checkinResult = nil
+
+    let checkin: [String: Any] = [
+      "mood": mood,
+      "tags": Array(tags),
+      "note": note,
+    ]
+
+    Task {
+      do {
+        let result = try await AiService.shared.dailyCheckIn(checkin: checkin)
+        await MainActor.run {
+          checkinResult = result
+          isLoading = false
+        }
+      } catch {
+        await MainActor.run {
+          self.error = error.localizedDescription
+          isLoading = false
+        }
       }
     }
   }
 }
 
-// MARK: - Supporting Types
+// MARK: - Supporting Views
 
-struct DailyCheckIn: Identifiable, Codable {
-  let id: String
-  let date: Date
-  let mood: Mood
-  let stressLevel: StressLevel
-  let notes: String
-  let completedActivities: [String]
+struct SeverityCard: View {
+  let severity: Int
 
-  enum Mood: String, CaseIterable, Codable {
-    case excellent = "excellent"
-    case good = "good"
-    case okay = "okay"
-    case bad = "bad"
-    case terrible = "terrible"
-
-    var emoji: String {
-      switch self {
-      case .excellent: return "😄"
-      case .good: return "🙂"
-      case .okay: return "😐"
-      case .bad: return "😔"
-      case .terrible: return "😢"
-      }
-    }
-
-    var description: String {
-      switch self {
-      case .excellent: return "Excellent"
-      case .good: return "Good"
-      case .okay: return "Okay"
-      case .bad: return "Bad"
-      case .terrible: return "Terrible"
-      }
+  var severityColor: Color {
+    switch severity {
+    case 0: return .green
+    case 1: return .blue
+    case 2: return .orange
+    case 3: return .red
+    default: return .gray
     }
   }
 
-  enum StressLevel: String, CaseIterable, Codable {
-    case low = "low"
-    case medium = "medium"
-    case high = "high"
-    case veryHigh = "very_high"
-
-    var description: String {
-      switch self {
-      case .low: return "Low"
-      case .medium: return "Medium"
-      case .high: return "High"
-      case .veryHigh: return "Very High"
-      }
-    }
-
-    var color: Color {
-      switch self {
-      case .low: return .green
-      case .medium: return .yellow
-      case .high: return .orange
-      case .veryHigh: return .red
-      }
+  var severityText: String {
+    switch severity {
+    case 0: return "Feeling Good"
+    case 1: return "Mild Concern"
+    case 2: return "Moderate Concern"
+    case 3: return "High Concern"
+    default: return "Unknown"
     }
   }
-}
-
-// MARK: - Today Check-in Card
-
-struct TodayCheckInCard: View {
-  let checkIn: DailyCheckIn
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
-      HStack {
-        Text(checkIn.mood.emoji)
-          .font(.title)
+    HStack(spacing: 16) {
+      Image(systemName: severity == 0 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+        .font(.title)
+        .foregroundColor(severityColor)
 
-        VStack(alignment: .leading, spacing: 4) {
-          Text("Mood: \(checkIn.mood.description)")
-            .font(.headline)
-            .foregroundColor(.primary)
+      VStack(alignment: .leading, spacing: 4) {
+        Text(severityText)
+          .font(.headline)
+          .fontWeight(.semibold)
+          .foregroundColor(Color(.label))
 
-          Text("Stress: \(checkIn.stressLevel.description)")
-            .font(.subheadline)
-            .foregroundColor(checkIn.stressLevel.color)
-        }
-
-        Spacer()
-
-        Text("✓")
-          .font(.title2)
-          .fontWeight(.bold)
-          .foregroundColor(.green)
+        Text("Severity Level: \(severity)")
+          .font(.subheadline)
+          .foregroundColor(Color(.secondaryLabel))
       }
 
-      if !checkIn.notes.isEmpty {
-        Text(checkIn.notes)
-          .font(.body)
-          .foregroundColor(.secondary)
-      }
-
-      if !checkIn.completedActivities.isEmpty {
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Activities Completed:")
-            .font(.caption)
-            .fontWeight(.medium)
-            .foregroundColor(.secondary)
-
-          HStack {
-            ForEach(checkIn.completedActivities, id: \.self) { activity in
-              Text(activity.capitalized)
-                .font(.caption)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(
-                  RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.blue.opacity(0.1))
-                )
-                .foregroundColor(.blue)
-            }
-          }
-        }
-      }
+      Spacer()
     }
     .padding(16)
     .background(
-      RoundedRectangle(cornerRadius: 16)
-        .fill(Color.white)
-        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+      RoundedRectangle(cornerRadius: 12)
+        .fill(severityColor.opacity(0.1))
     )
   }
 }
 
-// MARK: - Progress Overview Card
-
-struct ProgressOverviewCard: View {
-  let progressTracker: ProgressTracker
+struct MicroExerciseCard: View {
+  let exercise: [String: Any]
 
   var body: some View {
     VStack(spacing: 16) {
       HStack {
-        StatCard(
-          title: "Current Streak",
-          value: "\(progressTracker.currentStreak)",
-          subtitle: "days",
-          color: .blue
-        )
+        Image(systemName: "figure.mind.and.body")
+          .font(.title)
+          .foregroundColor(.blue)
 
-        StatCard(
-          title: "This Week",
-          value: "\(progressTracker.weeklyUsage)",
-          subtitle: "sessions",
-          color: .green
-        )
+        VStack(alignment: .leading, spacing: 4) {
+          Text(exercise["title"] as? String ?? "Micro-Exercise")
+            .font(.headline)
+            .fontWeight(.semibold)
+            .foregroundColor(Color(.label))
 
-        StatCard(
-          title: "Total Usage",
-          value: "\(progressTracker.totalUsage)",
-          subtitle: "times",
-          color: .purple
-        )
-      }
-    }
-    .padding(16)
-    .background(
-      RoundedRectangle(cornerRadius: 16)
-        .fill(Color.white)
-        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-    )
-  }
-}
-
-struct StatCard: View {
-  let title: String
-  let value: String
-  let subtitle: String
-  let color: Color
-
-  var body: some View {
-    VStack(spacing: 4) {
-      Text(value)
-        .font(.title2)
-        .fontWeight(.bold)
-        .foregroundColor(color)
-
-      Text(subtitle)
-        .font(.caption)
-        .foregroundColor(.secondary)
-
-      Text(title)
-        .font(.caption)
-        .fontWeight(.medium)
-        .foregroundColor(.primary)
-        .multilineTextAlignment(.center)
-    }
-    .frame(maxWidth: .infinity)
-  }
-}
-
-// MARK: - Check-in History Card
-
-struct CheckInHistoryCard: View {
-  let checkIn: DailyCheckIn
-
-  var body: some View {
-    HStack(spacing: 12) {
-      Text(checkIn.mood.emoji)
-        .font(.title2)
-
-      VStack(alignment: .leading, spacing: 4) {
-        Text(formatDate(checkIn.date))
-          .font(.subheadline)
-          .fontWeight(.medium)
-          .foregroundColor(.primary)
-
-        Text("Mood: \(checkIn.mood.description) • Stress: \(checkIn.stressLevel.description)")
-          .font(.caption)
-          .foregroundColor(.secondary)
-      }
-
-      Spacer()
-
-      Circle()
-        .fill(checkIn.stressLevel.color)
-        .frame(width: 8, height: 8)
-    }
-    .padding(12)
-    .background(
-      RoundedRectangle(cornerRadius: 12)
-        .fill(Color.white.opacity(0.8))
-    )
-  }
-
-  private func formatDate(_ date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .medium
-    return formatter.string(from: date)
-  }
-}
-
-// MARK: - Daily Tip Card
-
-struct DailyTipCard: View {
-  private let tips = [
-    "Take 3 deep breaths when you feel overwhelmed",
-    "Practice gratitude by listing 3 things you're thankful for",
-    "Go for a 10-minute walk to clear your mind",
-    "Try the 5-4-3-2-1 grounding technique",
-    "Write down your thoughts to process them better",
-    "Listen to calming music for 5 minutes",
-    "Stretch your body to release tension",
-    "Call a friend or family member for support",
-  ]
-
-  private var randomTip: String {
-    tips.randomElement() ?? tips[0]
-  }
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack {
-        Image(systemName: "lightbulb.fill")
-          .foregroundColor(.yellow)
-
-        Text("Daily Wellness Tip")
-          .font(.headline)
-          .fontWeight(.semibold)
-          .foregroundColor(.primary)
+          if let duration = exercise["duration_sec"] as? Int {
+            Text("\(duration) seconds")
+              .font(.subheadline)
+              .foregroundColor(Color(.secondaryLabel))
+          }
+        }
 
         Spacer()
       }
 
-      Text(randomTip)
-        .font(.body)
-        .foregroundColor(.secondary)
-        .multilineTextAlignment(.leading)
+      if let steps = exercise["steps"] as? [String] {
+        VStack(alignment: .leading, spacing: 8) {
+          Text("Steps:")
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .foregroundColor(Color(.label))
+
+          ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+            HStack(spacing: 8) {
+              Text("\(index + 1).")
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.blue)
+
+              Text(step)
+                .font(.subheadline)
+                .foregroundColor(Color(.secondaryLabel))
+            }
+          }
+        }
+      }
+
+      Button(action: {
+        // TODO: Start the exercise timer
+      }) {
+        HStack(spacing: 8) {
+          Image(systemName: "play.fill")
+          Text("Start Exercise")
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(
+          RoundedRectangle(cornerRadius: 20)
+            .fill(Color.blue)
+        )
+      }
     }
     .padding(16)
     .background(
-      RoundedRectangle(cornerRadius: 16)
-        .fill(Color.white)
-        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+      RoundedRectangle(cornerRadius: 12)
+        .fill(Color.blue.opacity(0.1))
     )
   }
 }
 
-// MARK: - Daily Check-in Form
+// MARK: - Tag Picker
 
-struct DailyCheckInFormView: View {
-  @Environment(\.presentationMode) var presentationMode
-  let onSave: (DailyCheckIn) -> Void
-
-  @State private var selectedMood: DailyCheckIn.Mood = .good
-  @State private var selectedStressLevel: DailyCheckIn.StressLevel = .medium
-  @State private var notes = ""
-  @State private var selectedActivities: Set<String> = []
-
-  private let availableActivities = [
-    "breathing", "journaling", "meditation", "exercise",
-    "social_connection", "nature_walk", "music", "reading",
-  ]
+struct TagPicker: View {
+  let tags: [String]
+  @Binding var selection: Set<String>
 
   var body: some View {
-    NavigationView {
-      Form {
-        Section(header: Text("How are you feeling today?")) {
-          Picker("Mood", selection: $selectedMood) {
-            ForEach(DailyCheckIn.Mood.allCases, id: \.self) { mood in
-              HStack {
-                Text(mood.emoji)
-                Text(mood.description)
-              }
-              .tag(mood)
-            }
+    WrapHStack(spacing: 8) {
+      ForEach(tags, id: \.self) { tag in
+        let isSelected = selection.contains(tag)
+        Button(action: {
+          if isSelected {
+            selection.remove(tag)
+          } else {
+            selection.insert(tag)
           }
-          .pickerStyle(WheelPickerStyle())
-
-          Picker("Stress Level", selection: $selectedStressLevel) {
-            ForEach(DailyCheckIn.StressLevel.allCases, id: \.self) { level in
-              HStack {
-                Circle()
-                  .fill(level.color)
-                  .frame(width: 12, height: 12)
-                Text(level.description)
-              }
-              .tag(level)
-            }
-          }
-          .pickerStyle(WheelPickerStyle())
+        }) {
+          Text(tag.capitalized)
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+              Capsule()
+                .fill(isSelected ? Color.blue.opacity(0.2) : Color(.systemGray5))
+            )
+            .foregroundColor(isSelected ? .blue : Color(.label))
         }
-
-        Section(header: Text("Notes (Optional)")) {
-          TextField("How was your day?", text: $notes, axis: .vertical)
-            .lineLimit(3...6)
-        }
-
-        Section(header: Text("Activities Completed Today")) {
-          ForEach(availableActivities, id: \.self) { activity in
-            HStack {
-              Text(activity.replacingOccurrences(of: "_", with: " ").capitalized)
-              Spacer()
-              if selectedActivities.contains(activity) {
-                Image(systemName: "checkmark.circle.fill")
-                  .foregroundColor(.blue)
-              }
-            }
-            .contentShape(Rectangle())
-            .onTapGesture {
-              if selectedActivities.contains(activity) {
-                selectedActivities.remove(activity)
-              } else {
-                selectedActivities.insert(activity)
-              }
-            }
-          }
-        }
+        .buttonStyle(PlainButtonStyle())
       }
-      .navigationTitle("Daily Check-in")
-      .navigationBarTitleDisplayMode(.inline)
-      .navigationBarItems(
-        leading: Button("Cancel") {
-          presentationMode.wrappedValue.dismiss()
-        },
-        trailing: Button("Save") {
-          let checkIn = DailyCheckIn(
-            id: UUID().uuidString,
-            date: Date(),
-            mood: selectedMood,
-            stressLevel: selectedStressLevel,
-            notes: notes,
-            completedActivities: Array(selectedActivities)
-          )
-          onSave(checkIn)
-        }
-      )
     }
   }
 }
 
-// MARK: - Progress Report View
+// MARK: - Wrap HStack
 
-struct ProgressReportView: View {
-  @Environment(\.presentationMode) var presentationMode
-  let progressTracker: ProgressTracker
+struct WrapHStack<Content: View>: View {
+  let spacing: CGFloat
+  @ViewBuilder let content: () -> Content
+
+  init(spacing: CGFloat = 8, @ViewBuilder content: @escaping () -> Content) {
+    self.spacing = spacing
+    self.content = content
+  }
 
   var body: some View {
-    NavigationView {
-      ScrollView {
-        VStack(spacing: 24) {
-          // Header
-          VStack(spacing: 12) {
-            Text("📊")
-              .font(.system(size: 50))
-
-            Text("Progress Report")
-              .font(.title)
-              .fontWeight(.bold)
-              .foregroundColor(.primary)
-          }
-          .padding(.top, 20)
-
-          // Stats Grid
-          LazyVGrid(
-            columns: [
-              GridItem(.flexible()),
-              GridItem(.flexible()),
-            ], spacing: 16
-          ) {
-            StatCard(
-              title: "Current Streak",
-              value: "\(progressTracker.currentStreak)",
-              subtitle: "days",
-              color: .blue
-            )
-
-            StatCard(
-              title: "Longest Streak",
-              value: "\(progressTracker.longestStreak)",
-              subtitle: "days",
-              color: .green
-            )
-
-            StatCard(
-              title: "This Week",
-              value: "\(progressTracker.weeklyUsage)",
-              subtitle: "sessions",
-              color: .orange
-            )
-
-            StatCard(
-              title: "This Month",
-              value: "\(progressTracker.daysThisWeek)",
-              subtitle: "days",
-              color: .purple
-            )
-          }
-          .padding(.horizontal, 20)
-
-          // Heatmap
-          VStack(spacing: 16) {
-            Text("Activity Heatmap")
-              .font(.title2)
-              .fontWeight(.semibold)
-              .foregroundColor(.primary)
-
-            StreakHeatmapView(activities: progressTracker.last90DaysActivity)
-              .frame(height: 200)
-          }
-          .padding(.horizontal, 20)
-
-          Spacer(minLength: 40)
-        }
-      }
-      .navigationBarTitleDisplayMode(.inline)
-      .navigationBarItems(
-        trailing: Button("Done") {
-          presentationMode.wrappedValue.dismiss()
-        }
-        .foregroundColor(.blue)
-      )
+    FlowLayout(spacing: spacing) {
+      content()
     }
+  }
+}
+
+// MARK: - Flow Layout
+
+struct FlowLayout: Layout {
+  let spacing: CGFloat
+
+  init(spacing: CGFloat = 8) {
+    self.spacing = spacing
+  }
+
+  func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    let result = FlowResult(
+      in: proposal.replacingUnspecifiedDimensions().width,
+      subviews: subviews,
+      spacing: spacing
+    )
+    return result.size
+  }
+
+  func placeSubviews(
+    in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+  ) {
+    let result = FlowResult(
+      in: bounds.width,
+      subviews: subviews,
+      spacing: spacing
+    )
+    for (index, subview) in subviews.enumerated() {
+      subview.place(
+        at: CGPoint(
+          x: bounds.minX + result.positions[index].x, y: bounds.minY + result.positions[index].y),
+        proposal: .unspecified)
+    }
+  }
+}
+
+struct FlowResult {
+  let positions: [CGPoint]
+  let size: CGSize
+
+  init(in maxWidth: CGFloat, subviews: LayoutSubviews, spacing: CGFloat) {
+    var positions: [CGPoint] = []
+    var currentX: CGFloat = 0
+    var currentY: CGFloat = 0
+    var lineHeight: CGFloat = 0
+    var maxWidthUsed: CGFloat = 0
+
+    for subview in subviews {
+      let size = subview.sizeThatFits(.unspecified)
+
+      if currentX + size.width > maxWidth && currentX > 0 {
+        currentX = 0
+        currentY += lineHeight + spacing
+        lineHeight = 0
+      }
+
+      positions.append(CGPoint(x: currentX, y: currentY))
+      currentX += size.width + spacing
+      lineHeight = max(lineHeight, size.height)
+      maxWidthUsed = max(maxWidthUsed, currentX)
+    }
+
+    self.positions = positions
+    self.size = CGSize(width: maxWidthUsed, height: currentY + lineHeight)
   }
 }
 
