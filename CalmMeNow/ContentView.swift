@@ -26,6 +26,7 @@ struct ContentView: View {
   @State private var showingPersonalizedPlan = false
   @State private var showingDailyCoach = false
   @State private var showingEmergencyCompanion = false
+  @State private var showingAIDebug = false
 
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
@@ -134,6 +135,22 @@ struct ContentView: View {
             .padding(.horizontal, 30)
             .padding(.top, 60)  // Add top padding to avoid Dynamic Island
             .padding(.bottom, 50)  // Breathing room after emergency button
+
+            // Hidden Debug Button (for testing AI service)
+            #if DEBUG
+              Button(action: {
+                showingAIDebug = true
+              }) {
+                Text("🔧 AI Debug")
+                  .font(.caption2)
+                  .foregroundColor(.gray)
+                  .padding(.horizontal, 12)
+                  .padding(.vertical, 6)
+                  .background(Color.gray.opacity(0.1))
+                  .cornerRadius(8)
+              }
+              .padding(.bottom, 20)
+            #endif
 
             Text("Choose your path to calm")
               .font(.title2)
@@ -337,6 +354,9 @@ struct ContentView: View {
       }
       .sheet(isPresented: $showingEmergencyCompanion) {
         EmergencyCompanionView()
+      }
+      .sheet(isPresented: $showingAIDebug) {
+        AIDebugView()
       }
 
     }

@@ -60,9 +60,9 @@ class AIServiceViewModel: ObservableObject {
       let checkin: [String: Any] = [
         "mood": mood,
         "tags": tags,
-        "note": note,
+        "note": note
       ]
-
+      
       let checkInData = try await aiService.dailyCheckIn(checkin: checkin)
 
       lastCheckIn = DailyCheckInResponse(from: checkInData)

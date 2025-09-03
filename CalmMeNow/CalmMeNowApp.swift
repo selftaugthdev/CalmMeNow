@@ -11,6 +11,18 @@ import FirebaseCore
 import SwiftData
 import SwiftUI
 
+@main
+struct CalmMeNowApp: App {
+  @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+    }
+    .modelContainer(for: [JournalEntry.self])
+  }
+}
+
 class AppDelegate: NSObject, UIApplicationDelegate {
   func application(
     _ application: UIApplication,
@@ -21,41 +33,26 @@ class AppDelegate: NSObject, UIApplicationDelegate {
   }
 
   private func setupFirebaseAndAppCheck() {
-    // Firebase is now initialized by AiService.shared when first accessed
-    // This prevents duplicate initialization while keeping analytics setup
+    // IMPORTANT: App Check provider must be set BEFORE FirebaseApp.configure()
+    #if targetEnvironment(simulator)
+      // Dev/testing on Simulator - use DEBUG provider
+      AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
+      print("🔥 Firebase App Check: Using DEBUG provider for Simulator")
+    #else
+      // Real devices & TestFlight - use DeviceCheck provider
+      AppCheck.setAppCheckProviderFactory(DeviceCheckProviderFactory())
+      print("🔥 Firebase App Check: Using DeviceCheck provider for real devices")
+    #endif
+
+    // Now configure Firebase (App Check is already set)
+    FirebaseApp.configure()
 
     // Enable Firebase Analytics debug mode
     #if DEBUG
       Analytics.setAnalyticsCollectionEnabled(true)
     #endif
-  }
-}
 
-@main
-struct CalmMeNowApp: App {
-  // register app delegate for Firebase setup
-  @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-  @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-
-  init() {
-    // Activate Watch Connectivity session
-    PhoneWCSessionHandler.shared.activate()
-
-    // Initialize Firebase Analytics with a delay to ensure Firebase is ready
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-      FirebaseAnalyticsService.shared.setUserProperties()
-      FirebaseAnalyticsService.shared.checkFirebaseConfiguration()
-    }
-  }
-
-  var body: some Scene {
-    WindowGroup {
-      if hasCompletedOnboarding {
-        MainTabView()
-      } else {
-        OnboardingView()
-      }
-    }
-    .modelContainer(for: JournalEntry.self)
+    // kick off anon auth in the background
+    AuthManager.shared.warmUpAuth()
   }
 }
