@@ -1,3 +1,5 @@
+
+
 import SwiftUI
 
 struct GameSelectionView: View {
@@ -31,7 +33,7 @@ struct GameSelectionView: View {
 
             Text("Pick a calming activity to distract and relax")
               .font(.body)
-              .foregroundColor(.secondary)
+              .foregroundColor(.secondary) 
               .multilineTextAlignment(.center)
           }
           .padding(.top, 20)

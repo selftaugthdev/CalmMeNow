@@ -12,6 +12,7 @@ struct ContentView: View {
   @StateObject private var progressTracker = ProgressTracker.shared
   @State private var selectedButton: String? = nil
   @State private var isQuickCalmPressed = false
+  @State private var calmButtonPulse = false
   // Modal presentation states
   @State private var showingIntensitySelection = false
   @State private var showingTailoredExperience = false
@@ -95,6 +96,32 @@ struct ContentView: View {
                 .shadow(color: .red.opacity(0.4), radius: 12, x: 0, y: 6)
                 .scaleEffect(isQuickCalmPressed ? 0.95 : 1.0)
                 .animation(.easeInOut(duration: 0.1), value: isQuickCalmPressed)
+                // Enhanced visual effects for more striking appearance
+                .scaleEffect(1.0 + (calmButtonPulse ? 0.03 : 0.0))
+                .shadow(
+                  color: .red.opacity(calmButtonPulse ? 0.7 : 0.4),
+                  radius: calmButtonPulse ? 20 : 12,
+                  x: 0,
+                  y: calmButtonPulse ? 10 : 6
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 25)
+                    .stroke(
+                      Color.white.opacity(calmButtonPulse ? 0.8 : 0.4),
+                      lineWidth: calmButtonPulse ? 3 : 2
+                    )
+                )
+                .animation(
+                  .easeInOut(duration: 2.5)
+                    .repeatForever(autoreverses: true),
+                  value: calmButtonPulse
+                )
+              }
+              .onAppear {
+                // Start the breathing/pulsing animation
+                withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
+                  calmButtonPulse = true
+                }
               }
 
               Text("For immediate relief from panic attacks")
@@ -280,7 +307,7 @@ struct ContentView: View {
         )
       }
       .sheet(isPresented: $showingPersonalizedPlan) {
-        PersonalizedPanicPlanView()
+        PersonalizedPanicPlanGeneratorView()
       }
       .sheet(isPresented: $showingDailyCoach) {
         DailyCoachView()

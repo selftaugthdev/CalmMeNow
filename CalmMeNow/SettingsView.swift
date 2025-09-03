@@ -104,6 +104,48 @@ struct SettingsView: View {
                 )
               }
 
+              // AI Settings
+              SettingsSection(title: "🤖 AI Assistant") {
+                VStack(spacing: 16) {
+                  HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                      Text("AI-Powered Features")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+
+                      Text("Personalized calming advice and breathing guidance")
+                        .font(.caption)
+                        .foregroundColor(.primary.opacity(0.6))
+                    }
+
+                    Spacer()
+
+                    // AI is automatically configured - no settings needed
+                    Image(systemName: "checkmark.circle.fill")
+                      .foregroundColor(.green)
+                      .font(.system(size: 14, weight: .medium))
+                  }
+
+                  HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                      .foregroundColor(.green)
+
+                    Text("AI Configured")
+                      .font(.caption)
+                      .foregroundColor(.green)
+                  }
+                }
+                .padding()
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.9))
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                )
+              }
+
               // About Section
               SettingsSection(title: "About") {
                 VStack(spacing: 16) {

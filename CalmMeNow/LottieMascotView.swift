@@ -1,32 +1,45 @@
-import Lottie
 import SwiftUI
+import Lottie
 
 struct LottieMascotView: UIViewRepresentable {
-  let name: String
-  var loop: LottieLoopMode = .loop
-  var speed: CGFloat = 1.0
+    let name: String
+    var loop: LottieLoopMode = .loop
+    var speed: CGFloat = 1.0
 
-  func makeUIView(context: Context) -> UIView {
-    let container = UIView()
-    container.clipsToBounds = false
+    func makeCoordinator() -> Coordinator { Coordinator() }
+    final class Coordinator {
+        var animView: LottieAnimationView?
+    }
 
-    let animView = LottieAnimationView(name: name)
-    animView.loopMode = loop
-    animView.animationSpeed = speed
-    animView.contentMode = .scaleAspectFit  // <- respects the box you give it
-    animView.translatesAutoresizingMaskIntoConstraints = false
+    func makeUIView(context: Context) -> UIView {
+        let container = UIView()
+        container.backgroundColor = .clear
 
-    container.addSubview(animView)
-    NSLayoutConstraint.activate([
-      animView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-      animView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-      animView.topAnchor.constraint(equalTo: container.topAnchor),
-      animView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-    ])
+        let animView = LottieAnimationView()
+        animView.animation = LottieAnimation.named(name)
+        animView.loopMode = loop
+        animView.animationSpeed = speed
+        animView.contentMode = .scaleAspectFit
+        animView.translatesAutoresizingMaskIntoConstraints = false
 
-    animView.play()
-    return container
-  }
+        // Make the animation fit INSIDE whatever box SwiftUI gives the container.
+        container.addSubview(animView)
+        NSLayoutConstraint.activate([
+            animView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            animView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            animView.widthAnchor.constraint(lessThanOrEqualTo: container.widthAnchor),
+            animView.heightAnchor.constraint(lessThanOrEqualTo: container.heightAnchor)
+        ])
+        // Don’t let Auto Layout stretch it larger than its box
+        animView.setContentHuggingPriority(.required, for: .horizontal)
+        animView.setContentHuggingPriority(.required, for: .vertical)
+        animView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        animView.setContentCompressionResistancePriority(.required, for: .vertical)
 
-  func updateUIView(_ uiView: UIView, context: Context) { /* nothing */  }
+        animView.play()
+        context.coordinator.animView = animView
+        return container
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) { /* no-op */ }
 }

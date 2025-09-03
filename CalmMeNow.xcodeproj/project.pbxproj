@@ -10,6 +10,9 @@
 		E4057D122E5C7C2C0013E917 /* CalmMeNowWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = E4057D082E5C7C2B0013E917 /* CalmMeNowWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E4057D242E5C7E4A0013E917 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4057D232E5C7E4A0013E917 /* WatchConnectivity.framework */; };
 		E4057D262E5C7E740013E917 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4057D252E5C7E740013E917 /* WatchConnectivity.framework */; };
+		E495B4632E68301400BBA349 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = E495B4622E68301400BBA349 /* FirebaseAppCheck */; };
+		E495B4652E68301400BBA349 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = E495B4642E68301400BBA349 /* FirebaseAuth */; };
+		E495B4672E68301400BBA349 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = E495B4662E68301400BBA349 /* FirebaseFunctions */; };
 		E4F9B7172E5E685300443EC4 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = E4F9B7162E5E685300443EC4 /* FirebaseAnalytics */; };
 		E4F9B7192E5E685300443EC4 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = E4F9B7182E5E685300443EC4 /* FirebaseAnalyticsCore */; };
 		E4FC06412E55124F00444E67 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = E4FC06402E55124F00444E67 /* Lottie */; };
@@ -114,8 +117,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4057D262E5C7E740013E917 /* WatchConnectivity.framework in Frameworks */,
+				E495B4672E68301400BBA349 /* FirebaseFunctions in Frameworks */,
+				E495B4652E68301400BBA349 /* FirebaseAuth in Frameworks */,
 				E4FC06412E55124F00444E67 /* Lottie in Frameworks */,
 				E4F9B7172E5E685300443EC4 /* FirebaseAnalytics in Frameworks */,
+				E495B4632E68301400BBA349 /* FirebaseAppCheck in Frameworks */,
 				E4F9B7192E5E685300443EC4 /* FirebaseAnalyticsCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -217,6 +223,9 @@
 				E4FC06402E55124F00444E67 /* Lottie */,
 				E4F9B7162E5E685300443EC4 /* FirebaseAnalytics */,
 				E4F9B7182E5E685300443EC4 /* FirebaseAnalyticsCore */,
+				E495B4622E68301400BBA349 /* FirebaseAppCheck */,
+				E495B4642E68301400BBA349 /* FirebaseAuth */,
+				E495B4662E68301400BBA349 /* FirebaseFunctions */,
 			);
 			productName = CalmMeNow;
 			productReference = E4DB97AF2DDBAD3C0084C498 /* CalmMeNow.app */;
@@ -769,6 +778,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		E495B4622E68301400BBA349 /* FirebaseAppCheck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E4F9B7152E5E685300443EC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAppCheck;
+		};
+		E495B4642E68301400BBA349 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E4F9B7152E5E685300443EC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		E495B4662E68301400BBA349 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E4F9B7152E5E685300443EC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
 		E4F9B7162E5E685300443EC4 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E4F9B7152E5E685300443EC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

@@ -1,10 +1,3 @@
-//
-//  CalmMeNowTests.swift
-//  CalmMeNowTests
-//
-//  Created by Thierry De Belder on 19/05/2025.
-//
-
 import Testing
 import WatchConnectivity
 
