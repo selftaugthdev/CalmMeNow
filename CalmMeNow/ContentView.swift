@@ -355,9 +355,11 @@ struct ContentView: View {
       .sheet(isPresented: $showingEmergencyCompanion) {
         EmergencyCompanionView()
       }
-      .sheet(isPresented: $showingAIDebug) {
-        AIDebugView()
-      }
+      #if DEBUG
+        .sheet(isPresented: $showingAIDebug) {
+          AIDebugView()
+        }
+      #endif
 
     }
     .sheet(isPresented: $showingPaywall) {

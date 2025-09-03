@@ -30,7 +30,9 @@ struct PersonalizedPanicPlanView: View {
   ]
 
   @State private var isGeneratingAIPlan = false
-  @State private var debugStatus = ""
+  #if DEBUG
+    @State private var debugStatus = ""
+  #endif
 
   var body: some View {
     NavigationView {
@@ -159,34 +161,38 @@ struct PersonalizedPanicPlanView: View {
             .disabled(isGeneratingAIPlan)
             .padding(.horizontal, 20)
 
-            // Debug AI Button (for testing)
-            Button(action: {
-              testAIDebug()
-            }) {
-              HStack(spacing: 12) {
-                Image(systemName: "ladybug")
-                  .font(.title2)
-                Text("🐛 Debug AI")
-                  .font(.headline)
-                  .fontWeight(.semibold)
+            #if DEBUG
+              // Debug AI Button (for testing)
+              Button(action: {
+                testAIDebug()
+              }) {
+                HStack(spacing: 12) {
+                  Image(systemName: "ladybug")
+                    .font(.title2)
+                  Text("🐛 Debug AI")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .padding(.vertical, 16)
+                .padding(.horizontal, 24)
+                .background(
+                  RoundedRectangle(cornerRadius: 25)
+                    .fill(Color.orange)
+                )
               }
-              .foregroundColor(.white)
-              .padding(.vertical, 16)
-              .padding(.horizontal, 24)
-              .background(
-                RoundedRectangle(cornerRadius: 25)
-                  .fill(Color.orange)
-              )
-            }
-            .padding(.horizontal, 20)
+              .padding(.horizontal, 20)
+            #endif
 
-            // Debug Status
-            if !debugStatus.isEmpty {
-              Text(debugStatus)
-                .font(.caption)
-                .foregroundColor(Color(.secondaryLabel))
-                .padding(.horizontal, 20)
-            }
+            #if DEBUG
+              // Debug Status
+              if !debugStatus.isEmpty {
+                Text(debugStatus)
+                  .font(.caption)
+                  .foregroundColor(Color(.secondaryLabel))
+                  .padding(.horizontal, 20)
+              }
+            #endif
 
             // Add New Plan Button
             Button(action: {
@@ -342,25 +348,27 @@ struct PersonalizedPanicPlanView: View {
     return techniques.isEmpty ? ["AI-Generated"] : techniques
   }
 
-  /// Debug method to test AI service directly
-  private func testAIDebug() {
-    debugStatus = "Testing AI service..."
-    Task {
-      do {
-        print("🧠 Testing AI Debug...")
-        let result = try await AiService.shared.generatePlanDebug()
-        print("✅ Debug result:", result)
-        await MainActor.run {
-          debugStatus = "✅ Debug successful! Check console for details."
-        }
-      } catch {
-        print("❌ Debug error:", error)
-        await MainActor.run {
-          debugStatus = "❌ Debug failed: \(error.localizedDescription)"
+  #if DEBUG
+    /// Debug method to test AI service directly
+    private func testAIDebug() {
+      debugStatus = "Testing AI service..."
+      Task {
+        do {
+          print("🧠 Testing AI Debug...")
+          let result = try await AiService.shared.generatePlanDebug()
+          print("✅ Debug result:", result)
+          await MainActor.run {
+            debugStatus = "✅ Debug successful! Check console for details."
+          }
+        } catch {
+          print("❌ Debug error:", error)
+          await MainActor.run {
+            debugStatus = "❌ Debug failed: \(error.localizedDescription)"
+          }
         }
       }
     }
-  }
+  #endif
 
 }
 
