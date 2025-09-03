@@ -8,7 +8,7 @@ struct PaywallView: View {
   @State private var errorMessage = ""
 
   var body: some View {
-    NavigationView {
+    NavigationStack {
       ZStack {
         // Background gradient
         LinearGradient(
@@ -19,7 +19,8 @@ struct PaywallView: View {
           startPoint: .topLeading,
           endPoint: .bottomTrailing
         )
-        .ignoresSafeArea()
+        .ignoresSafeArea(.all, edges: .top)
+        .padding(.bottom, 20)
 
         ScrollView {
           VStack(spacing: 30) {
@@ -31,14 +32,15 @@ struct PaywallView: View {
               Text("Unlock AI-Powered Calm")
                 .font(.largeTitle)
                 .fontWeight(.bold)
+                .foregroundColor(.black)
                 .multilineTextAlignment(.center)
 
               Text("Get personalized support when you need it most")
                 .font(.title3)
-                .foregroundColor(.secondary)
+                .foregroundColor(.black.opacity(0.7))
                 .multilineTextAlignment(.center)
             }
-            .padding(.top, 40)
+            .padding(.top, 20)
 
             // Features
             VStack(spacing: 20) {
@@ -73,16 +75,17 @@ struct PaywallView: View {
               Text("Just $4.99/month")
                 .font(.title)
                 .fontWeight(.bold)
+                .foregroundColor(Color(.label))
 
               Text("Cancel anytime • No commitment")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(.secondaryLabel))
             }
             .padding(.vertical, 20)
             .padding(.horizontal, 30)
             .background(
               RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.9))
+                .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
             )
 
@@ -126,7 +129,7 @@ struct PaywallView: View {
                 dismiss()
               }
               .font(.subheadline)
-              .foregroundColor(.secondary)
+              .foregroundColor(.blue)
             }
             .padding(.horizontal, 40)
 
@@ -134,34 +137,38 @@ struct PaywallView: View {
             VStack(spacing: 12) {
               Text("✨ Free features you can use right now:")
                 .font(.headline)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(.label))
 
               Text(
-                "• Emergency Calm Button\n• Calming Games\n• Basic Breathing Exercises\n• Progress Tracking"
+                "✅ Emergency Calm Button\n✅ Calming Games\n✅ Basic Breathing Exercises\n✅ Progress Tracking"
               )
               .font(.subheadline)
-              .foregroundColor(.secondary)
-              .multilineTextAlignment(.center)
+              .foregroundColor(Color(.label))
+              .multilineTextAlignment(.leading)
             }
             .padding(.vertical, 20)
             .padding(.horizontal, 30)
             .background(
               RoundedRectangle(cornerRadius: 15)
-                .fill(Color.white.opacity(0.7))
+                .fill(Color(.systemBackground))
             )
             .padding(.horizontal, 20)
 
             Spacer(minLength: 40)
           }
         }
+        .padding(.bottom, 20)  // Reduced bottom padding
       }
       .navigationBarTitleDisplayMode(.inline)
       .navigationBarBackButtonHidden(true)
+      .toolbarBackground(.visible, for: .navigationBar)
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           Button("Close") {
             dismiss()
           }
+          .foregroundColor(.blue)
+          .fontWeight(.semibold)
         }
       }
       .alert("Error", isPresented: $showingError) {
@@ -230,10 +237,11 @@ struct FeatureRow: View {
         Text(title)
           .font(.headline)
           .fontWeight(.semibold)
+          .foregroundColor(Color(.label))
 
         Text(description)
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundColor(Color(.secondaryLabel))
           .lineLimit(2)
       }
 
@@ -243,7 +251,7 @@ struct FeatureRow: View {
     .padding(.vertical, 16)
     .background(
       RoundedRectangle(cornerRadius: 15)
-        .fill(Color.white.opacity(0.8))
+        .fill(Color(.systemBackground))
     )
   }
 }

@@ -1,10 +1,11 @@
+import Firebase
 import SwiftUI
 
 struct PersonalizedPanicPlanView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
-  @StateObject private var openAIService = OpenAIService.shared
+
   @AppStorage("prefSounds") private var prefSounds = true
 
   @State private var selectedPlan: PanicPlan?
@@ -29,6 +30,7 @@ struct PersonalizedPanicPlanView: View {
   ]
 
   @State private var isGeneratingAIPlan = false
+  @State private var debugStatus = ""
 
   var body: some View {
     NavigationView {
@@ -55,11 +57,11 @@ struct PersonalizedPanicPlanView: View {
               Text("Your Panic Plan")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-                .foregroundColor(.primary)
+                .foregroundColor(Color(.label))
 
               Text("Personalized emergency response plans for when you need them most")
                 .font(.body)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(.secondaryLabel))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
             }
@@ -83,6 +85,58 @@ struct PersonalizedPanicPlanView: View {
             }
             .padding(.horizontal, 20)
 
+            // AI Intake Form
+            VStack(spacing: 16) {
+              Text("🤖 AI Plan Generator")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(Color(.label))
+
+              HStack {
+                Text("Context:")
+                  .font(.caption)
+                  .foregroundColor(Color(.secondaryLabel))
+                Spacer()
+                Text("Public transport")
+                  .font(.caption)
+                  .foregroundColor(Color(.label))
+                  .fontWeight(.medium)
+              }
+
+              HStack {
+                Text("Breathing:")
+                  .font(.caption)
+                  .foregroundColor(Color(.secondaryLabel))
+                Spacer()
+                Text("Box breathing")
+                  .font(.caption)
+                  .foregroundColor(Color(.label))
+                  .fontWeight(.medium)
+              }
+
+              HStack {
+                Text("Duration:")
+                  .font(.caption)
+                  .foregroundColor(Color(.secondaryLabel))
+                Spacer()
+                Text("Short (60-120s)")
+                  .font(.caption)
+                  .foregroundColor(Color(.label))
+                  .fontWeight(.medium)
+              }
+            }
+            .padding(16)
+            .background(
+              RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(.separator), lineWidth: 0.5)
+                )
+                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+            )
+            .padding(.horizontal, 20)
+
             // AI-Generated Plan Button
             Button(action: {
               generateAIPanicPlan()
@@ -104,6 +158,35 @@ struct PersonalizedPanicPlanView: View {
             }
             .disabled(isGeneratingAIPlan)
             .padding(.horizontal, 20)
+
+            // Debug AI Button (for testing)
+            Button(action: {
+              testAIDebug()
+            }) {
+              HStack(spacing: 12) {
+                Image(systemName: "ladybug")
+                  .font(.title2)
+                Text("🐛 Debug AI")
+                  .font(.headline)
+                  .fontWeight(.semibold)
+              }
+              .foregroundColor(.white)
+              .padding(.vertical, 16)
+              .padding(.horizontal, 24)
+              .background(
+                RoundedRectangle(cornerRadius: 25)
+                  .fill(Color.orange)
+              )
+            }
+            .padding(.horizontal, 20)
+
+            // Debug Status
+            if !debugStatus.isEmpty {
+              Text(debugStatus)
+                .font(.caption)
+                .foregroundColor(Color(.secondaryLabel))
+                .padding(.horizontal, 20)
+            }
 
             // Add New Plan Button
             Button(action: {
@@ -169,31 +252,23 @@ struct PersonalizedPanicPlanView: View {
 
     Task {
       do {
-        let prompt = """
-            You are a mental health expert creating a personalized panic attack response plan.
-            Create a 4-step emergency plan that includes:
-            1. Immediate breathing technique
-            2. Grounding exercise
-            3. Calming activity
-            4. Safety check or support contact
-            
-            Make it practical, gentle, and immediately actionable.
-            Return the response as a JSON array of 4 strings.
-          """
+        // Use the new AiService for Firebase Functions integration
+        let intake: [String: Any] = [
+          "context": "public transport",
+          "pref_breath": "box",
+          "duration": "short",
+        ]
 
-        let aiResponse = try await openAIService.sendMessage(
-          "I need a personalized panic attack response plan",
-          systemPrompt: prompt
-        )
+        let result = try await AiService.shared.generatePanicPlan(intake: intake)
 
-        // Parse AI response and create plan
+        // Parse the structured result from Firebase Functions
         await MainActor.run {
           let newPlan = PanicPlan(
             title: "AI-Generated Plan",
             description: "Personalized plan created just for you",
-            steps: parseAIResponse(aiResponse),
-            duration: 180,
-            techniques: ["AI-Generated", "Personalized"],
+            steps: parseStructuredPlan(result),
+            duration: extractDuration(from: result),
+            techniques: extractTechniques(from: result),
             emergencyContact: nil,
             personalizedPhrase: "I am safe and I can handle this"
           )
@@ -206,41 +281,87 @@ struct PersonalizedPanicPlanView: View {
           isGeneratingAIPlan = false
           // Could show an error alert here
         }
+        print("AI Plan generation error:", error)
       }
     }
   }
 
-  /// Parse AI response into plan steps
-  private func parseAIResponse(_ response: String) -> [String] {
-    // Try to parse as JSON first
-    if let data = response.data(using: .utf8),
-      let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [String]
-    {
-      return jsonArray
+  /// Parse structured plan from Firebase Functions response
+  private func parseStructuredPlan(_ result: [String: Any]) -> [String] {
+    guard let steps = result["steps"] as? [[String: Any]] else {
+      return ["Take 5 deep breaths", "Ground yourself", "Listen to calming sounds"]
     }
 
-    // Fallback: try to extract numbered steps
-    let lines = response.components(separatedBy: .newlines)
-    let steps = lines.compactMap { line in
-      let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-      // Look for numbered lines or quoted strings
-      if trimmed.range(of: #"^\d+\.\s*(.+)"#, options: .regularExpression) != nil {
-        return String(
-          trimmed.replacingOccurrences(of: #"^\d+\.\s*"#, with: "", options: .regularExpression))
-      } else if trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"") {
-        return String(trimmed.dropFirst().dropLast())
+    return steps.compactMap { step in
+      if let type = step["type"] as? String {
+        switch type {
+        case "breathing":
+          if let pattern = step["pattern"] as? String, let seconds = step["seconds"] as? Int {
+            return "\(pattern.capitalized) breathing for \(seconds) seconds"
+          }
+        case "grounding":
+          if let method = step["method"] as? String, let seconds = step["seconds"] as? Int {
+            return "\(method.capitalized) grounding for \(seconds) seconds"
+          }
+        case "muscle_release":
+          if let area = step["area"] as? String, let seconds = step["seconds"] as? Int {
+            return "Release \(area) for \(seconds) seconds"
+          }
+        case "affirmation":
+          if let text = step["text"] as? String, let seconds = step["seconds"] as? Int {
+            return "Repeat: '\(text)' for \(seconds) seconds"
+          }
+        default:
+          break
+        }
       }
       return nil
     }.filter { !$0.isEmpty }
-
-    return steps.isEmpty
-      ? [
-        "Take 5 deep breaths",
-        "Name 5 things you can see",
-        "Listen to calming sounds",
-        "Text a trusted friend",
-      ] : steps
   }
+
+  /// Extract duration from structured plan
+  private func extractDuration(from result: [String: Any]) -> Int {
+    // Calculate total duration from steps
+    guard let steps = result["steps"] as? [[String: Any]] else { return 180 }
+
+    let totalSeconds = steps.compactMap { step in
+      step["seconds"] as? Int
+    }.reduce(0, +)
+
+    return max(60, min(180, totalSeconds))  // Ensure 60-180s range
+  }
+
+  /// Extract techniques from structured plan
+  private func extractTechniques(from result: [String: Any]) -> [String] {
+    guard let steps = result["steps"] as? [[String: Any]] else { return ["AI-Generated"] }
+
+    let techniques = steps.compactMap { step in
+      step["type"] as? String
+    }.map { $0.capitalized }
+
+    return techniques.isEmpty ? ["AI-Generated"] : techniques
+  }
+
+  /// Debug method to test AI service directly
+  private func testAIDebug() {
+    debugStatus = "Testing AI service..."
+    Task {
+      do {
+        print("🧠 Testing AI Debug...")
+        let result = try await AiService.shared.generatePlanDebug()
+        print("✅ Debug result:", result)
+        await MainActor.run {
+          debugStatus = "✅ Debug successful! Check console for details."
+        }
+      } catch {
+        print("❌ Debug error:", error)
+        await MainActor.run {
+          debugStatus = "❌ Debug failed: \(error.localizedDescription)"
+        }
+      }
+    }
+  }
+
 }
 
 // MARK: - Supporting Types
@@ -262,11 +383,11 @@ struct PlanCard: View {
             Text(plan.title)
               .font(.title3)
               .fontWeight(.semibold)
-              .foregroundColor(.primary)
+              .foregroundColor(Color(.label))
 
             Text(plan.description)
               .font(.caption)
-              .foregroundColor(.secondary)
+              .foregroundColor(Color(.secondaryLabel))
               .lineLimit(2)
           }
 
@@ -291,7 +412,7 @@ struct PlanCard: View {
 
               Text(step)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(.secondaryLabel))
                 .lineLimit(1)
             }
           }
@@ -306,7 +427,7 @@ struct PlanCard: View {
         HStack {
           Label("\(Int(plan.duration / 60)) min", systemImage: "clock")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundColor(Color(.secondaryLabel))
 
           Spacer()
 
@@ -326,7 +447,7 @@ struct PlanCard: View {
       .padding(16)
       .background(
         RoundedRectangle(cornerRadius: 16)
-          .fill(Color.white)
+          .fill(Color(.systemBackground))
           .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
       )
     }
@@ -454,11 +575,11 @@ struct PlanExecutionView: View {
           Text(plan.title)
             .font(.title)
             .fontWeight(.bold)
-            .foregroundColor(.primary)
+            .foregroundColor(Color(.label))
 
           Text(plan.description)
             .font(.body)
-            .foregroundColor(.secondary)
+            .foregroundColor(Color(.secondaryLabel))
             .multilineTextAlignment(.center)
             .padding(.horizontal, 20)
         }
@@ -572,11 +693,11 @@ struct PlanCompletionView: View {
       Text("Plan Complete!")
         .font(.title)
         .fontWeight(.bold)
-        .foregroundColor(.primary)
+        .foregroundColor(Color(.label))
 
       Text("You've successfully completed your personalized panic plan. How are you feeling now?")
         .font(.body)
-        .foregroundColor(.secondary)
+        .foregroundColor(Color(.secondaryLabel))
         .multilineTextAlignment(.center)
         .padding(.horizontal, 20)
 

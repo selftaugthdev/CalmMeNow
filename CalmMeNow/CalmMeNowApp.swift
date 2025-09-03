@@ -17,7 +17,7 @@ struct CalmMeNowApp: App {
 
   var body: some Scene {
     WindowGroup {
-      ContentView()
+      MainTabView()
     }
     .modelContainer(for: [JournalEntry.self])
   }

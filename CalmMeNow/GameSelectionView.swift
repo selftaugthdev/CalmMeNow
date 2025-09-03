@@ -1,5 +1,3 @@
-
-
 import SwiftUI
 
 struct GameSelectionView: View {
@@ -29,11 +27,11 @@ struct GameSelectionView: View {
             Text("🎮 Choose Your Game")
               .font(.title)
               .fontWeight(.bold)
-              .foregroundColor(.primary)
+              .foregroundColor(Color(.label))
 
             Text("Pick a calming activity to distract and relax")
               .font(.body)
-              .foregroundColor(.secondary) 
+              .foregroundColor(Color(.secondaryLabel))
               .multilineTextAlignment(.center)
           }
           .padding(.top, 20)
@@ -90,12 +88,12 @@ struct GameSelectionView: View {
             Text("Close")
               .font(.headline)
               .fontWeight(.semibold)
-              .foregroundColor(.gray)
+              .foregroundColor(Color(.label))
               .padding(.horizontal, 40)
               .padding(.vertical, 12)
               .background(
                 RoundedRectangle(cornerRadius: 25)
-                  .fill(Color.white.opacity(0.8))
+                  .fill(Color(.systemBackground))
               )
           }
           .padding(.bottom, 30)
@@ -130,11 +128,11 @@ struct GameOptionCard: View {
           Text(title)
             .font(.title3)
             .fontWeight(.semibold)
-            .foregroundColor(.primary)
+            .foregroundColor(Color(.label))
 
           Text(description)
             .font(.body)
-            .foregroundColor(.secondary)
+            .foregroundColor(Color(.secondaryLabel))
             .multilineTextAlignment(.leading)
         }
 
@@ -148,7 +146,7 @@ struct GameOptionCard: View {
       .padding(20)
       .background(
         RoundedRectangle(cornerRadius: 16)
-          .fill(Color.white)
+          .fill(Color(.systemBackground))
           .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
       )
     }
