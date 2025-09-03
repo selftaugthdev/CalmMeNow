@@ -11,9 +11,14 @@ final class PaywallManager: ObservableObject {
   @Published var shouldShowPaywall = false
   @Published var isCheckingAccess = false
 
+  /// Computed property to check if user has AI access
+  var hasAIAccess: Bool {
+    revenueCatService.isSubscribed
+  }
+
   // MARK: - Private Properties
   private let revenueCatService = RevenueCatService.shared
-  private let aiService = AIService()
+  private let aiService = AiService.shared
 
   private init() {
     // Listen for subscription changes
@@ -74,6 +79,11 @@ final class PaywallManager: ObservableObject {
   /// Dismiss paywall
   func dismissPaywall() {
     shouldShowPaywall = false
+  }
+
+  /// Show paywall
+  func showPaywall() {
+    shouldShowPaywall = true
   }
 
   // MARK: - Feature Access Methods

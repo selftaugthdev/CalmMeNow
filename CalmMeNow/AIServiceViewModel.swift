@@ -8,7 +8,7 @@ class AIServiceViewModel: ObservableObject {
   @Published var lastCheckIn: DailyCheckInResponse?
   @Published var errorMessage: String?
 
-  private let aiService = AIService()
+  private let aiService = AiService.shared
 
   // MARK: - Panic Plan Generation
 
@@ -23,13 +23,15 @@ class AIServiceViewModel: ObservableObject {
     errorMessage = nil
 
     do {
-      let planData = try await aiService.generatePanicPlan(
-        triggers: triggers,
-        symptoms: symptoms,
-        preferences: preferences,
-        duration: duration,
-        phrase: phrase
-      )
+      let intake: [String: Any] = [
+        "triggers": triggers,
+        "symptoms": symptoms,
+        "preferences": preferences,
+        "duration": duration,
+        "phrase": phrase,
+      ]
+
+      let planData = try await aiService.generatePanicPlan(intake: intake)
 
       currentPlan = PanicPlan(from: planData)
 
@@ -55,11 +57,13 @@ class AIServiceViewModel: ObservableObject {
     errorMessage = nil
 
     do {
-      let checkInData = try await aiService.submitDailyCheckIn(
-        mood: mood,
-        tags: tags,
-        note: note
-      )
+      let checkin: [String: Any] = [
+        "mood": mood,
+        "tags": tags,
+        "note": note,
+      ]
+
+      let checkInData = try await aiService.dailyCheckIn(checkin: checkin)
 
       lastCheckIn = DailyCheckInResponse(from: checkInData)
 

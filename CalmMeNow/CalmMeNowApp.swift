@@ -21,18 +21,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
   }
 
   private func setupFirebaseAndAppCheck() {
-    FirebaseApp.configure()
-
-    #if targetEnvironment(simulator)
-      // Dev/testing on Simulator
-      AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
-      // First run will print a debug token in Xcode; paste it in Console > App Check > Debug tokens.
-      print("🔥 Firebase App Check: Using DEBUG provider for Simulator")
-    #else
-      // Real devices & TestFlight
-      AppCheck.setAppCheckProviderFactory(DeviceCheckProviderFactory())
-      print("🔥 Firebase App Check: Using DeviceCheck provider for real devices")
-    #endif
+    // Firebase is now initialized by AiService.shared when first accessed
+    // This prevents duplicate initialization while keeping analytics setup
 
     // Enable Firebase Analytics debug mode
     #if DEBUG
