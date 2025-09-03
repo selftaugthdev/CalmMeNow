@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
+  @StateObject private var paywallManager = PaywallManager.shared
   @State private var selectedButton: String? = nil
   @State private var isQuickCalmPressed = false
   @State private var calmButtonPulse = false
@@ -171,7 +172,7 @@ struct ContentView: View {
                   }
                 )
 
-                // Personalized Panic Plan Card
+                // Personalized Panic Plan Card (AI Feature - Requires Subscription)
                 EmotionCard(
                   emoji: "🧩",
                   emotion: "Panic Plan",
@@ -185,9 +186,16 @@ struct ContentView: View {
                     // Track feature selection
                     FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "panic_plan")
 
-                    // Navigate to personalized plan
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      showingPersonalizedPlan = true
+                    // Check paywall access for AI feature
+                    Task {
+                      let hasAccess = await paywallManager.requestAIAccess()
+                      if hasAccess {
+                        // Navigate to personalized plan
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                          showingPersonalizedPlan = true
+                        }
+                      }
+                      // If no access, paywall will be shown automatically
                     }
                   }
                 )
@@ -195,7 +203,7 @@ struct ContentView: View {
 
               // Bottom row - 2 cards
               HStack(spacing: 20) {  // Increased spacing between cards
-                // Daily Check-in Coach Card
+                // Daily Check-in Coach Card (AI Feature - Requires Subscription)
                 EmotionCard(
                   emoji: "📅",
                   emotion: "Daily Coach",
@@ -209,14 +217,21 @@ struct ContentView: View {
                     // Track feature selection
                     FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "daily_coach")
 
-                    // Navigate to daily coach
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      showingDailyCoach = true
+                    // Check paywall access for AI feature
+                    Task {
+                      let hasAccess = await paywallManager.requestAIAccess()
+                      if hasAccess {
+                        // Navigate to daily coach
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                          showingDailyCoach = true
+                        }
+                      }
+                      // If no access, paywall will be shown automatically
                     }
                   }
                 )
 
-                // Emergency Companion Card
+                // Emergency Companion Card (AI Feature - Requires Subscription)
                 EmotionCard(
                   emoji: "🤖",
                   emotion: "Emergency",
@@ -231,9 +246,16 @@ struct ContentView: View {
                     FirebaseAnalyticsService.shared.trackEmotionSelected(
                       emotion: "emergency_companion")
 
-                    // Navigate to emergency companion
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      showingEmergencyCompanion = true
+                    // Check paywall access for AI feature
+                    Task {
+                      let hasAccess = await paywallManager.requestAIAccess()
+                      if hasAccess {
+                        // Navigate to emergency companion
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                          showingEmergencyCompanion = true
+                        }
+                      }
+                      // If no access, paywall will be shown automatically
                     }
                   }
                 )
@@ -317,6 +339,7 @@ struct ContentView: View {
       }
 
     }
+    .paywallGuard()  // Shows paywall when AI features are accessed without subscription
   }
 
   private func timeString(from timeInterval: TimeInterval) -> String {

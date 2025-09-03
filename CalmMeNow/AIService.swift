@@ -8,6 +8,7 @@ enum AIServiceError: LocalizedError {
   case functionCallFailed(String)
   case authenticationFailed(String)
   case invalidResponse(String)
+  case paywallRequired(String)
 
   var errorDescription: String? {
     switch self {
@@ -17,6 +18,8 @@ enum AIServiceError: LocalizedError {
       return message
     case .invalidResponse(let message):
       return message
+    case .paywallRequired(let message):
+      return message
     }
   }
 }
@@ -25,25 +28,51 @@ final class AIService: ObservableObject {
   // Firebase Functions instance for europe-west1 region
   private lazy var functions = Functions.functions(region: "europe-west1")
 
-  // Optional: ensure the user is signed in (anonymous is fine)
-  func ensureAuth() async throws {
+  // Track if user has access to AI features
+  @Published var hasAIAccess = false
+
+  // MARK: - Anonymous Authentication
+
+  /// Seamlessly ensures user is authenticated for AI features
+  /// This happens behind the scenes - no UI interruption
+  private func ensureAuthForAI() async throws {
     if Auth.auth().currentUser == nil {
-      try await Auth.auth().signInAnonymously()
+      do {
+        // Sign in anonymously without any user interaction
+        let result = try await Auth.auth().signInAnonymously()
+        print("🤖 AI Service: User automatically signed in anonymously with ID: \(result.user.uid)")
+
+        // Mark that user now has AI access
+        await MainActor.run {
+          self.hasAIAccess = true
+        }
+      } catch {
+        print("❌ AI Service: Anonymous authentication failed: \(error)")
+        throw AIServiceError.authenticationFailed(
+          "Failed to authenticate for AI features: \(error.localizedDescription)")
+      }
+    } else {
+      // User already authenticated
+      await MainActor.run {
+        self.hasAIAccess = true
+      }
     }
   }
 
-  // Generate Personalized Panic Plan
+  // MARK: - AI Feature Methods (Behind Paywall)
+
+  /// Generate Personalized Panic Plan - requires AI access
   func generatePanicPlanFromIntake(intake: [String: Any]) async throws -> [String: Any] {
-    try await ensureAuth()
+    try await ensureAuthForAI()
 
     let data: [String: Any] = ["intake": intake]
     let result = try await functions.httpsCallable("generatePanicPlan").call(data)
     return result.data as? [String: Any] ?? [:]
   }
 
-  // Daily Check-in
+  /// Daily Check-in with AI insights - requires AI access
   func dailyCheckIn(checkin: [String: Any]) async throws -> [String: Any] {
-    try await ensureAuth()
+    try await ensureAuthForAI()
 
     let result = try await functions.httpsCallable("dailyCheckIn").call(["checkin": checkin])
     return result.data as? [String: Any] ?? [:]
@@ -81,5 +110,23 @@ final class AIService: ObservableObject {
       "note": note,
     ]
     return try await dailyCheckIn(checkin: checkin)
+  }
+
+  // MARK: - Access Control
+
+  /// Check if user currently has AI access
+  var isAIAvailable: Bool {
+    return Auth.auth().currentUser != nil
+  }
+
+  /// Sign out user (for testing or if needed)
+  func signOut() {
+    do {
+      try Auth.auth().signOut()
+      hasAIAccess = false
+      print("👋 AI Service: User signed out")
+    } catch {
+      print("❌ AI Service: Sign out failed: \(error)")
+    }
   }
 }
