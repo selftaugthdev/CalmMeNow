@@ -1,6 +1,6 @@
+import Combine
 import Foundation
 import RevenueCat
-import Combine
 
 // MARK: - RevenueCat Service
 /// Handles subscription management and paywall logic for AI features
@@ -26,13 +26,13 @@ final class RevenueCatService: ObservableObject {
     Task {
       await checkSubscriptionStatus()
     }
-    
+
     // Only listen for live changes if RevenueCat is configured
     guard Purchases.isConfigured else {
       print("⚠️ RevenueCat: Not configured - skipping live updates")
       return
     }
-    
+
     // Listen for live changes
     Task {
       for await info in Purchases.shared.customerInfoStream {
@@ -44,13 +44,13 @@ final class RevenueCatService: ObservableObject {
       }
     }
   }
-  
+
   // MARK: - Entitlement Checking
-  
+
   func isAIUnlocked(_ info: CustomerInfo) -> Bool {
     return info.entitlements.active.keys.contains(Billing.entitlement)
   }
-  
+
   var aiUnlocked: Bool {
     UserDefaults.standard.bool(forKey: "AIUnlocked")
   }
@@ -85,19 +85,25 @@ final class RevenueCatService: ObservableObject {
   /// Purchase a subscription
   @MainActor
   func purchaseSubscription() async throws -> Bool {
+    // Check if RevenueCat is configured
+    guard Purchases.isConfigured else {
+      print("⚠️ RevenueCat: Not configured - cannot purchase subscription")
+      throw RevenueCatError.notConfigured
+    }
+
     isLoading = true
     defer { isLoading = false }
 
     do {
       let offerings = try await Purchases.shared.offerings()
       guard let offering = offerings.current,
-            let monthly = offering.package(identifier: "monthly") ?? offering.monthly
-      else { 
+        let monthly = offering.package(identifier: "monthly") ?? offering.monthly
+      else {
         throw RevenueCatError.noOfferingAvailable
       }
 
       let result = try await Purchases.shared.purchase(package: monthly)
-      
+
       if result.customerInfo.entitlements.active[Billing.entitlement] != nil {
         // success
         let unlocked = isAIUnlocked(result.customerInfo)
@@ -120,6 +126,12 @@ final class RevenueCatService: ObservableObject {
   /// Restore previous purchases
   @MainActor
   func restorePurchases() async throws -> Bool {
+    // Check if RevenueCat is configured
+    guard Purchases.isConfigured else {
+      print("⚠️ RevenueCat: Not configured - cannot restore purchases")
+      throw RevenueCatError.notConfigured
+    }
+
     isLoading = true
     defer { isLoading = false }
 
@@ -128,13 +140,13 @@ final class RevenueCatService: ObservableObject {
       let unlocked = isAIUnlocked(info)
       UserDefaults.standard.set(unlocked, forKey: "AIUnlocked")
       isSubscribed = unlocked
-      
+
       if unlocked {
         print("✅ RevenueCat: Purchases restored successfully!")
       } else {
         print("❌ RevenueCat: No previous purchases found")
       }
-      
+
       return unlocked
     } catch {
       print("❌ RevenueCat: Restore failed: \(error)")
@@ -143,29 +155,35 @@ final class RevenueCatService: ObservableObject {
   }
 
   // MARK: - AI Feature Gating
-  
+
   func guardAIOrPaywall(present: @escaping () -> Void, paywall: @escaping () -> Void) {
-    if aiUnlocked { 
-      present() 
-    } else { 
-      paywall() 
+    if aiUnlocked {
+      present()
+    } else {
+      paywall()
     }
   }
-  
+
   // MARK: - Paywall Presentation
-  
+
   @MainActor
   func presentPaywall() async throws {
+    // Check if RevenueCat is configured
+    guard Purchases.isConfigured else {
+      print("⚠️ RevenueCat: Not configured - cannot present paywall")
+      throw RevenueCatError.notConfigured
+    }
+
     do {
       let offerings = try await Purchases.shared.offerings()
       guard let offering = offerings.current,
-            let monthly = offering.package(identifier: "monthly") ?? offering.monthly
-      else { 
+        let monthly = offering.package(identifier: "monthly") ?? offering.monthly
+      else {
         throw RevenueCatError.noOfferingAvailable
       }
 
       let result = try await Purchases.shared.purchase(package: monthly)
-      
+
       if result.customerInfo.entitlements.active[Billing.entitlement] != nil {
         // success → dismiss paywall
         let unlocked = isAIUnlocked(result.customerInfo)
@@ -185,12 +203,15 @@ final class RevenueCatService: ObservableObject {
 
 // MARK: - RevenueCat Errors
 enum RevenueCatError: LocalizedError {
+  case notConfigured
   case noOfferingAvailable
   case purchaseFailed(String)
   case restoreFailed(String)
 
   var errorDescription: String? {
     switch self {
+    case .notConfigured:
+      return "RevenueCat is not configured. Please set up your API key."
     case .noOfferingAvailable:
       return "No subscription offering available"
     case .purchaseFailed(let message):
@@ -200,4 +221,3 @@ enum RevenueCatError: LocalizedError {
     }
   }
 }
-
