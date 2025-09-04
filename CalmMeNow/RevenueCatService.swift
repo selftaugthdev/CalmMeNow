@@ -1,5 +1,6 @@
 import Foundation
-import StoreKit
+import RevenueCat
+import Combine
 
 // MARK: - RevenueCat Service
 /// Handles subscription management and paywall logic for AI features
@@ -12,27 +13,46 @@ final class RevenueCatService: ObservableObject {
   @Published var isLoading = false
 
   // MARK: - Private Properties
-  private var updateListenerTask: Task<Void, Error>?
+  private var cancellables = Set<AnyCancellable>()
 
   private init() {
-    // Initialize RevenueCat when service is created
-    // Note: You'll need to add RevenueCat SDK to your project
     setupRevenueCat()
   }
 
   // MARK: - Setup
 
   private func setupRevenueCat() {
-    // TODO: Replace with your actual RevenueCat API key
-    // RevenueCat.configure(withAPIKey: "your_api_key_here")
-
-    // Set up listener for subscription changes
-    updateListenerTask = listenForTransactions()
-
-    // Check current subscription status
+    // Check current subscription status on launch
     Task {
       await checkSubscriptionStatus()
     }
+    
+    // Only listen for live changes if RevenueCat is configured
+    guard Purchases.isConfigured else {
+      print("⚠️ RevenueCat: Not configured - skipping live updates")
+      return
+    }
+    
+    // Listen for live changes
+    Task {
+      for await info in Purchases.shared.customerInfoStream {
+        await MainActor.run {
+          let unlocked = isAIUnlocked(info)
+          UserDefaults.standard.set(unlocked, forKey: "AIUnlocked")
+          isSubscribed = unlocked
+        }
+      }
+    }
+  }
+  
+  // MARK: - Entitlement Checking
+  
+  func isAIUnlocked(_ info: CustomerInfo) -> Bool {
+    return info.entitlements.active.keys.contains(Billing.entitlement)
+  }
+  
+  var aiUnlocked: Bool {
+    UserDefaults.standard.bool(forKey: "AIUnlocked")
   }
 
   // MARK: - Subscription Management
@@ -43,13 +63,23 @@ final class RevenueCatService: ObservableObject {
     isLoading = true
     defer { isLoading = false }
 
-    // TODO: Implement with RevenueCat SDK
-    // let customerInfo = try await Purchases.shared.customerInfo()
-    // isSubscribed = customerInfo.entitlements["ai_features"]?.isActive == true
+    // Check if RevenueCat is configured
+    guard Purchases.isConfigured else {
+      print("⚠️ RevenueCat: Not configured - treating as free user")
+      UserDefaults.standard.set(false, forKey: "AIUnlocked")
+      isSubscribed = false
+      return
+    }
 
-    // For now, simulate checking subscription
-    // In production, this would check RevenueCat entitlements
-    print("🔍 RevenueCat: Checking subscription status...")
+    do {
+      let info = try await Purchases.shared.customerInfo()
+      let unlocked = isAIUnlocked(info)
+      UserDefaults.standard.set(unlocked, forKey: "AIUnlocked")
+      isSubscribed = unlocked
+      print("🔍 RevenueCat: Subscription status checked - AI unlocked: \(unlocked)")
+    } catch {
+      print("❌ RevenueCat: Failed to check subscription status: \(error)")
+    }
   }
 
   /// Purchase a subscription
@@ -58,26 +88,33 @@ final class RevenueCatService: ObservableObject {
     isLoading = true
     defer { isLoading = false }
 
-    // TODO: Implement with RevenueCat SDK
-    // guard let offering = currentOffering else {
-    //   throw RevenueCatError.noOfferingAvailable
-    // }
-    //
-    // let result = try await Purchases.shared.purchase(package: offering.packages.first!)
-    // isSubscribed = result.customerInfo.entitlements["ai_features"]?.isActive == true
-    // return isSubscribed
+    do {
+      let offerings = try await Purchases.shared.offerings()
+      guard let offering = offerings.current,
+            let monthly = offering.package(identifier: "monthly") ?? offering.monthly
+      else { 
+        throw RevenueCatError.noOfferingAvailable
+      }
 
-    // For now, simulate successful purchase
-    print("💳 RevenueCat: Simulating subscription purchase...")
-
-    // Simulate network delay
-    try await Task.sleep(nanoseconds: 2_000_000_000)  // 2 seconds
-
-    // Simulate successful purchase
-    isSubscribed = true
-    print("✅ RevenueCat: Subscription purchased successfully!")
-
-    return true
+      let result = try await Purchases.shared.purchase(package: monthly)
+      
+      if result.customerInfo.entitlements.active[Billing.entitlement] != nil {
+        // success
+        let unlocked = isAIUnlocked(result.customerInfo)
+        UserDefaults.standard.set(unlocked, forKey: "AIUnlocked")
+        isSubscribed = unlocked
+        print("✅ RevenueCat: Subscription purchased successfully!")
+        return true
+      } else if result.userCancelled {
+        print("❌ RevenueCat: User cancelled purchase")
+        return false
+      } else {
+        throw RevenueCatError.purchaseFailed("Purchase completed but entitlement not active")
+      }
+    } catch {
+      print("❌ RevenueCat: Purchase failed: \(error)")
+      throw error
+    }
   }
 
   /// Restore previous purchases
@@ -86,49 +123,63 @@ final class RevenueCatService: ObservableObject {
     isLoading = true
     defer { isLoading = false }
 
-    // TODO: Implement with RevenueCat SDK
-    // let customerInfo = try await Purchases.shared.restorePurchases()
-    // isSubscribed = customerInfo.entitlements["ai_features"]?.isActive == true
-    // return isSubscribed
-
-    // For now, simulate restore
-    print("🔄 RevenueCat: Simulating restore purchases...")
-
-    // Simulate network delay
-    try await Task.sleep(nanoseconds: 1_500_000_000)  // 1.5 seconds
-
-    // Simulate restore (50% chance of success)
-    let restored = Bool.random()
-    if restored {
-      isSubscribed = true
-      print("✅ RevenueCat: Purchases restored successfully!")
-    } else {
-      print("❌ RevenueCat: No previous purchases found")
-    }
-
-    return restored
-  }
-
-  // MARK: - Transaction Listening
-
-  private func listenForTransactions() -> Task<Void, Error> {
-    return Task.detached {
-      // TODO: Implement with RevenueCat SDK
-      // for await result in Transaction.updates {
-      //   await self.handleTransactionUpdate(result)
-      // }
-
-      // For now, just keep the task alive
-      while !Task.isCancelled {
-        try await Task.sleep(nanoseconds: 1_000_000_000)  // 1 second
+    do {
+      let info = try await Purchases.shared.restorePurchases()
+      let unlocked = isAIUnlocked(info)
+      UserDefaults.standard.set(unlocked, forKey: "AIUnlocked")
+      isSubscribed = unlocked
+      
+      if unlocked {
+        print("✅ RevenueCat: Purchases restored successfully!")
+      } else {
+        print("❌ RevenueCat: No previous purchases found")
       }
+      
+      return unlocked
+    } catch {
+      print("❌ RevenueCat: Restore failed: \(error)")
+      throw RevenueCatError.restoreFailed(error.localizedDescription)
     }
   }
 
-  // MARK: - Cleanup
+  // MARK: - AI Feature Gating
+  
+  func guardAIOrPaywall(present: @escaping () -> Void, paywall: @escaping () -> Void) {
+    if aiUnlocked { 
+      present() 
+    } else { 
+      paywall() 
+    }
+  }
+  
+  // MARK: - Paywall Presentation
+  
+  @MainActor
+  func presentPaywall() async throws {
+    do {
+      let offerings = try await Purchases.shared.offerings()
+      guard let offering = offerings.current,
+            let monthly = offering.package(identifier: "monthly") ?? offering.monthly
+      else { 
+        throw RevenueCatError.noOfferingAvailable
+      }
 
-  deinit {
-    updateListenerTask?.cancel()
+      let result = try await Purchases.shared.purchase(package: monthly)
+      
+      if result.customerInfo.entitlements.active[Billing.entitlement] != nil {
+        // success → dismiss paywall
+        let unlocked = isAIUnlocked(result.customerInfo)
+        UserDefaults.standard.set(unlocked, forKey: "AIUnlocked")
+        isSubscribed = unlocked
+      } else if result.userCancelled {
+        // user cancelled - do nothing
+      } else {
+        throw RevenueCatError.purchaseFailed("Purchase completed but entitlement not active")
+      }
+    } catch {
+      print("❌ RevenueCat: Paywall purchase error: \(error)")
+      throw error
+    }
   }
 }
 
@@ -150,49 +201,3 @@ enum RevenueCatError: LocalizedError {
   }
 }
 
-// MARK: - Mock Data for Development
-extension RevenueCatService {
-  /// Mock offering for development/testing
-  var mockOffering: Offering {
-    // This would normally come from RevenueCat
-    return Offering(
-      identifier: "default",
-      serverDescription: "Default offering",
-      packages: [
-        Package(
-          identifier: "monthly",
-          packageType: .monthly,
-          storeProduct: nil,
-          offering: nil
-        )
-      ]
-    )
-  }
-}
-
-// MARK: - Mock Models (Remove when using real RevenueCat SDK)
-struct Offering {
-  let identifier: String
-  let serverDescription: String
-  let packages: [Package]
-}
-
-struct Package {
-  let identifier: String
-  let packageType: PackageType
-  let storeProduct: StoreProduct?
-  let offering: Offering?
-}
-
-enum PackageType {
-  case monthly
-  case yearly
-  case lifetime
-}
-
-struct StoreProduct {
-  let productIdentifier: String
-  let price: Decimal
-  let localizedTitle: String
-  let localizedDescription: String
-}

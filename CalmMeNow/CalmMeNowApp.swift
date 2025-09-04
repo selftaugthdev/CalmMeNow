@@ -9,8 +9,15 @@ import Combine
 import FirebaseAnalytics
 import FirebaseAppCheck
 import FirebaseCore
+import FirebaseAuth
+import RevenueCat
 import SwiftData
 import SwiftUI
+
+// MARK: - Billing Configuration
+final class Billing {
+    static let entitlement = "ai"
+}
 
 @main
 struct CalmMeNowApp: App {
@@ -58,6 +65,40 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
     // kick off anon auth in the background
     AuthManager.shared.warmUpAuth()
+    
+    // Configure RevenueCat after Firebase is ready
+    configureRevenueCat()
+  }
+  
+  private func configureRevenueCat() {
+    // Check if we have a valid RevenueCat API key
+    let apiKey = "appl_your_public_sdk_key"
+    
+    // Skip RevenueCat configuration if using placeholder key
+    guard apiKey != "appl_your_public_sdk_key" else {
+      print("⚠️ RevenueCat: Skipping configuration - placeholder API key detected")
+      print("⚠️ RevenueCat: Please replace 'appl_your_public_sdk_key' with your actual RevenueCat API key")
+      return
+    }
+    
+    Purchases.logLevel = .warn // .debug while testing
+    Purchases.configure(withAPIKey: apiKey)
+
+    // Link RC customer to your Firebase UID (best for cross-device restore)
+    if let uid = Auth.auth().currentUser?.uid {
+      Purchases.shared.logIn(uid) { _, _, _ in }
+    } else {
+      // If you sign in anonymously later, call logIn(uid) at that moment too.
+      // This will be handled when anonymous auth completes
+      Task {
+        do {
+          let user = try await AuthManager.shared.ensureSignedIn()
+          Purchases.shared.logIn(user.uid) { _, _, _ in }
+        } catch {
+          print("Failed to link RevenueCat with Firebase UID: \(error)")
+        }
+      }
+    }
   }
 
   private func setupAnalyticsUserProperties() {

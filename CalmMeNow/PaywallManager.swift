@@ -13,7 +13,7 @@ final class PaywallManager: ObservableObject {
 
   /// Computed property to check if user has AI access
   var hasAIAccess: Bool {
-    revenueCatService.isSubscribed
+    revenueCatService.aiUnlocked
   }
 
   // MARK: - Private Properties
@@ -58,7 +58,7 @@ final class PaywallManager: ObservableObject {
     await revenueCatService.checkSubscriptionStatus()
 
     // If user has subscription, they can access AI features
-    if revenueCatService.isSubscribed {
+    if revenueCatService.aiUnlocked {
       return true
     }
 
@@ -98,6 +98,11 @@ final class PaywallManager: ObservableObject {
       // Paywall will be shown automatically
       return nil
     }
+  }
+  
+  /// Guard AI features with paywall - convenience method
+  func guardAIOrPaywall(present: @escaping () -> Void, paywall: @escaping () -> Void) {
+    revenueCatService.guardAIOrPaywall(present: present, paywall: paywall)
   }
 
   // MARK: - Private Properties
