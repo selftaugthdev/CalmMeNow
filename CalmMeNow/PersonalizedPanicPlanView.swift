@@ -255,6 +255,7 @@ struct PersonalizedPanicPlanView: View {
   /// Generate a personalized panic plan using AI
   private func generateAIPanicPlan() {
     isGeneratingAIPlan = true
+    let startTime = CFAbsoluteTimeGetCurrent()
 
     Task {
       do {
@@ -281,6 +282,15 @@ struct PersonalizedPanicPlanView: View {
 
           userPlans.append(newPlan)
           isGeneratingAIPlan = false
+
+          // Track successful plan generation
+          let latencyMs = Int((CFAbsoluteTimeGetCurrent() - startTime) * 1000)
+          AnalyticsLogger.shared.planGenerated(
+            stepsCount: newPlan.steps.count,
+            planVersion: "1.0",
+            model: "gpt-4o-mini",
+            latencyMs: latencyMs
+          )
         }
       } catch {
         await MainActor.run {

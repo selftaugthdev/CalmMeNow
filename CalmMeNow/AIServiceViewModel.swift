@@ -55,20 +55,29 @@ class AIServiceViewModel: ObservableObject {
   ) async {
     isLoading = true
     errorMessage = nil
+    let startTime = CFAbsoluteTimeGetCurrent()
 
     do {
       let checkin: [String: Any] = [
         "mood": mood,
         "tags": tags,
-        "note": note
+        "note": note,
       ]
-      
+
       let checkInData = try await aiService.dailyCheckIn(checkin: checkin)
 
       lastCheckIn = DailyCheckInResponse(from: checkInData)
 
       // Handle the response based on severity
       await handleCheckInResponse(lastCheckIn!)
+
+      // Track successful check-in submission
+      let latencyMs = Int((CFAbsoluteTimeGetCurrent() - startTime) * 1000)
+      AnalyticsLogger.shared.dailyCheckinSubmitted(
+        severity: lastCheckIn?.severity ?? 0,
+        suggestedPath: lastCheckIn?.exercise ?? "none",
+        latencyMs: latencyMs
+      )
 
     } catch {
       errorMessage = "Failed to submit check-in: \(error.localizedDescription)"

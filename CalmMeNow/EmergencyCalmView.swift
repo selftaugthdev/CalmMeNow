@@ -10,6 +10,7 @@ struct EmergencyCalmView: View {
   @State private var showCompletionOptions = false
   @State private var showSuccessView = false
   @State private var showAdditionalHelp = false
+  @State private var sessionId: String = ""
 
   var body: some View {
     ZStack {
@@ -30,6 +31,8 @@ struct EmergencyCalmView: View {
         HStack {
           Button("Exit") {
             audioManager.stopSound()
+            // Track early exit
+            AnalyticsLogger.shared.emergencyCalmComplete(sessionId: sessionId, completed: false)
             presentationMode.wrappedValue.dismiss()
           }
           .foregroundColor(.black)
@@ -122,6 +125,8 @@ struct EmergencyCalmView: View {
                 HapticManager.shared.success()
                 progressTracker.recordUsage()
                 progressTracker.recordReliefOutcome(.betterNow)
+                // Track successful completion
+                AnalyticsLogger.shared.emergencyCalmComplete(sessionId: sessionId, completed: true)
                 showSuccessView = true
               }
               .foregroundColor(.white)
@@ -135,6 +140,8 @@ struct EmergencyCalmView: View {
               Button("I still need help") {
                 HapticManager.shared.mediumImpact()
                 progressTracker.recordReliefOutcome(.stillNeedHelp)
+                // Track completion but still needing help
+                AnalyticsLogger.shared.emergencyCalmComplete(sessionId: sessionId, completed: true)
                 showAdditionalHelp = true
               }
               .foregroundColor(.white)
@@ -179,6 +186,9 @@ struct EmergencyCalmView: View {
   private func startEmergencyCalm() {
     isAnimating = true
     progressTracker.recordUsage()
+
+    // Start analytics tracking
+    sessionId = AnalyticsLogger.shared.emergencyCalmStart(source: "emergency")
 
     // Start the emergency calming sound (only if sounds are enabled)
     if prefSounds {

@@ -5,6 +5,7 @@
 //  Created by Thierry De Belder on 19/05/2025.
 //
 
+import Combine
 import FirebaseAnalytics
 import FirebaseAppCheck
 import FirebaseCore
@@ -52,7 +53,37 @@ class AppDelegate: NSObject, UIApplicationDelegate {
       Analytics.setAnalyticsCollectionEnabled(true)
     #endif
 
+    // Set up user properties for analytics
+    setupAnalyticsUserProperties()
+
     // kick off anon auth in the background
     AuthManager.shared.warmUpAuth()
   }
+
+  private func setupAnalyticsUserProperties() {
+    // Set build channel
+    #if targetEnvironment(simulator)
+      AnalyticsLogger.shared.setUserProperty("build_channel", value: "sim")
+    #else
+      // Check if this is TestFlight or App Store
+      if Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt" {
+        AnalyticsLogger.shared.setUserProperty("build_channel", value: "testflight")
+      } else {
+        AnalyticsLogger.shared.setUserProperty("build_channel", value: "appstore")
+      }
+    #endif
+
+    // Set initial subscription status (will be updated when subscription changes)
+    AnalyticsLogger.shared.setUserProperty("subscription_status", value: "free")
+
+    // Listen for subscription changes and update user property
+    RevenueCatService.shared.$isSubscribed
+      .sink { isSubscribed in
+        let status = isSubscribed ? "active" : "free"
+        AnalyticsLogger.shared.setUserProperty("subscription_status", value: status)
+      }
+      .store(in: &cancellables)
+  }
+
+  private var cancellables = Set<AnyCancellable>()
 }
