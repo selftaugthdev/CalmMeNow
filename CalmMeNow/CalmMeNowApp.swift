@@ -74,10 +74,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     // RevenueCat API key for CalmMeNow
     let apiKey = "appl_xeIUzCLEhVImrKmBAgvcITeDxFn"
 
-    print("🔧 RC configured for CalmMeNow")
-    print("🔧 RevenueCat: Configuring with API key: \(apiKey)")
+    #if DEBUG
+      print("🔧 RC configured for CalmMeNow")
+      print("🔧 RevenueCat: Configuring with API key: \(apiKey)")
+    #endif
 
-    Purchases.logLevel = .debug  // .debug while testing
+    #if DEBUG
+      Purchases.logLevel = .debug
+    #else
+      Purchases.logLevel = .warn
+    #endif
     Purchases.configure(withAPIKey: apiKey)
 
     // Link RC customer to your Firebase UID (best for cross-device restore)
@@ -91,7 +97,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
           let user = try await AuthManager.shared.ensureSignedIn()
           Purchases.shared.logIn(user.uid) { _, _, _ in }
         } catch {
-          print("Failed to link RevenueCat with Firebase UID: \(error)")
+          #if DEBUG
+            print("Failed to link RevenueCat with Firebase UID: \(error)")
+          #endif
         }
       }
     }

@@ -34,7 +34,9 @@ final class RevenueCatService: ObservableObject, PaywallPurchasing {
 
     // Only listen for live changes if RevenueCat is configured
     guard Purchases.isConfigured else {
-      print("⚠️ RevenueCat: Not configured - skipping live updates")
+      #if DEBUG
+        print("⚠️ RevenueCat: Not configured - skipping live updates")
+      #endif
       return
     }
 
@@ -71,7 +73,9 @@ final class RevenueCatService: ObservableObject, PaywallPurchasing {
 
     // Check if RevenueCat is configured
     guard Purchases.isConfigured else {
-      print("⚠️ RevenueCat: Not configured - treating as free user")
+      #if DEBUG
+        print("⚠️ RevenueCat: Not configured - treating as free user")
+      #endif
       UserDefaults.standard.set(false, forKey: "AIUnlocked")
       isSubscribed = false
       return
@@ -82,9 +86,13 @@ final class RevenueCatService: ObservableObject, PaywallPurchasing {
       let unlocked = isAIUnlocked(info)
       UserDefaults.standard.set(unlocked, forKey: "AIUnlocked")
       isSubscribed = unlocked
-      print("🔍 RevenueCat: Subscription status checked - AI unlocked: \(unlocked)")
+      #if DEBUG
+        print("🔍 RevenueCat: Subscription status checked - AI unlocked: \(unlocked)")
+      #endif
     } catch {
-      print("❌ RevenueCat: Failed to check subscription status: \(error)")
+      #if DEBUG
+        print("❌ RevenueCat: Failed to check subscription status: \(error)")
+      #endif
     }
   }
 
@@ -115,16 +123,22 @@ final class RevenueCatService: ObservableObject, PaywallPurchasing {
         let unlocked = isAIUnlocked(result.customerInfo)
         UserDefaults.standard.set(unlocked, forKey: "AIUnlocked")
         isSubscribed = unlocked
-        print("✅ RevenueCat: Subscription purchased successfully!")
+        #if DEBUG
+          print("✅ RevenueCat: Subscription purchased successfully!")
+        #endif
         return true
       } else if result.userCancelled {
-        print("❌ RevenueCat: User cancelled purchase")
+        #if DEBUG
+          print("❌ RevenueCat: User cancelled purchase")
+        #endif
         return false
       } else {
         throw RevenueCatError.purchaseFailed("Purchase completed but entitlement not active")
       }
     } catch {
-      print("❌ RevenueCat: Purchase failed: \(error)")
+      #if DEBUG
+        print("❌ RevenueCat: Purchase failed: \(error)")
+      #endif
       throw error
     }
   }
@@ -134,7 +148,9 @@ final class RevenueCatService: ObservableObject, PaywallPurchasing {
   func restorePurchases() async throws -> Bool {
     // Check if RevenueCat is configured
     guard Purchases.isConfigured else {
-      print("⚠️ RevenueCat: Not configured - cannot restore purchases")
+      #if DEBUG
+        print("⚠️ RevenueCat: Not configured - cannot restore purchases")
+      #endif
       throw RevenueCatError.notConfigured
     }
 
@@ -176,7 +192,9 @@ final class RevenueCatService: ObservableObject, PaywallPurchasing {
   func presentPaywall() async throws {
     // Check if RevenueCat is configured
     guard Purchases.isConfigured else {
-      print("⚠️ RevenueCat: Not configured - cannot present paywall")
+      #if DEBUG
+        print("⚠️ RevenueCat: Not configured - cannot present paywall")
+      #endif
       throw RevenueCatError.notConfigured
     }
 
@@ -222,19 +240,23 @@ final class RevenueCatService: ObservableObject, PaywallPurchasing {
           self.isLoading = false
           guard let current = offerings.current else {
             self.errorMessage = "No current offering set in RevenueCat"
-            print("⚠️ RC: offerings.current is nil")
+            #if DEBUG
+              print("⚠️ RC: offerings.current is nil")
+            #endif
             return
           }
           let pkgs = current.availablePackages
           self.availablePackages = pkgs
           self.currentOffering = current
-          print("✅ RC current offering:", current.identifier)
-          print("✅ Packages count:", pkgs.count)
-          pkgs.forEach { p in
-            print(
-              "• package.id=\(p.identifier) type=\(p.packageType.rawValue) product=\(p.storeProduct.productIdentifier) price=\(p.storeProduct.localizedPriceString)"
-            )
-          }
+          #if DEBUG
+            print("✅ RC current offering:", current.identifier)
+            print("✅ Packages count:", pkgs.count)
+            pkgs.forEach { p in
+              print(
+                "• package.id=\(p.identifier) type=\(p.packageType.rawValue) product=\(p.storeProduct.productIdentifier) price=\(p.storeProduct.localizedPriceString)"
+              )
+            }
+          #endif
         }
       } catch {
         await MainActor.run {

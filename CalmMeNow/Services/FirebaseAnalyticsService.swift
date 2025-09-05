@@ -13,7 +13,9 @@ class FirebaseAnalyticsService {
   func trackEmotionSelected(emotion: String) {
     // Check if Firebase is ready
     guard FirebaseApp.app() != nil else {
-      print("⚠️ Firebase not ready yet, skipping emotion tracking")
+      #if DEBUG
+        print("⚠️ Firebase not ready yet, skipping emotion tracking")
+      #endif
       return
     }
 
@@ -24,7 +26,9 @@ class FirebaseAnalyticsService {
         "timestamp": Date().timeIntervalSince1970,
       ])
 
-    print("📊 Analytics: Emotion '\(emotion)' selected")
+    #if DEBUG
+      print("📊 Analytics: Emotion '\(emotion)' selected")
+    #endif
 
     // Force analytics to send immediately (for debugging)
     Analytics.logEvent(AnalyticsEventAppOpen, parameters: nil)
@@ -37,7 +41,9 @@ class FirebaseAnalyticsService {
   func trackIntensitySelected(emotion: String, intensity: String) {
     // Check if Firebase is ready
     guard FirebaseApp.app() != nil else {
-      print("⚠️ Firebase not ready yet, skipping intensity tracking")
+      #if DEBUG
+        print("⚠️ Firebase not ready yet, skipping intensity tracking")
+      #endif
       return
     }
 
@@ -49,7 +55,9 @@ class FirebaseAnalyticsService {
         "timestamp": Date().timeIntervalSince1970,
       ])
 
-    print("📊 Analytics: Intensity '\(intensity)' selected for emotion '\(emotion)'")
+    #if DEBUG
+      print("📊 Analytics: Intensity '\(intensity)' selected for emotion '\(emotion)'")
+    #endif
   }
 
   /// Track when a user starts a relief program

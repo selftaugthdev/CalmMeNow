@@ -408,17 +408,23 @@ struct TailoredExperienceView: View {
   // MARK: - Helper Functions
 
   private func startExperience() {
-    print("🎯 DEBUG: startExperience() called")
-    print("   - emotion: '\(emotion)'")
-    print("   - intensity: \(intensity)")
-    print("   - program available: \(program != nil)")
+    #if DEBUG
+      print("🎯 DEBUG: startExperience() called")
+      print("   - emotion: '\(emotion)'")
+      print("   - intensity: \(intensity)")
+      print("   - program available: \(program != nil)")
+    #endif
 
     // Try to get program immediately
     if let program = program {
-      print("   ✅ Starting program immediately")
+      #if DEBUG
+        print("   ✅ Starting program immediately")
+      #endif
       startProgram(program)
     } else {
-      print("   ⏳ Program not ready, retrying...")
+      #if DEBUG
+        print("   ⏳ Program not ready, retrying...")
+      #endif
       // Retry with increasing delays
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
         print("   🔄 Retry 1 - program available: \(self.program != nil)")
