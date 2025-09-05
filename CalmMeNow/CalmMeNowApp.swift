@@ -16,7 +16,7 @@ import SwiftUI
 
 // MARK: - Billing Configuration
 final class Billing {
-  static let entitlement = "ai"
+  static let entitlement = "premium"
 }
 
 @main

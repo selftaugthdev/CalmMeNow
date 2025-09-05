@@ -57,7 +57,8 @@ final class RevenueCatService: ObservableObject, PaywallPurchasing {
   }
 
   var aiUnlocked: Bool {
-    UserDefaults.standard.bool(forKey: "AIUnlocked")
+    // Use cached value for performance - it's updated by the customerInfoStream
+    return UserDefaults.standard.bool(forKey: "AIUnlocked")
   }
 
   // MARK: - Subscription Management
