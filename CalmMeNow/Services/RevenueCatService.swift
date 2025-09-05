@@ -1,16 +1,21 @@
 import Combine
 import Foundation
+import PaywallKit
 import RevenueCat
 
 // MARK: - RevenueCat Service
 /// Handles subscription management and paywall logic for AI features
-final class RevenueCatService: ObservableObject {
+final class RevenueCatService: ObservableObject, PaywallPurchasing {
   static let shared = RevenueCatService()
 
   // MARK: - Published Properties
   @Published var isSubscribed = false
   @Published var currentOffering: Offering?
   @Published var isLoading = false
+
+  // MARK: - PaywallPurchasing Protocol Properties
+  @Published var availablePackages: [Package] = []
+  @Published var errorMessage: String?
 
   // MARK: - Private Properties
   private var cancellables = Set<AnyCancellable>()
@@ -97,7 +102,7 @@ final class RevenueCatService: ObservableObject {
     do {
       let offerings = try await Purchases.shared.offerings()
       guard let offering = offerings.current,
-        let monthly = offering.package(identifier: "monthly") ?? offering.monthly
+        let monthly = offering.monthly ?? offering.package(identifier: "monthly")
       else {
         throw RevenueCatError.noOfferingAvailable
       }
@@ -177,7 +182,7 @@ final class RevenueCatService: ObservableObject {
     do {
       let offerings = try await Purchases.shared.offerings()
       guard let offering = offerings.current,
-        let monthly = offering.package(identifier: "monthly") ?? offering.monthly
+        let monthly = offering.monthly ?? offering.package(identifier: "monthly")
       else {
         throw RevenueCatError.noOfferingAvailable
       }
@@ -199,6 +204,122 @@ final class RevenueCatService: ObservableObject {
       throw error
     }
   }
+
+  // MARK: - PaywallPurchasing Protocol Methods
+
+  /// Fetch available packages from RevenueCat
+  func fetchPackages() {
+    Task {
+      await MainActor.run {
+        isLoading = true
+        errorMessage = nil
+      }
+
+      do {
+        let offerings = try await Purchases.shared.offerings()
+        await MainActor.run {
+          if let currentOffering = offerings.current {
+            self.currentOffering = currentOffering
+            self.availablePackages = currentOffering.availablePackages
+            print("✅ RevenueCat: Fetched \(self.availablePackages.count) packages")
+          } else {
+            self.availablePackages = []
+            self.errorMessage = "No subscription packages available"
+          }
+          self.isLoading = false
+        }
+      } catch {
+        await MainActor.run {
+          self.errorMessage = error.localizedDescription
+          self.isLoading = false
+          print("❌ RevenueCat: Failed to fetch packages: \(error)")
+        }
+      }
+    }
+  }
+
+  /// Purchase a specific package
+  func purchase(package: Package) {
+    Task {
+      await MainActor.run {
+        isLoading = true
+        errorMessage = nil
+      }
+
+      do {
+        let result = try await Purchases.shared.purchase(package: package)
+
+        if result.customerInfo.entitlements.active[Billing.entitlement] != nil {
+          // Purchase successful
+          let unlocked = isAIUnlocked(result.customerInfo)
+          await MainActor.run {
+            UserDefaults.standard.set(unlocked, forKey: "AIUnlocked")
+            isSubscribed = unlocked
+            isLoading = false
+
+            // Post notification for PaywallKit
+            NotificationCenter.default.post(
+              name: PaywallNotifications.showSubscriptionConfirmation, object: nil)
+            print("✅ RevenueCat: Purchase successful!")
+          }
+        } else if result.userCancelled {
+          await MainActor.run {
+            isLoading = false
+            print("❌ RevenueCat: User cancelled purchase")
+          }
+        } else {
+          await MainActor.run {
+            isLoading = false
+            errorMessage = "Purchase completed but entitlement not active"
+          }
+        }
+      } catch {
+        await MainActor.run {
+          errorMessage = error.localizedDescription
+          isLoading = false
+          print("❌ RevenueCat: Purchase failed: \(error)")
+        }
+      }
+    }
+  }
+
+  /// Restore previous purchases
+  func restorePurchases() {
+    Task {
+      await MainActor.run {
+        isLoading = true
+        errorMessage = nil
+      }
+
+      do {
+        let info = try await Purchases.shared.restorePurchases()
+        let unlocked = isAIUnlocked(info)
+
+        await MainActor.run {
+          UserDefaults.standard.set(unlocked, forKey: "AIUnlocked")
+          isSubscribed = unlocked
+          isLoading = false
+
+          if unlocked {
+            // Post notification for PaywallKit
+            NotificationCenter.default.post(
+              name: PaywallNotifications.restorePurchaseSuccess, object: nil)
+            print("✅ RevenueCat: Purchases restored successfully!")
+          } else {
+            errorMessage = "No previous purchases found to restore"
+            print("❌ RevenueCat: No previous purchases found")
+          }
+        }
+      } catch {
+        await MainActor.run {
+          errorMessage = error.localizedDescription
+          isLoading = false
+          print("❌ RevenueCat: Restore failed: \(error)")
+        }
+      }
+    }
+  }
+
 }
 
 // MARK: - RevenueCat Errors

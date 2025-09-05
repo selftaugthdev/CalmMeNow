@@ -1,5 +1,5 @@
 {
-  "originHash" : "0664f95f079b32cb315f8ccb9fc6655373609ef53c114d7a52b249773943aed4",
+  "originHash" : "bc5761bcd095e86db1b105860ae85d41e1c4bd79d94c7720613b9502dd13805a",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -116,6 +116,15 @@
       "state" : {
         "revision" : "b7e1104502eca3a213b46303391ca4d3bc8ddec1",
         "version" : "2.30910.0"
+      }
+    },
+    {
+      "identity" : "paywallkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/selftaugthdev/PaywallKit.git",
+      "state" : {
+        "revision" : "b849461da85bfe312eff7243593e30339ebca2e9",
+        "version" : "0.1.3"
       }
     },
     {

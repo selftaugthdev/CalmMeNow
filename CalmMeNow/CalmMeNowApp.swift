@@ -8,15 +8,15 @@
 import Combine
 import FirebaseAnalytics
 import FirebaseAppCheck
-import FirebaseCore
 import FirebaseAuth
+import FirebaseCore
 import RevenueCat
 import SwiftData
 import SwiftUI
 
 // MARK: - Billing Configuration
 final class Billing {
-    static let entitlement = "ai"
+  static let entitlement = "ai"
 }
 
 @main
@@ -42,14 +42,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
   private func setupFirebaseAndAppCheck() {
     // IMPORTANT: App Check provider must be set BEFORE FirebaseApp.configure()
-    #if targetEnvironment(simulator)
-      // Dev/testing on Simulator - use DEBUG provider
+    #if DEBUG
+      // Debug builds - use DEBUG provider for both simulator and real devices
       AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
-      print("🔥 Firebase App Check: Using DEBUG provider for Simulator")
+      print("🔥 Firebase App Check: Using DEBUG provider for debug build")
     #else
-      // Real devices & TestFlight - use DeviceCheck provider
+      // Release builds - use DeviceCheck provider for real devices
       AppCheck.setAppCheckProviderFactory(DeviceCheckProviderFactory())
-      print("🔥 Firebase App Check: Using DeviceCheck provider for real devices")
+      print("🔥 Firebase App Check: Using DeviceCheck provider for release build")
     #endif
 
     // Now configure Firebase (App Check is already set)
@@ -65,23 +65,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
     // kick off anon auth in the background
     AuthManager.shared.warmUpAuth()
-    
+
     // Configure RevenueCat after Firebase is ready
     configureRevenueCat()
   }
-  
+
   private func configureRevenueCat() {
-    // Check if we have a valid RevenueCat API key
-    let apiKey = "appl_your_public_sdk_key"
-    
-    // Skip RevenueCat configuration if using placeholder key
-    guard apiKey != "appl_your_public_sdk_key" else {
-      print("⚠️ RevenueCat: Skipping configuration - placeholder API key detected")
-      print("⚠️ RevenueCat: Please replace 'appl_your_public_sdk_key' with your actual RevenueCat API key")
-      return
-    }
-    
-    Purchases.logLevel = .warn // .debug while testing
+    // RevenueCat API key for CalmMeNow
+    let apiKey = "appl_xeIUzCLEhVImrKmBAgvcITeDxFn"
+
+    print("🔧 RevenueCat: Configuring with API key: \(apiKey)")
+
+    Purchases.logLevel = .warn  // .debug while testing
     Purchases.configure(withAPIKey: apiKey)
 
     // Link RC customer to your Firebase UID (best for cross-device restore)

@@ -363,7 +363,7 @@ struct ContentView: View {
 
     }
     .sheet(isPresented: $showingPaywall) {
-      PaywallView()
+      PaywallKitView()
     }
     .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
       showingPaywall = shouldShow
