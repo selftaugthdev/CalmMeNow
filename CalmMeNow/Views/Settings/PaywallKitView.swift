@@ -11,7 +11,7 @@ struct PaywallKitView: View {
     title: "Unlock AI-Powered Calm",
     subtitle: "Get personalized support when you need it most",
     yearlyBadgeText: "SAVE 90%",
-    weeklyTrialLabel: "7-Day Trial",
+    weeklyTrialLabel: "7-Day Free Trial",
     weeklyNoTrialLabel: "Monthly Plan",
     trialToggleDefault: true,
     termsURL: URL(string: "https://calmmenow.app/terms"),
@@ -23,19 +23,14 @@ struct PaywallKitView: View {
         description: "AI-generated strategies tailored to your triggers and preferences"
       ),
       PaywallConfig.Feature(
-        icon: "chart.bar",
-        title: "Smart Daily Check-ins",
-        description: "Get intelligent insights and recommendations based on your mood"
-      ),
-      PaywallConfig.Feature(
         icon: "brain.head.profile",
-        title: "AI Emergency Companion",
-        description: "24/7 AI support for crisis moments with personalized guidance"
+        title: "AI Companion",
+        description: "24/7 emotional support and guidance when you need it most"
       ),
       PaywallConfig.Feature(
-        icon: "lungs",
-        title: "Enhanced Breathing",
-        description: "AI-optimized breathing patterns for maximum effectiveness"
+        icon: "heart.fill",
+        title: "Unlimited Access",
+        description: "All premium features, breathing exercises, and emergency tools"
       ),
     ]
   )
@@ -43,27 +38,9 @@ struct PaywallKitView: View {
   var body: some View {
     PurchaseView(
       manager: revenueCatService,
-      config: paywallConfig,
-      onPurchaseComplete: {
-        // Handle successful purchase
-        print("✅ PaywallKit: Purchase completed successfully")
-        dismiss()
-      }
-    )
-    .navigationBarTitleDisplayMode(.inline)
-    .navigationBarBackButtonHidden(true)
-    .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
-        Button("Close") {
-          dismiss()
-        }
-        .foregroundColor(.blue)
-        .fontWeight(.semibold)
-      }
-    }
-    .onAppear {
-      // Fetch packages when paywall appears
-      revenueCatService.fetchPackages()
+      config: paywallConfig
+    ) {
+      dismiss()
     }
   }
 }

@@ -74,9 +74,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     // RevenueCat API key for CalmMeNow
     let apiKey = "appl_xeIUzCLEhVImrKmBAgvcITeDxFn"
 
+    print("🔧 RC configured for CalmMeNow")
     print("🔧 RevenueCat: Configuring with API key: \(apiKey)")
 
-    Purchases.logLevel = .warn  // .debug while testing
+    Purchases.logLevel = .debug  // .debug while testing
     Purchases.configure(withAPIKey: apiKey)
 
     // Link RC customer to your Firebase UID (best for cross-device restore)

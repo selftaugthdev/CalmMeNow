@@ -219,15 +219,22 @@ final class RevenueCatService: ObservableObject, PaywallPurchasing {
       do {
         let offerings = try await Purchases.shared.offerings()
         await MainActor.run {
-          if let currentOffering = offerings.current {
-            self.currentOffering = currentOffering
-            self.availablePackages = currentOffering.availablePackages
-            print("✅ RevenueCat: Fetched \(self.availablePackages.count) packages")
-          } else {
-            self.availablePackages = []
-            self.errorMessage = "No subscription packages available"
-          }
           self.isLoading = false
+          guard let current = offerings.current else {
+            self.errorMessage = "No current offering set in RevenueCat"
+            print("⚠️ RC: offerings.current is nil")
+            return
+          }
+          let pkgs = current.availablePackages
+          self.availablePackages = pkgs
+          self.currentOffering = current
+          print("✅ RC current offering:", current.identifier)
+          print("✅ Packages count:", pkgs.count)
+          pkgs.forEach { p in
+            print(
+              "• package.id=\(p.identifier) type=\(p.packageType.rawValue) product=\(p.storeProduct.productIdentifier) price=\(p.storeProduct.localizedPriceString)"
+            )
+          }
         }
       } catch {
         await MainActor.run {
