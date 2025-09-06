@@ -181,9 +181,7 @@ struct DailyCheckInView: View {
 struct CheckInResponseView: View {
   let checkIn: DailyCheckInResponse
   @Environment(\.dismiss) private var dismiss
-  @State private var showBreathing = false
-  @State private var showGenericExercise = false
-  @State private var exerciseModel: Exercise?
+  @State private var activeExercise: Exercise?
   @State private var isLaunchingExercise = false
 
   var body: some View {
@@ -295,28 +293,19 @@ struct CheckInResponseView: View {
           VStack(spacing: 12) {
             if let exercise = checkIn.exercise {
               Button(action: {
-                guard !isLaunchingExercise else { return }
+                guard !isLaunchingExercise && activeExercise == nil else { return }
                 isLaunchingExercise = true
 
                 print("Start Exercise tapped")  // Debug logging
 
-                // Create Exercise model from string (attempt to parse as a basic exercise)
-                let exerciseObj = Exercise(
+                // Create Exercise model from string and set as active
+                activeExercise = Exercise(
                   id: UUID(),
                   title: exercise,
                   duration: 90,  // Default duration
                   steps: [exercise],  // Use the full text as a single step for now
                   prompt: nil
                 )
-                exerciseModel = exerciseObj
-
-                if exerciseObj.isBreathingExercise {
-                  // Launch breathing exercise
-                  showBreathing = true
-                } else {
-                  // Launch generic exercise view
-                  showGenericExercise = true
-                }
 
                 // Reset debounce after 1 second
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -361,15 +350,12 @@ struct CheckInResponseView: View {
           }
         }
       }
-      .sheet(isPresented: $showBreathing) {
-        if let exercise = exerciseModel, let plan = exercise.breathingPlan {
+      .sheet(item: $activeExercise) { exercise in
+        if exercise.isBreathingExercise, let plan = exercise.breathingPlan {
           BreathingExerciseView(plan: plan)
-        } else {
+        } else if exercise.isBreathingExercise {
           BreathingExerciseView()
-        }
-      }
-      .sheet(isPresented: $showGenericExercise) {
-        if let exercise = exerciseModel {
+        } else {
           GenericExerciseView(exercise: exercise)
         }
       }

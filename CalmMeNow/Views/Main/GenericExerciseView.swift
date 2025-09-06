@@ -313,6 +313,13 @@ struct GenericExerciseView: View {
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
       self.speechService.stop()
     }
+
+    // Stop haptic feedback generation
+    impactFeedback.prepare()  // Reset haptic engine
+
+    // Reset state
+    currentStep = 0
+    timeRemaining = exercise.duration
   }
 }
 

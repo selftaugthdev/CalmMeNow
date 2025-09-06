@@ -388,9 +388,7 @@ struct SeverityCard: View {
 
 struct MicroExerciseCard: View {
   let exercise: [String: Any]
-  @State private var showBreathing = false
-  @State private var showGenericExercise = false
-  @State private var exerciseModel: Exercise?
+  @State private var activeExercise: Exercise?
   @State private var isLaunchingExercise = false
 
   var body: some View {
@@ -439,32 +437,23 @@ struct MicroExerciseCard: View {
       }
 
       Button(action: {
-        guard !isLaunchingExercise else { return }
+        guard !isLaunchingExercise && activeExercise == nil else { return }
         isLaunchingExercise = true
 
         print("Start Exercise tapped")  // Debug logging
 
-        // Create Exercise model from dictionary
+        // Create Exercise model from dictionary and set as active
         if let exerciseObj = Exercise.fromAIResponse(exercise) {
-          exerciseModel = exerciseObj
-
-          if exerciseObj.isBreathingExercise {
-            // Launch breathing exercise
-            showBreathing = true
-          } else {
-            // Launch generic exercise view
-            showGenericExercise = true
-          }
+          activeExercise = exerciseObj
         } else {
           // Fallback to default breathing exercise
-          exerciseModel = Exercise(
+          activeExercise = Exercise(
             id: UUID(),
             title: "Breathing Exercise",
             duration: 60,
             steps: ["Inhale slowly", "Hold", "Exhale slowly"],
             prompt: nil
           )
-          showBreathing = true
         }
 
         // Reset debounce after 1 second
@@ -481,24 +470,22 @@ struct MicroExerciseCard: View {
         .padding(.vertical, 12)
         .background(
           RoundedRectangle(cornerRadius: 20)
-            .fill(Color.blue)
+            .fill(isLaunchingExercise ? Color.gray : Color.blue)
         )
       }
+      .disabled(isLaunchingExercise)
     }
     .padding(16)
     .background(
       RoundedRectangle(cornerRadius: 12)
         .fill(Color.blue.opacity(0.1))
     )
-    .sheet(isPresented: $showBreathing) {
-      if let exercise = exerciseModel, let plan = exercise.breathingPlan {
+    .sheet(item: $activeExercise) { exercise in
+      if exercise.isBreathingExercise, let plan = exercise.breathingPlan {
         BreathingExerciseView(plan: plan)
-      } else {
+      } else if exercise.isBreathingExercise {
         BreathingExerciseView()
-      }
-    }
-    .sheet(isPresented: $showGenericExercise) {
-      if let exercise = exerciseModel {
+      } else {
         GenericExerciseView(exercise: exercise)
       }
     }

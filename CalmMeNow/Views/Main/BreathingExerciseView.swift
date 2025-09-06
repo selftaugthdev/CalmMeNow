@@ -334,12 +334,18 @@ struct BreathingExerciseView: View {
       self.speechService.stop()
     }
 
+    // Stop haptic feedback generation
+    impactFeedback.prepare()  // Reset haptic engine
+
     // Reset visual state
     orbScale = 1.0
     orbOpacity = 0.8
     boxProgress = 0.0
     currentBoxSide = 0
     currentPhase = .inhale
+
+    // Reset time remaining
+    timeRemaining = 0
   }
 
   private func startPhaseProgression() {

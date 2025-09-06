@@ -10,10 +10,25 @@ struct Exercise: Identifiable, Codable {
 
   /// Determine if this is a breathing exercise based on content
   var isBreathingExercise: Bool {
+    let titleLower = title.lowercased()
     let content = "\(title) \(steps.joined(separator: " "))".lowercased()
-    return content.contains("breath") || content.contains("inhale") || content.contains("exhale")
-      || content.contains("breathing") || content.contains("physiological")
-      || content.contains("box breathing") || content.contains("coherence")
+
+    // First check if it's explicitly NOT a breathing exercise
+    if titleLower.contains("stretch") || titleLower.contains("movement")
+      || titleLower.contains("family") || titleLower.contains("connection")
+      || content.contains("stand up") || content.contains("bend forward")
+      || content.contains("twist") || content.contains("reach for")
+    {
+      return false
+    }
+
+    // Then check for breathing exercise indicators (must be more specific)
+    return titleLower.contains("breathing") || titleLower.contains("physiological")
+      || titleLower.contains("box breathing") || titleLower.contains("coherence")
+      || content.contains("breathing pattern") || content.contains("breathing exercise")
+      || content.contains("breath work")
+      || (content.contains("inhale") && content.contains("exhale")
+        && (content.contains("pattern") || content.contains("rhythm") || content.contains("cycle")))
   }
 
   /// Convert to breathing plan if this is a breathing exercise
