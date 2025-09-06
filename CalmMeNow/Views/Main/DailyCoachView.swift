@@ -30,7 +30,7 @@ struct DailyCoachView: View {
           VStack(spacing: 24) {
             // Header
             VStack(spacing: 12) {
-              Text("📊")
+              Text("💙")
                 .font(.system(size: 60))
 
               Text("Daily Check-in Coach")
@@ -38,28 +38,50 @@ struct DailyCoachView: View {
                 .fontWeight(.bold)
                 .foregroundColor(Color(.label))
 
-              Text("Quick 30-second check-in to get personalized support")
+              Text("Take 30 seconds to reset and get support")
                 .font(.body)
                 .foregroundColor(Color(.secondaryLabel))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
+
+              // Premium badge
+              HStack {
+                Image(systemName: "crown.fill")
+                  .foregroundColor(.orange)
+                  .font(.caption)
+                Text("Daily Check-in is part of your Premium support")
+                  .font(.caption)
+                  .foregroundColor(Color(.secondaryLabel))
+              }
+              .padding(.horizontal, 12)
+              .padding(.vertical, 6)
+              .background(
+                RoundedRectangle(cornerRadius: 12)
+                  .fill(Color.orange.opacity(0.1))
+              )
             }
             .padding(.top, 20)
 
             // Check-in Form
             VStack(spacing: 20) {
-              Text("How are you feeling today?")
+              Text("How's your mood right now?")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundColor(Color(.label))
 
               // Mood Slider
-              VStack(spacing: 8) {
+              VStack(spacing: 12) {
                 HStack {
                   Text("😢")
                     .font(.title2)
                   Spacer()
-                  Text("😊")
+                  Text("😐")
+                    .font(.title2)
+                  Spacer()
+                  Text("🙂")
+                    .font(.title2)
+                  Spacer()
+                  Text("😄")
                     .font(.title2)
                 }
 
@@ -79,6 +101,17 @@ struct DailyCoachView: View {
                     .foregroundColor(Color(.secondaryLabel))
                 }
 
+                // Mood labels
+                HStack {
+                  Text("Low / Drained")
+                    .font(.caption)
+                    .foregroundColor(Color(.secondaryLabel))
+                  Spacer()
+                  Text("Calm / Strong")
+                    .font(.caption)
+                    .foregroundColor(Color(.secondaryLabel))
+                }
+
                 Text("Mood: \(mood)")
                   .font(.headline)
                   .fontWeight(.medium)
@@ -88,7 +121,7 @@ struct DailyCoachView: View {
 
               // Tags
               VStack(alignment: .leading, spacing: 12) {
-                Text("What's on your mind?")
+                Text("What's taking your energy today?")
                   .font(.headline)
                   .fontWeight(.semibold)
                   .foregroundColor(Color(.label))
@@ -105,12 +138,12 @@ struct DailyCoachView: View {
 
               // Note
               VStack(alignment: .leading, spacing: 8) {
-                Text("Any specific thoughts? (optional)")
+                Text("Anything specific on your mind? (optional)")
                   .font(.headline)
                   .fontWeight(.semibold)
                   .foregroundColor(Color(.label))
 
-                TextField("Share what's on your mind...", text: $note, axis: .vertical)
+                TextField("Share what's weighing on you...", text: $note, axis: .vertical)
                   .textFieldStyle(RoundedBorderTextFieldStyle())
                   .lineLimit(3...6)
               }
@@ -124,10 +157,10 @@ struct DailyCoachView: View {
                       .progressViewStyle(CircularProgressViewStyle(tint: .white))
                       .scaleEffect(0.8)
                   } else {
-                    Image(systemName: "heart.fill")
+                    Text("💙")
                       .font(.title2)
                   }
-                  Text(isLoading ? "Processing..." : "Run Check-in")
+                  Text(isLoading ? "Processing..." : "Get Support")
                     .font(.headline)
                     .fontWeight(.semibold)
                 }
@@ -356,7 +389,9 @@ struct SeverityCard: View {
 struct MicroExerciseCard: View {
   let exercise: [String: Any]
   @State private var showBreathing = false
-  @State private var plan: BreathingPlan = .default60s
+  @State private var showGenericExercise = false
+  @State private var exerciseModel: Exercise?
+  @State private var isLaunchingExercise = false
 
   var body: some View {
     VStack(spacing: 16) {
@@ -404,18 +439,42 @@ struct MicroExerciseCard: View {
       }
 
       Button(action: {
+        guard !isLaunchingExercise else { return }
+        isLaunchingExercise = true
+
         print("Start Exercise tapped")  // Debug logging
-        // Build a plan from the exercise steps
-        if let title = exercise["title"] as? String {
-          plan = BreathingPlan.fromRecommendation(title)
+
+        // Create Exercise model from dictionary
+        if let exerciseObj = Exercise.fromAIResponse(exercise) {
+          exerciseModel = exerciseObj
+
+          if exerciseObj.isBreathingExercise {
+            // Launch breathing exercise
+            showBreathing = true
+          } else {
+            // Launch generic exercise view
+            showGenericExercise = true
+          }
         } else {
-          plan = .default60s
+          // Fallback to default breathing exercise
+          exerciseModel = Exercise(
+            id: UUID(),
+            title: "Breathing Exercise",
+            duration: 60,
+            steps: ["Inhale slowly", "Hold", "Exhale slowly"],
+            prompt: nil
+          )
+          showBreathing = true
         }
-        showBreathing = true
+
+        // Reset debounce after 1 second
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+          isLaunchingExercise = false
+        }
       }) {
         HStack(spacing: 8) {
           Image(systemName: "play.fill")
-          Text("Start Exercise")
+          Text(isLaunchingExercise ? "Starting..." : "Start Exercise")
         }
         .foregroundColor(.white)
         .padding(.horizontal, 20)
@@ -432,7 +491,16 @@ struct MicroExerciseCard: View {
         .fill(Color.blue.opacity(0.1))
     )
     .sheet(isPresented: $showBreathing) {
-      BreathingExerciseView(plan: plan)
+      if let exercise = exerciseModel, let plan = exercise.breathingPlan {
+        BreathingExerciseView(plan: plan)
+      } else {
+        BreathingExerciseView()
+      }
+    }
+    .sheet(isPresented: $showGenericExercise) {
+      if let exercise = exerciseModel {
+        GenericExerciseView(exercise: exercise)
+      }
     }
   }
 }

@@ -36,6 +36,7 @@ enum BreathingPhase {
 struct BreathingExerciseView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var speechService = SpeechService()
+  @State private var isStarting = false  // Debounce button
   @State private var selectedTechnique: BreathingTechnique = .physiologicalSigh
   @State private var isExerciseActive = false
   @State private var currentPhase: BreathingPhase = .inhale
@@ -188,8 +189,17 @@ struct BreathingExerciseView: View {
             )
             .padding(.horizontal, 20)
 
-            Button(action: startExercise) {
-              Text("Start Exercise")
+            Button(action: {
+              guard !isStarting else { return }
+              isStarting = true
+              startExercise()
+
+              // Reset debounce after 2 seconds
+              DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                isStarting = false
+              }
+            }) {
+              Text(isStarting ? "Starting..." : "Start Exercise")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
@@ -197,9 +207,10 @@ struct BreathingExerciseView: View {
                 .padding(.vertical, 12)
                 .background(
                   RoundedRectangle(cornerRadius: 25)
-                    .fill(Color.blue)
+                    .fill(isStarting ? Color.gray : Color.blue)
                 )
             }
+            .disabled(isStarting)
             .padding(.top, 20)
           }
           .padding(.horizontal, 20)
@@ -245,8 +256,7 @@ struct BreathingExerciseView: View {
       }
     }
     .onDisappear {
-      stopExercise()
-      speechService.stop()
+      cleanup()
     }
   }
 
@@ -299,6 +309,37 @@ struct BreathingExerciseView: View {
     phaseTimer = nil
     exerciseTimer = nil
     speechService.stop()
+  }
+
+  /// Comprehensive cleanup method for when view is dismissed
+  private func cleanup() {
+    print("BreathingExerciseView cleanup called")  // Debug logging
+
+    // Stop all exercise activities
+    isExerciseActive = false
+    isStarting = false
+
+    // Cancel all timers
+    phaseTimer?.invalidate()
+    exerciseTimer?.invalidate()
+    phaseTimer = nil
+    exerciseTimer = nil
+
+    // Stop speech service multiple times to be extra sure
+    speechService.stop()
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+      self.speechService.stop()
+    }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+      self.speechService.stop()
+    }
+
+    // Reset visual state
+    orbScale = 1.0
+    orbOpacity = 0.8
+    boxProgress = 0.0
+    currentBoxSide = 0
+    currentPhase = .inhale
   }
 
   private func startPhaseProgression() {
