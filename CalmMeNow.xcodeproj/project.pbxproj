@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		31C3D1EA2E6A14E500125405 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 31C3D1E92E6A14E500125405 /* RevenueCat */; };
 		31C3D1EC2E6A14E500125405 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 31C3D1EB2E6A14E500125405 /* RevenueCatUI */; };
+		E423FD772E6C4A4B00962AE9 /* StoreKitConfiguration1.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E423FD762E6C4A4B00962AE9 /* StoreKitConfiguration1.storekit */; };
 		E476FB662E6AC8A40030EDE7 /* PaywallKit in Frameworks */ = {isa = PBXBuildFile; productRef = E476FB652E6AC8A40030EDE7 /* PaywallKit */; };
 		E495B4632E68301400BBA349 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = E495B4622E68301400BBA349 /* FirebaseAppCheck */; };
 		E495B4652E68301400BBA349 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = E495B4642E68301400BBA349 /* FirebaseAuth */; };
@@ -52,6 +53,7 @@
 /* Begin PBXFileReference section */
 		E4057D232E5C7E4A0013E917 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS11.5.sdk/System/Library/Frameworks/WatchConnectivity.framework; sourceTree = DEVELOPER_DIR; };
 		E4057D252E5C7E740013E917 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
+		E423FD762E6C4A4B00962AE9 /* StoreKitConfiguration1.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreKitConfiguration1.storekit; sourceTree = "<group>"; };
 		E4DB97AF2DDBAD3C0084C498 /* CalmMeNow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CalmMeNow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4DB97BC2DDBAD3E0084C498 /* CalmMeNowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalmMeNowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4DB97C62DDBAD3E0084C498 /* CalmMeNowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalmMeNowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -140,6 +142,7 @@
 		E4DB97A62DDBAD3C0084C498 = {
 			isa = PBXGroup;
 			children = (
+				E423FD762E6C4A4B00962AE9 /* StoreKitConfiguration1.storekit */,
 				E4FC06442E55136500444E67 /* Sloth meditate.json */,
 				E4DB97B12DDBAD3C0084C498 /* CalmMeNow */,
 				E4DB97BF2DDBAD3E0084C498 /* CalmMeNowTests */,
@@ -296,6 +299,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E423FD772E6C4A4B00962AE9 /* StoreKitConfiguration1.storekit in Resources */,
 				E4FC06452E55136500444E67 /* Sloth meditate.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

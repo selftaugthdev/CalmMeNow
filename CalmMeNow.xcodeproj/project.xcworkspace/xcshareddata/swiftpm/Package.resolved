@@ -123,8 +123,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/selftaugthdev/PaywallKit.git",
       "state" : {
-        "revision" : "cb4250233ee398510c362134077104734fb8e949",
-        "version" : "0.1.5"
+        "revision" : "1ec0720d87155ed3ab2101108c04485309ac1381",
+        "version" : "0.1.6"
       }
     },
     {

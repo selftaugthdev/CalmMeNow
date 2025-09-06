@@ -355,6 +355,8 @@ struct SeverityCard: View {
 
 struct MicroExerciseCard: View {
   let exercise: [String: Any]
+  @State private var showBreathing = false
+  @State private var plan: BreathingPlan = .default60s
 
   var body: some View {
     VStack(spacing: 16) {
@@ -402,7 +404,14 @@ struct MicroExerciseCard: View {
       }
 
       Button(action: {
-        // TODO: Start the exercise timer
+        print("Start Exercise tapped")  // Debug logging
+        // Build a plan from the exercise steps
+        if let title = exercise["title"] as? String {
+          plan = BreathingPlan.fromRecommendation(title)
+        } else {
+          plan = .default60s
+        }
+        showBreathing = true
       }) {
         HStack(spacing: 8) {
           Image(systemName: "play.fill")
@@ -422,6 +431,9 @@ struct MicroExerciseCard: View {
       RoundedRectangle(cornerRadius: 12)
         .fill(Color.blue.opacity(0.1))
     )
+    .sheet(isPresented: $showBreathing) {
+      BreathingExerciseView(plan: plan)
+    }
   }
 }
 

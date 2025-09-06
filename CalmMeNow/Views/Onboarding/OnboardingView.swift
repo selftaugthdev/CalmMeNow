@@ -31,44 +31,45 @@ struct OnboardingView: View {
     [
       .init(
         title: "Welcome to CalmMeNow",
-        body: "Quick tools to steady your body and mind in tough moments.",
+        body: "Tools to help you steady your body and mind when stress hits.",
         bullets: [
-          "Emergency Calm for intense panic",
-          "Emotion tools for anxious, angry, sad, frustrated",
-          "Gentle guidance, sounds, and a breathing mascot",
+          "Emergency Calm → for sudden panic (Always Free)",
+          "Emotion Tools → manage anxiety, anger, sadness, frustration (Always Free)",
+          "Guided breathing, soothing sounds, and a calming mascot (Premium Unlock)",
         ],
         showsToggles: false,
         showsWatchPrefs: false
       ),
       .init(
-        title: "One minute to feel better",
-        body: "Tap how you feel → choose intensity → breathe with guidance.",
+        title: "One minute to feel calmer",
+        body: "Here's all you do:",
         bullets: [
+          "Choose how you feel → pick intensity",
           "Follow \"Inhale • Hold • Exhale\" pacing",
-          "Optional calming sound and soft haptics",
-          "Stop anytime—your progress is saved",
+          "Add calming sounds or haptics if you like",
         ],
         showsToggles: false,
         showsWatchPrefs: false
       ),
       .init(
         title: "Make it yours",
-        body: "Set your defaults. You can change them later in Settings.",
+        body: "Pick your defaults. You can change them anytime in Settings.",
         bullets: [],
         showsToggles: true,
         showsWatchPrefs: false
       ),
-      .init(
-        title: "Apple Watch companion",
-        body: "Start a calm session from your wrist with gentle haptics and the breathing cat.",
-        bullets: [
-          "Quick Calm Now button",
-          "Breath pacing with haptics",
-          "Choose what happens to iPhone audio when you end a session",
-        ],
-        showsToggles: false,
-        showsWatchPrefs: true
-      ),
+      // Commented out for MVP launch without Apple Watch
+      // .init(
+      //   title: "Apple Watch companion",
+      //   body: "Start a calm session from your wrist with gentle haptics and the breathing cat.",
+      //   bullets: [
+      //     "Quick Calm Now button",
+      //     "Breath pacing with haptics",
+      //     "Choose what happens to iPhone audio when you end a session",
+      //   ],
+      //   showsToggles: false,
+      //   showsWatchPrefs: true
+      // ),
     ].filter { !$0.showsWatchPrefs || watchSupported }
   }
 
@@ -148,13 +149,13 @@ struct OnboardingView: View {
 
       if page.showsToggles {
         VStack(alignment: .leading, spacing: 16) {
-          Toggle("Play calming sounds during sessions", isOn: $prefSounds)
+          Toggle("Play calming sounds (Premium)", isOn: $prefSounds)
             .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#FF6B9D")))
 
-          Toggle("Gentle haptics for breath cues", isOn: $prefHaptics)
+          Toggle("Gentle haptics for breath cues (Always Free)", isOn: $prefHaptics)
             .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#FF6B9D")))
 
-          Toggle("Voice prompts (optional)", isOn: $prefVoice)
+          Toggle("Personalized plans & 24/7 Support and Guidance (Premium)", isOn: $prefVoice)
             .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#FF6B9D")))
         }
         .padding(.top, 16)
@@ -186,13 +187,13 @@ struct OnboardingView: View {
 
       // Footer text
       VStack(spacing: 8) {
-        Text("CalmMeNow is a self-help tool and not medical care.")
+        Text("CalmMeNow is a self-help tool, not a replacement for medical care.")
           .font(.footnote)
           .foregroundColor(.black.opacity(0.6))
           .multilineTextAlignment(.center)
 
         if index == 0 {
-          Button("Safety & resources") {
+          Button("Safety & Resources") {
             // TODO: Add safety resources view
           }
           .font(.footnote)
@@ -200,7 +201,7 @@ struct OnboardingView: View {
         }
 
         if index == 1 {
-          Text("If you're in danger, call local emergency services.")
+          Text("If you're ever in danger, call your local emergency services.")
             .font(.footnote)
             .foregroundColor(.black.opacity(0.6))
             .multilineTextAlignment(.center)

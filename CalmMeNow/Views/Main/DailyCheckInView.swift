@@ -181,6 +181,8 @@ struct DailyCheckInView: View {
 struct CheckInResponseView: View {
   let checkIn: DailyCheckInResponse
   @Environment(\.dismiss) private var dismiss
+  @State private var showBreathing = false
+  @State private var plan: BreathingPlan = .default60s
 
   var body: some View {
     NavigationView {
@@ -291,8 +293,10 @@ struct CheckInResponseView: View {
           VStack(spacing: 12) {
             if let exercise = checkIn.exercise {
               Button(action: {
-                // Navigate to exercise view
-                dismiss()
+                print("Start Exercise tapped")  // Debug logging
+                // Build a plan from the recommendation
+                plan = BreathingPlan.fromRecommendation(exercise)
+                showBreathing = true
               }) {
                 HStack {
                   Image(systemName: "play.fill")
@@ -330,6 +334,9 @@ struct CheckInResponseView: View {
             dismiss()
           }
         }
+      }
+      .sheet(isPresented: $showBreathing) {
+        BreathingExerciseView(plan: plan)
       }
     }
   }

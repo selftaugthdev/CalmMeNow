@@ -49,8 +49,20 @@ struct BreathingExerciseView: View {
   @AppStorage("prefVoice") private var voiceGuidanceEnabled = false
   @AppStorage("prefHaptics") private var hapticsEnabled = true
 
+  // Optional breathing plan for direct launching
+  let breathingPlan: BreathingPlan?
+
   // Haptic feedback
   let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+
+  // Initializers
+  init() {
+    self.breathingPlan = nil
+  }
+
+  init(plan: BreathingPlan) {
+    self.breathingPlan = plan
+  }
 
   var body: some View {
     ZStack {
@@ -224,10 +236,25 @@ struct BreathingExerciseView: View {
         Spacer()
       }
     }
+    .onAppear {
+      // Auto-start if launched with a breathing plan
+      if let plan = breathingPlan {
+        selectedTechnique = plan.technique
+        timeRemaining = Int(plan.total)
+        startExercise()
+      }
+    }
     .onDisappear {
       stopExercise()
       speechService.stop()
     }
+  }
+
+  // MARK: - Safe Math Helpers
+
+  private func safeDuration(_ duration: TimeInterval) -> TimeInterval {
+    guard duration.isFinite && duration > 0 else { return 1.0 }
+    return max(0.1, min(10.0, duration))  // Clamp between 0.1 and 10 seconds
   }
 
   // MARK: - Exercise Logic
@@ -304,7 +331,7 @@ struct BreathingExerciseView: View {
     if voiceGuidanceEnabled {
       speechService.speak("Inhale", rate: 0.4, pitch: 0.9)
     }
-    withAnimation(.easeInOut(duration: 2.0)) {
+    withAnimation(.easeInOut(duration: safeDuration(2.0))) {
       orbScale = 1.3
       orbOpacity = 1.0
     }
@@ -320,7 +347,7 @@ struct BreathingExerciseView: View {
           speechService.speak("Top off inhale", rate: 0.4, pitch: 0.9)
         }
       }
-      withAnimation(.easeInOut(duration: 1.0)) {
+      withAnimation(.easeInOut(duration: safeDuration(1.0))) {
         orbScale = 1.6
         orbOpacity = 1.0
       }
@@ -337,7 +364,7 @@ struct BreathingExerciseView: View {
             speechService.speak("Long exhale", rate: 0.35, pitch: 0.85)
           }
         }
-        withAnimation(.easeInOut(duration: 5.0)) {
+        withAnimation(.easeInOut(duration: safeDuration(5.0))) {
           orbScale = 0.7
           orbOpacity = 0.6
         }
@@ -374,7 +401,7 @@ struct BreathingExerciseView: View {
       if voiceGuidanceEnabled {
         speechService.speak("Hold", rate: 0.4, pitch: 0.9)
       }
-      withAnimation(.easeInOut(duration: 4.0)) {
+      withAnimation(.easeInOut(duration: safeDuration(4.0))) {
         boxProgress = 0.25
       }
       if hapticsEnabled {
@@ -387,7 +414,7 @@ struct BreathingExerciseView: View {
       if voiceGuidanceEnabled {
         speechService.speak("Exhale", rate: 0.4, pitch: 0.9)
       }
-      withAnimation(.easeInOut(duration: 4.0)) {
+      withAnimation(.easeInOut(duration: safeDuration(4.0))) {
         boxProgress = 0.5
       }
       if hapticsEnabled {
@@ -400,7 +427,7 @@ struct BreathingExerciseView: View {
       if voiceGuidanceEnabled {
         speechService.speak("Hold", rate: 0.4, pitch: 0.9)
       }
-      withAnimation(.easeInOut(duration: 4.0)) {
+      withAnimation(.easeInOut(duration: safeDuration(4.0))) {
         boxProgress = 0.75
       }
       if hapticsEnabled {
@@ -413,7 +440,7 @@ struct BreathingExerciseView: View {
       if voiceGuidanceEnabled {
         speechService.speak("Inhale", rate: 0.4, pitch: 0.9)
       }
-      withAnimation(.easeInOut(duration: 4.0)) {
+      withAnimation(.easeInOut(duration: safeDuration(4.0))) {
         boxProgress = 1.0
       }
       if hapticsEnabled {
@@ -441,7 +468,7 @@ struct BreathingExerciseView: View {
     if voiceGuidanceEnabled {
       speechService.speak("Inhale", rate: 0.4, pitch: 1.0)
     }
-    withAnimation(.easeInOut(duration: 5.0)) {
+    withAnimation(.easeInOut(duration: safeDuration(5.0))) {
       orbScale = 1.4
       orbOpacity = 1.0
     }
@@ -455,7 +482,7 @@ struct BreathingExerciseView: View {
       if voiceGuidanceEnabled {
         speechService.speak("Exhale", rate: 0.4, pitch: 0.9)
       }
-      withAnimation(.easeInOut(duration: 5.0)) {
+      withAnimation(.easeInOut(duration: safeDuration(5.0))) {
         orbScale = 0.8
         orbOpacity = 0.7
       }
@@ -521,16 +548,27 @@ struct BreathingOrb: View {
       if technique == .coherenceBreathing {
         Circle()
           .fill(Color.blue.opacity(0.1))
-          .scaleEffect(scale * 1.2)
-          .opacity(opacity * 0.5)
+          .scaleEffect(safeScale(scale * 1.2))
+          .opacity(safeOpacity(opacity * 0.5))
       }
 
       // Cat mascot instead of orb
       CatMascot()
         .frame(width: 180, height: 220)
-        .scaleEffect(scale)
-        .opacity(opacity)
+        .scaleEffect(safeScale(scale))
+        .opacity(safeOpacity(opacity))
     }
+  }
+
+  // MARK: - Safe Math Functions
+  private func safeScale(_ value: CGFloat) -> CGFloat {
+    guard value.isFinite && value > 0 else { return 1.0 }
+    return max(0.1, min(3.0, value))  // Clamp between 0.1 and 3.0
+  }
+
+  private func safeOpacity(_ value: Double) -> Double {
+    guard value.isFinite else { return 0.8 }
+    return max(0.0, min(1.0, value))  // Clamp between 0.0 and 1.0
   }
 
   private func getBreathingSpeed(_ technique: BreathingTechnique) -> CGFloat {
@@ -558,7 +596,7 @@ struct BoxBreathingVisual: View {
 
       // Progress indicator
       RoundedRectangle(cornerRadius: 20)
-        .trim(from: 0, to: progress)
+        .trim(from: 0, to: safeProgress(progress))
         .stroke(Color.blue, lineWidth: 3)
         .frame(width: 150, height: 150)
         .rotationEffect(.degrees(-90))
@@ -569,6 +607,12 @@ struct BoxBreathingVisual: View {
         .fontWeight(.bold)
         .foregroundColor(.blue)
     }
+  }
+
+  // MARK: - Safe Math Functions
+  private func safeProgress(_ value: CGFloat) -> CGFloat {
+    guard value.isFinite else { return 0.0 }
+    return max(0.0, min(1.0, value))  // Clamp between 0.0 and 1.0
   }
 
   private func getPhaseText() -> String {
