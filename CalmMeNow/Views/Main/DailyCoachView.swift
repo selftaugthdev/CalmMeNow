@@ -9,7 +9,8 @@ struct DailyCoachView: View {
   @State private var isLoading = false
   @State private var error: String?
   @State private var showingPanicPlan = false
-  @State private var showingExercise = false
+  @State private var emergencyExercise: Exercise?
+  @State private var isGeneratingExercise = false
 
   var body: some View {
     NavigationView {
@@ -200,11 +201,17 @@ struct DailyCoachView: View {
                 if let severity = result["severity"] as? Int, severity >= 2 {
                   // High severity - show exercise and panic plan options
                   VStack(spacing: 16) {
-                    Button(action: { showingExercise = true }) {
+                    Button(action: {
+                      Task {
+                        await generateEmergencyExercise()
+                      }
+                    }) {
                       HStack(spacing: 12) {
-                        Image(systemName: "figure.mind.and.body")
-                          .font(.title2)
-                        Text("Do an Exercise Now")
+                        Image(
+                          systemName: isGeneratingExercise ? "hourglass" : "figure.mind.and.body"
+                        )
+                        .font(.title2)
+                        Text(isGeneratingExercise ? "Generating Exercise..." : "Do an Exercise Now")
                           .font(.headline)
                           .fontWeight(.semibold)
                       }
@@ -213,9 +220,10 @@ struct DailyCoachView: View {
                       .padding(.vertical, 16)
                       .background(
                         RoundedRectangle(cornerRadius: 25)
-                          .fill(Color.orange)
+                          .fill(isGeneratingExercise ? Color.gray : Color.orange)
                       )
                     }
+                    .disabled(isGeneratingExercise)
 
                     Button(action: { showingPanicPlan = true }) {
                       HStack(spacing: 12) {
@@ -299,11 +307,67 @@ struct DailyCoachView: View {
       .sheet(isPresented: $showingPanicPlan) {
         PersonalizedPanicPlanView()
       }
-      .sheet(isPresented: $showingExercise) {
-        // TODO: Create ExerciseView for the micro-exercise
-        Text("Exercise View - Coming Soon!")
+      .sheet(item: $emergencyExercise) { exercise in
+        if exercise.isBreathingExercise, let plan = exercise.breathingPlan {
+          BreathingExerciseView(plan: plan)
+        } else if exercise.isBreathingExercise {
+          BreathingExerciseView()
+        } else {
+          GenericExerciseView(exercise: exercise)
+        }
       }
     }
+  }
+
+  private func generateEmergencyExercise() async {
+    isGeneratingExercise = true
+
+    do {
+      // Use OpenAI to generate a high-intensity emergency exercise
+      let exercisePrompt = """
+        Create an emergency calming exercise for someone experiencing high stress, anxiety, or overwhelming feelings. 
+        The person rated their mood as \(mood)/10 and is feeling: \(tags.joined(separator: ", ")).
+        Additional context: \(note.isEmpty ? "No additional details" : note)
+
+        Generate a practical, immediate relief exercise that can be done anywhere in 2-3 minutes.
+        Focus on grounding, breathing, or simple movement techniques.
+        """
+
+      let exerciseInstructions = try await OpenAIService.shared.generateBreathingInstructions(
+        for: exercisePrompt)
+
+      // Create Exercise object from AI response
+      emergencyExercise = Exercise(
+        id: UUID(),
+        title: "AI Emergency Relief Exercise",
+        duration: 180,  // 3 minutes for high severity
+        steps: exerciseInstructions.components(separatedBy: "\n").filter {
+          !$0.trimmingCharacters(in: CharacterSet.whitespaces).isEmpty
+        },
+        prompt: "An AI-generated emergency exercise tailored to your current emotional state"
+      )
+
+    } catch {
+      print("Failed to generate emergency exercise: \(error)")
+      // Fallback to a default emergency exercise
+      emergencyExercise = Exercise(
+        id: UUID(),
+        title: "Emergency Calm Breathing",
+        duration: 180,
+        steps: [
+          "Find a comfortable seated position",
+          "Place one hand on your chest, one on your belly",
+          "Breathe in slowly through your nose for 4 counts",
+          "Hold your breath gently for 4 counts",
+          "Exhale slowly through your mouth for 6 counts",
+          "Focus only on your breathing rhythm",
+          "Continue until you feel calmer",
+        ],
+        prompt: "A calming breathing exercise for high stress moments"
+      )
+    }
+
+    isGeneratingExercise = false
   }
 
   private func runCheckIn() {
