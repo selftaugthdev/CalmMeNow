@@ -5,6 +5,8 @@ struct SettingsView: View {
   @AppStorage("prefSounds") private var prefSounds: Bool = true
   @AppStorage("prefHaptics") private var prefHaptics: Bool = true
   @AppStorage("prefVoice") private var prefVoice: Bool = false
+  @AppStorage("userCalmingPhrase") private var userCalmingPhrase =
+    "This feeling will pass, I am safe"
 
   // Paywall integration
   @StateObject private var paywallManager = PaywallManager.shared
@@ -99,6 +101,30 @@ struct SettingsView: View {
                     description: "Audio cues during breathing exercises",
                     isOn: $prefVoice
                   )
+
+                  Divider()
+                    .background(Color.black.opacity(0.1))
+
+                  // Calming Phrase Setting
+                  VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                      VStack(alignment: .leading, spacing: 4) {
+                        Text("Personal Calming Phrase")
+                          .font(.headline)
+                          .foregroundColor(.primary)
+
+                        Text("Your personalized phrase for panic plan steps")
+                          .font(.caption)
+                          .foregroundColor(.primary.opacity(0.6))
+                      }
+
+                      Spacer()
+                    }
+
+                    TextField("Enter your calming phrase", text: $userCalmingPhrase)
+                      .textFieldStyle(RoundedBorderTextFieldStyle())
+                      .font(.body)
+                  }
                 }
                 .padding()
                 .background(

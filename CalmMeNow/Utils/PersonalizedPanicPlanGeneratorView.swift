@@ -212,14 +212,14 @@ struct PersonalizedPanicPlanGeneratorView: View {
             .frame(maxWidth: .infinity)
             .padding()
             .background(
-              triggers.isEmpty || symptoms.isEmpty || preferences.isEmpty
+              symptoms.isEmpty || preferences.isEmpty
                 ? Color.gray
                 : Color.blue
             )
             .cornerRadius(12)
           }
           .disabled(
-            triggers.isEmpty || symptoms.isEmpty || preferences.isEmpty || viewModel.isLoading)
+            symptoms.isEmpty || preferences.isEmpty || viewModel.isLoading)
 
           if let errorMessage = viewModel.errorMessage {
             Text(errorMessage)

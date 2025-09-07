@@ -28,6 +28,112 @@ struct EmergencyStepRunnerView: View {
     return steps[currentStepIndex]
   }
 
+  private var stepGuidanceText: String {
+    let step = currentStep.lowercased()
+
+    if step.contains("breathe") || step.contains("breath") {
+      return
+        "Follow the gentle rhythm of the circle. Inhale as it expands, exhale as it contracts. Focus on slow, deep breathing."
+    } else if step.contains("ground") || step.contains("grounding") {
+      return
+        "Look around and name 5 things you see, 4 things you can touch, 3 things you hear, 2 things you smell, and 1 thing you taste. This helps bring you back to the present moment."
+    } else if step.contains("calming phrase") || step.contains("phrase") {
+      let userPhrase =
+        UserDefaults.standard.string(forKey: "userCalmingPhrase")
+        ?? "This feeling will pass, I am safe"
+      return
+        "Repeat your calming phrase silently or aloud 3 times: \"\(userPhrase)\". Feel the words bring you peace and safety."
+    } else if step.contains("safe") || step.contains("safety") {
+      return
+        "You are safe right now. This feeling is temporary and will pass. You have the strength to get through this moment."
+    } else {
+      return
+        "Take your time with this step. Focus on the instruction and allow yourself to feel calmer with each moment."
+    }
+  }
+
+  private var stepIcon: String {
+    let step = currentStep.lowercased()
+
+    if step.contains("breathe") || step.contains("breath") {
+      return "🫁"
+    } else if step.contains("ground") || step.contains("grounding") {
+      return "🌱"
+    } else if step.contains("calming phrase") || step.contains("phrase") {
+      return "💭"
+    } else if step.contains("safe") || step.contains("safety") {
+      return "🛡️"
+    } else {
+      return "📋"
+    }
+  }
+
+  private var showStepVisuals: Bool {
+    let step = currentStep.lowercased()
+    return step.contains("ground") || step.contains("grounding") || step.contains("calming phrase")
+      || step.contains("phrase")
+  }
+
+  @ViewBuilder
+  private var stepVisualElements: some View {
+    let step = currentStep.lowercased()
+
+    if step.contains("ground") || step.contains("grounding") {
+      // Grounding visual elements
+      HStack(spacing: 20) {
+        VStack(spacing: 4) {
+          Text("👀")
+            .font(.title2)
+          Text("5 things")
+            .font(.caption2)
+            .foregroundColor(.secondary)
+        }
+        VStack(spacing: 4) {
+          Text("✋")
+            .font(.title2)
+          Text("4 things")
+            .font(.caption2)
+            .foregroundColor(.secondary)
+        }
+        VStack(spacing: 4) {
+          Text("👂")
+            .font(.title2)
+          Text("3 things")
+            .font(.caption2)
+            .foregroundColor(.secondary)
+        }
+        VStack(spacing: 4) {
+          Text("👃")
+            .font(.title2)
+          Text("2 things")
+            .font(.caption2)
+            .foregroundColor(.secondary)
+        }
+        VStack(spacing: 4) {
+          Text("👅")
+            .font(.title2)
+          Text("1 thing")
+            .font(.caption2)
+            .foregroundColor(.secondary)
+        }
+      }
+      .padding(.top, 8)
+    } else if step.contains("calming phrase") || step.contains("phrase") {
+      // Calming phrase visual
+      let userPhrase =
+        UserDefaults.standard.string(forKey: "userCalmingPhrase")
+        ?? "This feeling will pass, I am safe"
+      Text("\"\(userPhrase)\"")
+        .font(.title3)
+        .fontWeight(.medium)
+        .foregroundColor(.blue)
+        .italic()
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+    }
+  }
+
   var body: some View {
     ZStack {
       // Background gradient
@@ -79,7 +185,8 @@ struct EmergencyStepRunnerView: View {
               )
 
             VStack(spacing: 16) {
-              Text("📋")
+              // Step-specific icon
+              Text(stepIcon)
                 .font(.system(size: 40))
 
               Text(currentStep)
@@ -89,6 +196,11 @@ struct EmergencyStepRunnerView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
                 .lineLimit(nil)
+
+              // Step-specific visual elements
+              if showStepVisuals {
+                stepVisualElements
+              }
             }
           }
 
@@ -97,15 +209,25 @@ struct EmergencyStepRunnerView: View {
             .progressViewStyle(LinearProgressViewStyle(tint: .red))
             .padding(.horizontal, 40)
 
-          // Guidance text
+          // Step-specific guidance text
           if isActive {
-            Text("Take your time. Click 'Next' when ready.")
-              .font(.subheadline)
-              .foregroundColor(.secondary)
-              .multilineTextAlignment(.center)
-              .padding(.horizontal, 20)
-              .padding(.top, 8)
-              .lineLimit(2)
+            VStack(spacing: 8) {
+              // Step-specific instructions
+              Text(stepGuidanceText)
+                .font(.subheadline)
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+                .lineLimit(nil)
+
+              // General guidance
+              Text("Take your time. Click 'Next' when ready.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+            }
+            .padding(.top, 8)
           }
         }
 
