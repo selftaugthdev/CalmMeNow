@@ -1,0 +1,154 @@
+{
+  "US": {
+    "emergencyNumber": "911",
+    "crisisHotline": "988",
+    "crisisTextLine": "741741",
+    "resources": [
+      {
+        "name": "988 Suicide & Crisis Lifeline",
+        "number": "988",
+        "description": "24/7 crisis support"
+      },
+      {
+        "name": "Crisis Text Line",
+        "number": "741741",
+        "description": "Text HOME to 741741"
+      },
+      {
+        "name": "SAMHSA National Helpline",
+        "number": "1-800-662-4357",
+        "description": "Treatment referral service"
+      }
+    ]
+  },
+  "GB": {
+    "emergencyNumber": "112",
+    "crisisHotline": "116 123",
+    "resources": [
+      {
+        "name": "Samaritans",
+        "number": "116 123",
+        "description": "24/7 emotional support"
+      },
+      {
+        "name": "Crisis Text Line UK",
+        "number": "85258",
+        "description": "Text SHOUT to 85258"
+      }
+    ]
+  },
+  "DE": {
+    "emergencyNumber": "112",
+    "crisisHotline": "0800 111 0 111",
+    "resources": [
+      {
+        "name": "TelefonSeelsorge",
+        "number": "0800 111 0 111",
+        "description": "24/7 crisis support"
+      },
+      {
+        "name": "Nummer gegen Kummer",
+        "number": "116 111",
+        "description": "Children and youth helpline"
+      }
+    ]
+  },
+  "FR": {
+    "emergencyNumber": "112",
+    "crisisHotline": "3114",
+    "resources": [
+      {
+        "name": "SOS Amitié",
+        "number": "09 72 39 40 50",
+        "description": "24/7 emotional support"
+      },
+      {
+        "name": "Suicide Écoute",
+        "number": "01 45 39 40 00",
+        "description": "Crisis support"
+      }
+    ]
+  },
+  "ES": {
+    "emergencyNumber": "112",
+    "crisisHotline": "717 003 717",
+    "resources": [
+      {
+        "name": "Teléfono de la Esperanza",
+        "number": "717 003 717",
+        "description": "24/7 crisis support"
+      }
+    ]
+  },
+  "IT": {
+    "emergencyNumber": "112",
+    "crisisHotline": "800 86 00 22",
+    "resources": [
+      {
+        "name": "Telefono Amico",
+        "number": "199 284 284",
+        "description": "24/7 emotional support"
+      }
+    ]
+  },
+  "NL": {
+    "emergencyNumber": "112",
+    "crisisHotline": "113",
+    "resources": [
+      {
+        "name": "113 Zelfmoordpreventie",
+        "number": "113",
+        "description": "24/7 crisis support"
+      }
+    ]
+  },
+  "BE": {
+    "emergencyNumber": "112",
+    "crisisHotline": "1813",
+    "resources": [
+      {
+        "name": "Zelfmoordlijn",
+        "number": "1813",
+        "description": "24/7 crisis support"
+      }
+    ]
+  },
+  "CA": {
+    "emergencyNumber": "911",
+    "crisisHotline": "988",
+    "resources": [
+      {
+        "name": "Crisis Services Canada",
+        "number": "988",
+        "description": "24/7 crisis support"
+      },
+      {
+        "name": "Crisis Text Line",
+        "number": "741741",
+        "description": "Text HOME to 741741"
+      }
+    ]
+  },
+  "AU": {
+    "emergencyNumber": "000",
+    "crisisHotline": "13 11 14",
+    "resources": [
+      {
+        "name": "Lifeline Australia",
+        "number": "13 11 14",
+        "description": "24/7 crisis support"
+      }
+    ]
+  },
+  "default": {
+    "emergencyNumber": "112",
+    "crisisHotline": "112",
+    "resources": [
+      {
+        "name": "Local Emergency Services",
+        "number": "112",
+        "description": "Emergency services"
+      }
+    ]
+  }
+}

@@ -17,6 +17,7 @@ struct EmergencyCompanionView: View {
   @State private var errorMessage = ""
   @State private var showingUsageLimit = false
   @State private var showingSessionLimit = false
+  @State private var showingResetLimit = false
 
   var body: some View {
     NavigationView {
@@ -53,7 +54,7 @@ struct EmergencyCompanionView: View {
             // Usage indicator
             if companionService.dailyUsageCount > 0 {
               HStack {
-                Text("Daily usage: \(companionService.dailyUsageCount)/6")
+                Text("Daily usage: \(companionService.dailyUsageCount)/30")
                   .font(.caption)
                   .foregroundColor(.secondary)
 
@@ -249,6 +250,15 @@ struct EmergencyCompanionView: View {
           "You've reached the maximum messages for this session. Let's close with a grounding exercise or start a new session."
         )
       }
+      .alert("Reset Limit Reached", isPresented: $showingResetLimit) {
+        Button("OK") {
+          presentationMode.wrappedValue.dismiss()
+        }
+      } message: {
+        Text(
+          "You've started many new conversations today. Sometimes it helps to take a break and use your Emergency Plan or a breathing exercise. I'll be ready when you check in again tomorrow."
+        )
+      }
       .sheet(isPresented: $showingCrisisResources) {
         CrisisResourcesView()
       }
@@ -295,7 +305,16 @@ struct EmergencyCompanionView: View {
     // Call the Emergency Companion service
     Task {
       do {
-        let response = try await companionService.sendMessage(text)
+        // Convert messages to conversation history format
+        let conversationHistory = messages.suffix(6).map { message in
+          [
+            "role": message.isFromUser ? "user" : "assistant",
+            "content": message.text,
+          ]
+        }
+
+        let response = try await companionService.sendMessage(
+          text, conversationHistory: conversationHistory)
 
         await MainActor.run {
           isTyping = false
@@ -355,8 +374,17 @@ struct EmergencyCompanionView: View {
   }
 
   private func resetSession() {
-    companionService.resetSession()
-    messages.removeAll()
+    do {
+      try companionService.resetSession()
+      messages.removeAll()
+    } catch {
+      if case EmergencyCompanionError.resetLimitReached = error {
+        showingResetLimit = true
+      } else {
+        errorMessage = error.localizedDescription
+        showingError = true
+      }
+    }
   }
 }
 
@@ -511,33 +539,7 @@ struct QuickActionButtons: View {
 
 struct CrisisResourcesView: View {
   @Environment(\.presentationMode) var presentationMode
-
-  private let crisisResources = [
-    CrisisResource(
-      name: "National Suicide Prevention Lifeline",
-      number: "988",
-      description: "24/7 crisis support and suicide prevention",
-      isEmergency: true
-    ),
-    CrisisResource(
-      name: "Crisis Text Line",
-      number: "Text HOME to 741741",
-      description: "Free 24/7 crisis counseling via text",
-      isEmergency: true
-    ),
-    CrisisResource(
-      name: "Emergency Services",
-      number: "911",
-      description: "For immediate life-threatening emergencies",
-      isEmergency: true
-    ),
-    CrisisResource(
-      name: "SAMHSA National Helpline",
-      number: "1-800-662-HELP",
-      description: "Treatment referral and information service",
-      isEmergency: false
-    ),
-  ]
+  @StateObject private var crisisService = CrisisResourceService.shared
 
   var body: some View {
     NavigationView {
@@ -563,8 +565,58 @@ struct CrisisResourcesView: View {
 
           // Resources
           VStack(spacing: 16) {
-            ForEach(crisisResources) { resource in
-              CrisisResourceCard(resource: resource)
+            let resources = crisisService.getCrisisResources()
+
+            // Emergency Services
+            CrisisResourceCard(
+              resource: CrisisResource(
+                name: "Emergency Services",
+                number: resources.emergencyNumber,
+                description: "For immediate life-threatening emergencies",
+                isEmergency: true
+              )
+            )
+
+            // Crisis Hotline (if different from emergency)
+            if resources.emergencyNumber != resources.crisisHotline {
+              CrisisResourceCard(
+                resource: CrisisResource(
+                  name: "Crisis Support",
+                  number: resources.crisisHotline,
+                  description: "24/7 crisis support and suicide prevention",
+                  isEmergency: true
+                )
+              )
+            }
+
+            // Additional Resources
+            ForEach(resources.resources, id: \.name) { resource in
+              CrisisResourceCard(
+                resource: CrisisResource(
+                  name: resource.name,
+                  number: resource.number,
+                  description: resource.description,
+                  isEmergency: false
+                )
+              )
+            }
+
+            // Find A Helpline Button
+            Button(action: {
+              if let url = URL(string: "https://findahelpline.com/") {
+                UIApplication.shared.open(url)
+              }
+            }) {
+              HStack {
+                Image(systemName: "globe")
+                Text("Find crisis resources in your country")
+                Spacer()
+                Image(systemName: "arrow.up.right")
+              }
+              .padding()
+              .background(Color.blue.opacity(0.1))
+              .foregroundColor(.blue)
+              .cornerRadius(12)
             }
           }
           .padding(.horizontal, 20)
@@ -577,7 +629,7 @@ struct CrisisResourcesView: View {
               .foregroundColor(.red)
 
             Text(
-              "If you're having thoughts of harming yourself or others, please call 911 or go to the nearest emergency room immediately."
+              "If you're having thoughts of harming yourself or others, please call \(crisisService.getEmergencyNumber()) or go to the nearest emergency room immediately."
             )
             .font(.body)
             .foregroundColor(.secondary)

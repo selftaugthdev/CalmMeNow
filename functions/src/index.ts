@@ -349,6 +349,7 @@ export const emergencyCompanion = onCall(
     const userId = req.auth.uid;
     const userMessage = req.data?.message;
     const userLocale = req.data?.locale || "en-US";
+    const conversationHistory = req.data?.conversationHistory || [];
 
     console.log("emergencyCompanion uid:", userId, "message length:", userMessage?.length || 0);
 
@@ -405,6 +406,7 @@ export const emergencyCompanion = onCall(
       const systemPrompt = getEmergencyCompanionSystemPrompt();
       const input = [
         { role: "system", content: systemPrompt },
+        ...conversationHistory.slice(-6), // Keep last 6 messages for context
         { role: "user", content: truncatedMessage }
       ];
 
@@ -455,12 +457,12 @@ async function checkRateLimit(userId: string): Promise<{allowed: boolean, messag
   // This would connect to Firestore in a real implementation
   // For now, return a simple check
   const usageCount = 0; // Would be fetched from Firestore
-  const maxDailyUsage = 6; // Free tier limit
+  const maxDailyUsage = 30; // Premium tier limit (reasonable for paying customers)
   
   if (usageCount >= maxDailyUsage) {
     return {
       allowed: false,
-      message: "You've reached your daily limit for the Emergency Companion. Please try again tomorrow or consider upgrading to Premium for unlimited access.",
+      message: "You've had a lot of conversations with your Companion today. Sometimes it helps to take a break and use your Emergency Plan or a breathing exercise. I'll be ready when you check in again tomorrow.",
       usageCount
     };
   }
@@ -504,58 +506,97 @@ async function moderateOutput(text: string): Promise<{flagged: boolean}> {
 }
 
 function getEmergencyCompanionSystemPrompt(): string {
-  return `You are "Emergency Companion," a calm, brief coach for acute anxiety/panic.
+  return `You are a supportive, empathetic companion helping someone through a difficult moment. You provide practical, calming guidance.
 
-SAFETY RULES:
-• You are not a therapist or doctor. Include a one-line disclaimer in the first reply only.
-• No diagnoses, no medical or legal instructions. Never mention medications or dosages.
-• No profanity, slurs, sexual content, violence, self-harm instructions, or weapons.
-• ONLY provide crisis resources if the user explicitly mentions suicide, self-harm, or immediate danger to themselves or others.
-• For normal emotional distress (sadness, anxiety, panic, stress), provide supportive coaching and calming techniques.
-• Use supportive, concrete steps (breathing, grounding, posture, self-talk). Max 6 bullets, ≤120 words.
-• Never role-play or chit-chat. If asked to do anything unrelated to calming safely, decline and redirect to the plan/breathing.
-• Keep it private: don't ask for identifying details.
+GUIDELINES:
+• Be warm, understanding, and conversational
+• Provide practical calming techniques (breathing, grounding, mindfulness)
+• Keep responses brief but helpful (2-4 sentences)
+• Vary your responses - never repeat the same message or technique
+• For normal emotional distress, offer specific calming techniques
+• Only mention crisis resources if user explicitly mentions self-harm or suicide
+• Be creative and adapt to what the user is saying
 
-RESPONSE FORMAT:
-• Be brief and actionable
-• Focus on immediate calming techniques
-• Use bullet points for steps
-• Keep under 120 words
-• Be warm but professional
-• For normal emotional support, provide practical calming advice
+RESPONSE STYLE:
+• Be conversational and supportive
+• Offer specific, actionable advice
+• Acknowledge their feelings
+• Provide practical next steps
+• Keep it under 100 words
+• Always respond differently - avoid repetitive patterns
 
-If this is the first message, include: "I'm not a therapist or doctor, but I'm here to help you through this moment."`;
+CALMING TECHNIQUES TO ROTATE:
+- Box breathing (4-4-4-4)
+- Progressive muscle relaxation
+- Mindful observation
+- Self-compassion statements
+- Sensory grounding (5-4-3-2-1)
+- Heart-focused breathing
+- Gentle movement suggestions
+- Positive affirmations
+
+If this is the first message, include: "I'm not a therapist, but I'm here to help you through this moment."`;
 }
 
 function getCrisisResponse(locale: string): string {
-  const responses: { [key: string]: string } = {
-    'en-US': `I'm very concerned about what you're sharing. Your safety is the most important thing right now.
+  // Extract country code from locale (e.g., "en-US" -> "US")
+  const countryCode = locale.split('-')[1] || 'US';
+  
+  // Get appropriate emergency number based on country
+  const emergencyNumber = getEmergencyNumber(countryCode);
+  const crisisHotline = getCrisisHotline(countryCode);
+  
+  if (emergencyNumber === crisisHotline) {
+    return `I'm very concerned about what you're sharing. Your safety is the most important thing right now.
 
-Please reach out for immediate help:
-• National Suicide Prevention Lifeline: 988
-• Crisis Text Line: Text HOME to 741741
-• Emergency Services: 911
+If you're in immediate danger, call ${emergencyNumber} for emergency services.
 
-You're not alone, and there are people who want to help you. Your life has value.`,
-    'en-GB': `I'm very concerned about what you're sharing. Your safety is the most important thing right now.
+For crisis support, visit findahelpline.com to find resources in your country.
 
-Please reach out for immediate help:
-• Samaritans: 116 123
-• Crisis Text Line: Text SHOUT to 85258
-• Emergency Services: 999
+You're not alone, and there are people who want to help you. Your life has value.`;
+  } else {
+    return `I'm very concerned about what you're sharing. Your safety is the most important thing right now.
 
-You're not alone, and there are people who want to help you. Your life has value.`,
-    'default': `I'm very concerned about what you're sharing. Your safety is the most important thing right now.
+If you're in immediate danger, call ${emergencyNumber} for emergency services.
 
-Please reach out for immediate help:
-• Emergency Services: 112
-• Crisis helpline in your area
-• A trusted friend or family member
+For crisis support, call ${crisisHotline} or visit findahelpline.com for more resources.
 
-You're not alone, and there are people who want to help you. Your life has value.`
+You're not alone, and there are people who want to help you. Your life has value.`;
+  }
+}
+
+function getEmergencyNumber(countryCode: string): string {
+  const emergencyNumbers: { [key: string]: string } = {
+    'US': '911',
+    'CA': '911',
+    'GB': '112',
+    'DE': '112',
+    'FR': '112',
+    'ES': '112',
+    'IT': '112',
+    'NL': '112',
+    'BE': '112',
+    'AU': '000'
   };
   
-  return responses[locale] || responses['default'];
+  return emergencyNumbers[countryCode] || '112';
+}
+
+function getCrisisHotline(countryCode: string): string {
+  const crisisHotlines: { [key: string]: string } = {
+    'US': '988',
+    'CA': '988',
+    'GB': '116 123',
+    'DE': '0800 111 0 111',
+    'FR': '3114',
+    'ES': '717 003 717',
+    'IT': '800 86 00 22',
+    'NL': '113',
+    'BE': '1813',
+    'AU': '13 11 14'
+  };
+  
+  return crisisHotlines[countryCode] || '112';
 }
 
 async function logUsage(userId: string, type: string, content: string): Promise<void> {

@@ -27,12 +27,14 @@ class EmergencyCompanionService: ObservableObject {
 
   // Cooldown settings
   private let cooldownInterval: TimeInterval = 1  // 1 second between messages (prevents spam)
-  private let maxDailyUsage = 6  // Free tier limit
-  private let maxSessionMessages = 6  // Max messages per session
+  private let maxDailyUsage = 30  // Premium tier limit (reasonable for paying customers)
+  private let maxSessionMessages = 15  // Max messages per session (reasonable for paying customers)
+  private let maxDailyResets = 10  // Max resets per day to prevent abuse
 
   // Session tracking
   @Published var sessionMessageCount: Int = 0
   @Published var hasShownDisclaimer: Bool = false
+  @Published var dailyResetCount: Int = 0
 
   private init() {
     loadUsageData()
@@ -40,7 +42,9 @@ class EmergencyCompanionService: ObservableObject {
 
   // MARK: - Public Methods
 
-  func sendMessage(_ message: String) async throws -> EmergencyCompanionResponse {
+  func sendMessage(_ message: String, conversationHistory: [[String: String]] = []) async throws
+    -> EmergencyCompanionResponse
+  {
     // Check cooldown
     if let lastTime = lastMessageTime {
       let timeSinceLastMessage = Date().timeIntervalSince(lastTime)
@@ -64,6 +68,7 @@ class EmergencyCompanionService: ObservableObject {
     let requestData: [String: Any] = [
       "message": message,
       "locale": Locale.current.identifier,
+      "conversationHistory": conversationHistory,
     ]
 
     do {
@@ -80,6 +85,7 @@ class EmergencyCompanionService: ObservableObject {
       // Update local state
       await MainActor.run {
         updateLocalState(with: response)
+        incrementSessionCount()
       }
 
       return response
@@ -103,9 +109,16 @@ class EmergencyCompanionService: ObservableObject {
     }
   }
 
-  func resetSession() {
+  func resetSession() throws {
+    // Check reset limit
+    if dailyResetCount >= maxDailyResets {
+      throw EmergencyCompanionError.resetLimitReached
+    }
+
     sessionMessageCount = 0
     hasShownDisclaimer = false
+    dailyResetCount += 1
+    saveUsageData()
   }
 
   func canSendMessage() -> Bool {
@@ -171,13 +184,15 @@ class EmergencyCompanionService: ObservableObject {
       isRateLimited = rateLimited
     }
 
-    // Update session count
-    sessionMessageCount += 1
-
     // Update last message time
     lastMessageTime = Date()
 
     // Save to UserDefaults
+    saveUsageData()
+  }
+
+  private func incrementSessionCount() {
+    sessionMessageCount += 1
     saveUsageData()
   }
 
@@ -189,12 +204,15 @@ class EmergencyCompanionService: ObservableObject {
     if savedDate != today {
       dailyUsageCount = 0
       isRateLimited = false
+      dailyResetCount = 0
     } else {
       dailyUsageCount = UserDefaults.standard.integer(forKey: "emergencyCompanionDailyCount")
       isRateLimited = UserDefaults.standard.bool(forKey: "emergencyCompanionRateLimited")
+      dailyResetCount = UserDefaults.standard.integer(forKey: "emergencyCompanionDailyResets")
     }
 
-    sessionMessageCount = UserDefaults.standard.integer(forKey: "emergencyCompanionSessionCount")
+    // Session count should always start at 0 for a new session
+    sessionMessageCount = 0
     hasShownDisclaimer = UserDefaults.standard.bool(forKey: "emergencyCompanionDisclaimerShown")
   }
 
@@ -203,7 +221,8 @@ class EmergencyCompanionService: ObservableObject {
     UserDefaults.standard.set(today, forKey: "emergencyCompanionLastUsed")
     UserDefaults.standard.set(dailyUsageCount, forKey: "emergencyCompanionDailyCount")
     UserDefaults.standard.set(isRateLimited, forKey: "emergencyCompanionRateLimited")
-    UserDefaults.standard.set(sessionMessageCount, forKey: "emergencyCompanionSessionCount")
+    UserDefaults.standard.set(dailyResetCount, forKey: "emergencyCompanionDailyResets")
+    // Don't save sessionMessageCount - it should always start at 0 for new sessions
     UserDefaults.standard.set(hasShownDisclaimer, forKey: "emergencyCompanionDisclaimerShown")
   }
 
@@ -218,6 +237,7 @@ class EmergencyCompanionService: ObservableObject {
 enum EmergencyCompanionError: LocalizedError {
   case rateLimited
   case sessionLimitReached
+  case resetLimitReached
   case cooldownActive(remaining: TimeInterval)
   case serviceUnavailable
   case authenticationRequired
@@ -229,10 +249,13 @@ enum EmergencyCompanionError: LocalizedError {
     switch self {
     case .rateLimited:
       return
-        "You've reached your daily limit for the Emergency Companion. Please try again tomorrow or consider upgrading to Premium."
+        "You've had a lot of conversations with your Companion today. Sometimes it helps to take a break and use your Emergency Plan or a breathing exercise. I'll be ready when you check in again tomorrow."
     case .sessionLimitReached:
       return
-        "You've reached the maximum messages for this session. Let's close with a grounding exercise."
+        "You've had a good conversation with your Companion. Sometimes it helps to take a break and use your Emergency Plan or a breathing exercise. I'll be ready when you start a new session."
+    case .resetLimitReached:
+      return
+        "You've started many new conversations today. Sometimes it helps to take a break and use your Emergency Plan or a breathing exercise. I'll be ready when you check in again tomorrow."
     case .cooldownActive(let remaining):
       return "Please wait \(Int(remaining)) seconds before sending another message."
     case .serviceUnavailable:
