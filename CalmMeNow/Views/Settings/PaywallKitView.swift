@@ -14,8 +14,11 @@ struct PaywallKitView: View {
     weeklyTrialLabel: "7-Day Free Trial",
     weeklyNoTrialLabel: "Monthly Plan",
     trialToggleDefault: true,
-    termsURL: URL(string: "https://calmmenow.app/terms"),
-    privacyURL: URL(string: "https://calmmenow.app/privacy"),
+    termsURL: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"),
+    privacyURL: URL(
+      string:
+        "https://destiny-fender-4ad.notion.site/CalmMeNow-Privacy-Policy-26777834762b80798c5ade6a83b6a88c"
+    ),
     features: [
       PaywallConfig.Feature(
         icon: "target",

@@ -76,7 +76,7 @@ struct CompactEnhancedVoiceBanner: View {
 
         Spacer()
 
-        Button("Upgrade") {
+        Button("Free Upgrade") {
           showInstructions = true
         }
         .font(.caption2)

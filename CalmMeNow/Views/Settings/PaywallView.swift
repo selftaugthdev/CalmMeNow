@@ -172,13 +172,22 @@ struct PaywallView: View {
     VStack(spacing: 8) {
       HStack(spacing: 20) {
         Button("Terms of Service") {
-          // Handle terms
+          if let url = URL(
+            string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
+          {
+            UIApplication.shared.open(url)
+          }
         }
         .font(.caption)
         .foregroundColor(.blue)
 
         Button("Privacy Policy") {
-          // Handle privacy
+          if let url = URL(
+            string:
+              "https://destiny-fender-4ad.notion.site/CalmMeNow-Privacy-Policy-26777834762b80798c5ade6a83b6a88c"
+          ) {
+            UIApplication.shared.open(url)
+          }
         }
         .font(.caption)
         .foregroundColor(.blue)
