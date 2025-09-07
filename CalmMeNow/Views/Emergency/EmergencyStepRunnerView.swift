@@ -192,15 +192,17 @@ struct EmergencyStepRunnerView: View {
               .stroke(Color.red.opacity(0.3), lineWidth: 6)
               .frame(width: 200, height: 200)
 
-            Circle()
-              .fill(Color.red.opacity(0.1))
-              .frame(width: 200, height: 200)
-              .scaleEffect(isActive && shouldShowFloatingOrb ? 1.1 : 0.9)
-              .animation(
-                Animation.easeInOut(duration: 2.0)
-                  .repeatForever(autoreverses: true),
-                value: isActive && shouldShowFloatingOrb
-              )
+            if shouldShowFloatingOrb {
+              Circle()
+                .fill(Color.red.opacity(0.1))
+                .frame(width: 200, height: 200)
+                .scaleEffect(isActive ? 1.1 : 0.9)
+                .animation(
+                  Animation.easeInOut(duration: 2.0)
+                    .repeatForever(autoreverses: true),
+                  value: isActive
+                )
+            }
 
             VStack(spacing: 16) {
               // Step-specific icon

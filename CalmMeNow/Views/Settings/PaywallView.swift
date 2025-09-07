@@ -147,8 +147,16 @@ struct PaywallView: View {
               .progressViewStyle(CircularProgressViewStyle(tint: .white))
               .scaleEffect(0.8)
           } else {
-            Text("Start Free Trial")
-              .fontWeight(.semibold)
+            HStack {
+              Text("🙌")
+                .font(.title2)
+              Text("Try For Free")
+                .fontWeight(.semibold)
+              Spacer()
+              Text("→")
+                .font(.title2)
+                .fontWeight(.bold)
+            }
           }
         }
         .frame(maxWidth: .infinity)

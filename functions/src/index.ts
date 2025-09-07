@@ -116,12 +116,13 @@ export const generatePanicPlan = onCall(
       const system =
         req.data?.systemPrompt ??
         `
-You are a calm, non-clinical coach. Output STRICT JSON {version,title,steps[]} only.
+You are a calm, non-clinical coach. Output STRICT JSON {version,title,steps[],personalizedPhrase} only.
 Total duration 60–180 seconds. Allowed steps:
 - breathing{pattern:"box|478|coherence", seconds}
 - grounding{method:"54321|countback|sensory", seconds}
 - muscle_release{area, seconds}
 - affirmation{text, seconds}
+IMPORTANT: If the user provides a personalizedPhrase in the intake, use that exact phrase. Otherwise, use a gentle, reassuring phrase.
 No diagnosis or medical advice.
 `.trim();
 
@@ -243,19 +244,21 @@ export const testPanicPlan = onRequest(
   async (_req, res) => {
     try {
       const system = `
-You are a calm, non-clinical coach. Output STRICT JSON {version,title,steps[]} only.
+You are a calm, non-clinical coach. Output STRICT JSON {version,title,steps[],personalizedPhrase} only.
 Total duration 60–180 seconds. Allowed steps:
 - breathing{pattern:"box|478|coherence", seconds}
 - grounding{method:"54321|countback|sensory", seconds}
 - muscle_release{area, seconds}
 - affirmation{text, seconds}
+IMPORTANT: If the user provides a personalizedPhrase in the intake, use that exact phrase. Otherwise, use a gentle, reassuring phrase.
 No diagnosis or medical advice.
 `.trim();
 
       const intake = {
         situation: "crowded train",
         body: ["racing heart", "dizzy"],
-        preferences: { breathing: "478", grounding: "54321" }
+        preferences: { breathing: "478", grounding: "54321" },
+        personalizedPhrase: "I am safe and calm"
       };
 
       const input = [
