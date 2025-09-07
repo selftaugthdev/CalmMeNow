@@ -1,9 +1,11 @@
+import FirebaseAuth
 import SwiftUI
 
 struct EmergencyCompanionView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
+  @StateObject private var companionService = EmergencyCompanionService.shared
   @AppStorage("prefSounds") private var prefSounds = true
 
   @State private var currentMessage = ""
@@ -11,6 +13,10 @@ struct EmergencyCompanionView: View {
   @State private var isTyping = false
   @State private var showingCrisisResources = false
   @State private var showingBreathingGuide = false
+  @State private var showingError = false
+  @State private var errorMessage = ""
+  @State private var showingUsageLimit = false
+  @State private var showingSessionLimit = false
 
   var body: some View {
     NavigationView {
@@ -43,6 +49,31 @@ struct EmergencyCompanionView: View {
               .foregroundColor(.secondary)
               .multilineTextAlignment(.center)
               .padding(.horizontal, 20)
+
+            // Usage indicator
+            if companionService.dailyUsageCount > 0 {
+              HStack {
+                Text("Daily usage: \(companionService.dailyUsageCount)/6")
+                  .font(.caption)
+                  .foregroundColor(.secondary)
+
+                if companionService.isRateLimited {
+                  Text("• Rate limited")
+                    .font(.caption)
+                    .foregroundColor(.red)
+                }
+              }
+            }
+
+            // Disclaimer (show only once)
+            if !companionService.hasShownDisclaimer && messages.isEmpty {
+              Text("I'm not a therapist or doctor, but I'm here to help you through this moment.")
+                .font(.caption)
+                .foregroundColor(.orange)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+            }
           }
           .padding(.top, 20)
           .padding(.bottom, 20)
@@ -187,8 +218,37 @@ struct EmergencyCompanionView: View {
         leading: Button("Close") {
           presentationMode.wrappedValue.dismiss()
         }
-        .foregroundColor(.blue)
+        .foregroundColor(.blue),
+        trailing: Button("Reset") {
+          resetSession()
+        }
+        .foregroundColor(.orange)
+        .disabled(messages.isEmpty)
       )
+      .alert("Error", isPresented: $showingError) {
+        Button("OK") {}
+      } message: {
+        Text(errorMessage)
+      }
+      .alert("Daily Limit Reached", isPresented: $showingUsageLimit) {
+        Button("OK") {}
+      } message: {
+        Text(
+          "You've reached your daily limit for the Emergency Companion. Please try again tomorrow or consider upgrading to Premium for unlimited access."
+        )
+      }
+      .alert("Session Limit Reached", isPresented: $showingSessionLimit) {
+        Button("Start New Session") {
+          resetSession()
+        }
+        Button("Close") {
+          presentationMode.wrappedValue.dismiss()
+        }
+      } message: {
+        Text(
+          "You've reached the maximum messages for this session. Let's close with a grounding exercise or start a new session."
+        )
+      }
       .sheet(isPresented: $showingCrisisResources) {
         CrisisResourcesView()
       }
@@ -208,6 +268,19 @@ struct EmergencyCompanionView: View {
   }
 
   private func sendMessage(_ text: String) {
+    // Check if user can send message
+    guard companionService.canSendMessage() else {
+      handleSendError()
+      return
+    }
+
+    // Check authentication
+    guard Auth.auth().currentUser != nil else {
+      errorMessage = "Please sign in to use the Emergency Companion."
+      showingError = true
+      return
+    }
+
     let userMessage = CompanionMessage(
       id: UUID().uuidString,
       text: text,
@@ -216,56 +289,74 @@ struct EmergencyCompanionView: View {
     )
     messages.append(userMessage)
 
-    // Simulate AI response
+    // Show typing indicator
     isTyping = true
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-      isTyping = false
+    // Call the Emergency Companion service
+    Task {
+      do {
+        let response = try await companionService.sendMessage(text)
 
-      let response = generateAIResponse(to: text)
-      let aiMessage = CompanionMessage(
-        id: UUID().uuidString,
-        text: response,
-        isFromUser: false,
-        timestamp: Date()
-      )
-      messages.append(aiMessage)
+        await MainActor.run {
+          isTyping = false
+
+          // Handle crisis response
+          if response.isCrisis {
+            showingCrisisResources = true
+          }
+
+          // Handle rate limiting
+          if response.rateLimited == true {
+            showingUsageLimit = true
+          }
+
+          // Handle session limit
+          if companionService.sessionMessageCount >= 6 {
+            showingSessionLimit = true
+          }
+
+          let aiMessage = CompanionMessage(
+            id: UUID().uuidString,
+            text: response.response,
+            isFromUser: false,
+            timestamp: Date()
+          )
+          messages.append(aiMessage)
+
+          // Mark disclaimer as shown
+          if !companionService.hasShownDisclaimer {
+            companionService.hasShownDisclaimer = true
+          }
+        }
+
+      } catch {
+        await MainActor.run {
+          isTyping = false
+          errorMessage = error.localizedDescription
+          showingError = true
+        }
+      }
     }
   }
 
-  private func generateAIResponse(to message: String) -> String {
-    let lowercased = message.lowercased()
-
-    // Simple keyword-based responses
-    if lowercased.contains("panic") || lowercased.contains("anxious")
-      || lowercased.contains("scared")
-    {
-      return
-        "I understand you're feeling panicked right now. Let's take this one step at a time. Can you try taking 3 deep breaths with me? Inhale slowly through your nose, hold for a moment, then exhale through your mouth. You're safe, and this feeling will pass."
-    } else if lowercased.contains("sad") || lowercased.contains("depressed")
-      || lowercased.contains("hopeless")
-    {
-      return
-        "I hear that you're feeling really down right now. Your feelings are valid, and it's okay to not be okay. You don't have to go through this alone. Is there someone you trust that you could reach out to? Or would you like to try a grounding exercise together?"
-    } else if lowercased.contains("angry") || lowercased.contains("frustrated")
-      || lowercased.contains("mad")
-    {
-      return
-        "I can see you're feeling angry, and that's completely understandable. Anger is a natural emotion. Let's try to find a healthy way to express it. Can you tell me more about what happened? Sometimes talking it out can help us process our feelings."
-    } else if lowercased.contains("alone") || lowercased.contains("lonely")
-      || lowercased.contains("isolated")
-    {
-      return
-        "Feeling alone can be really hard. Even though it might feel like it right now, you're not truly alone. I'm here with you, and there are people who care about you. Would you like to try reaching out to someone, or would you prefer to work through this together first?"
-    } else if lowercased.contains("help") || lowercased.contains("suicide")
-      || lowercased.contains("kill")
-    {
-      return
-        "I'm really concerned about what you're going through. You're not alone, and there are people who want to help you. Please consider calling a crisis hotline or reaching out to a mental health professional. Your life has value, and you deserve support."
+  private func handleSendError() {
+    if companionService.isRateLimited {
+      showingUsageLimit = true
+    } else if companionService.sessionMessageCount >= 6 {
+      showingSessionLimit = true
+    } else if companionService.getCooldownRemaining() > 0 {
+      let remaining = Int(companionService.getCooldownRemaining())
+      errorMessage = "Please wait \(remaining) seconds before sending another message."
+      showingError = true
     } else {
-      return
-        "Thank you for sharing that with me. I'm here to listen and support you. Can you tell me more about how you're feeling right now? Sometimes talking about our emotions can help us process them better."
+      errorMessage = "Unable to send message. Please try again."
+      showingError = true
     }
+  }
+
+  private func resetSession() {
+    companionService.resetSession()
+    messages.removeAll()
   }
 }
 

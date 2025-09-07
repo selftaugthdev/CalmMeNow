@@ -331,3 +331,226 @@ Match to mood/tags. Keep it practical, non-clinical, no medical advice. JSON onl
     }
   }
 );
+
+// ---- Emergency Companion with Safety Measures
+export const emergencyCompanion = onCall(
+  { region: "europe-west1", secrets: [OPENAI_API_KEY] },
+  async (req) => {
+    // 🔎 Monitor App Check (don't block)
+    if (!req.app) {
+      console.warn("emergencyCompanion: NO AppCheck token (monitoring only)");
+    } else {
+      console.log("emergencyCompanion: AppCheck ok", req.app);
+    }
+
+    // 🔐 Require Firebase Auth
+    if (!req.auth) throw new HttpsError("unauthenticated", "Missing auth.");
+
+    const userId = req.auth.uid;
+    const userMessage = req.data?.message;
+    const userLocale = req.data?.locale || "en-US";
+
+    console.log("emergencyCompanion uid:", userId, "message length:", userMessage?.length || 0);
+
+    try {
+      // 1) Rate limiting check
+      const canUse = await checkRateLimit(userId);
+      if (!canUse.allowed) {
+        return { 
+          response: canUse.message,
+          isCrisis: false,
+          usageCount: canUse.usageCount,
+          rateLimited: true
+        };
+      }
+
+      // 2) Input validation and moderation
+      if (!userMessage || typeof userMessage !== "string" || userMessage.trim().length === 0) {
+        return { 
+          response: "I'm here to help. Please tell me how you're feeling right now.",
+          isCrisis: false,
+          usageCount: canUse.usageCount
+        };
+      }
+
+      // Truncate input to prevent abuse
+      const truncatedMessage = userMessage.trim().substring(0, 700);
+
+      // 3) Crisis detection and moderation
+      const moderationResult = await moderateInput(truncatedMessage);
+      if (moderationResult.isCrisis) {
+        await logUsage(userId, "crisis_detected", truncatedMessage);
+        return {
+          response: getCrisisResponse(userLocale),
+          isCrisis: true,
+          usageCount: canUse.usageCount,
+          crisisDetected: true
+        };
+      }
+
+      if (moderationResult.isDisallowed) {
+        await logUsage(userId, "disallowed_content", truncatedMessage);
+        return {
+          response: "I'm here to help with calming and grounding techniques. Let's focus on breathing exercises or grounding methods that can help you feel more centered.",
+          isCrisis: false,
+          usageCount: canUse.usageCount,
+          redirected: true
+        };
+      }
+
+      // 4) Generate AI response with safety constraints
+      const systemPrompt = getEmergencyCompanionSystemPrompt();
+      const input = [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: truncatedMessage }
+      ];
+
+      const aiResponse = await callOpenAI(input, {
+        model: "gpt-4o-mini",
+        response_format: "text",
+        temperature: 0.4
+      });
+
+      // 5) Moderate output
+      const outputModeration = await moderateOutput(aiResponse);
+      if (outputModeration.flagged) {
+        await logUsage(userId, "output_flagged", aiResponse);
+        return {
+          response: getCrisisResponse(userLocale),
+          isCrisis: true,
+          usageCount: canUse.usageCount,
+          outputFlagged: true
+        };
+      }
+
+      // 6) Log successful usage
+      await logUsage(userId, "normal_response", truncatedMessage);
+
+      return {
+        response: aiResponse,
+        isCrisis: false,
+        usageCount: canUse.usageCount + 1
+      };
+
+    } catch (e: any) {
+      console.error("emergencyCompanion error:", e?.message ?? e);
+      await logUsage(userId, "error", e?.message ?? "unknown error");
+      throw new HttpsError("internal", "Emergency companion failed", String(e?.message ?? e));
+    }
+  }
+);
+
+// ---- Safety and Moderation Functions
+
+async function checkRateLimit(userId: string): Promise<{allowed: boolean, message: string, usageCount: number}> {
+  const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+  const docId = `${userId}_${today}`;
+  
+  // This would connect to Firestore in a real implementation
+  // For now, return a simple check
+  const usageCount = 0; // Would be fetched from Firestore
+  const maxDailyUsage = 6; // Free tier limit
+  
+  if (usageCount >= maxDailyUsage) {
+    return {
+      allowed: false,
+      message: "You've reached your daily limit for the Emergency Companion. Please try again tomorrow or consider upgrading to Premium for unlimited access.",
+      usageCount
+    };
+  }
+  
+  return { allowed: true, message: "", usageCount };
+}
+
+async function moderateInput(text: string): Promise<{isCrisis: boolean, isDisallowed: boolean}> {
+  const lowerText = text.toLowerCase();
+  
+  // Crisis keywords
+  const crisisKeywords = [
+    'suicide', 'kill myself', 'end my life', 'not worth living',
+    'hurt myself', 'self harm', 'cut myself', 'overdose',
+    'jump off', 'hang myself', 'shoot myself', 'poison myself'
+  ];
+  
+  // Disallowed content keywords
+  const disallowedKeywords = [
+    'medication', 'drugs', 'pills', 'dosage', 'prescription',
+    'therapy', 'therapist', 'psychiatrist', 'diagnosis',
+    'profanity', 'sexual', 'violence', 'weapons'
+  ];
+  
+  const isCrisis = crisisKeywords.some(keyword => lowerText.includes(keyword));
+  const isDisallowed = disallowedKeywords.some(keyword => lowerText.includes(keyword));
+  
+  return { isCrisis, isDisallowed };
+}
+
+async function moderateOutput(text: string): Promise<{flagged: boolean}> {
+  // Simple output moderation - in production, use OpenAI's moderation API
+  const lowerText = text.toLowerCase();
+  const flaggedKeywords = [
+    'medication', 'drugs', 'pills', 'dosage', 'prescription',
+    'therapy', 'therapist', 'psychiatrist', 'diagnosis'
+  ];
+  
+  const flagged = flaggedKeywords.some(keyword => lowerText.includes(keyword));
+  return { flagged };
+}
+
+function getEmergencyCompanionSystemPrompt(): string {
+  return `You are "Emergency Companion," a calm, brief coach for acute anxiety/panic.
+
+SAFETY RULES:
+• You are not a therapist or doctor. Include a one-line disclaimer in the first reply only.
+• No diagnoses, no medical or legal instructions. Never mention medications or dosages.
+• No profanity, slurs, sexual content, violence, self-harm instructions, or weapons.
+• If the user mentions immediate danger, self-harm, suicide, harming others, or abuse, stop coaching and reply with a short crisis message + local emergency resources and end the chat.
+• Use supportive, concrete steps (breathing, grounding, posture, self-talk). Max 6 bullets, ≤120 words.
+• Never role-play or chit-chat. If asked to do anything unrelated to calming safely, decline and redirect to the plan/breathing.
+• Keep it private: don't ask for identifying details.
+
+RESPONSE FORMAT:
+• Be brief and actionable
+• Focus on immediate calming techniques
+• Use bullet points for steps
+• Keep under 120 words
+• Be warm but professional
+
+If this is the first message, include: "I'm not a therapist or doctor, but I'm here to help you through this moment."`;
+}
+
+function getCrisisResponse(locale: string): string {
+  const responses: { [key: string]: string } = {
+    'en-US': `I'm very concerned about what you're sharing. Your safety is the most important thing right now.
+
+Please reach out for immediate help:
+• National Suicide Prevention Lifeline: 988
+• Crisis Text Line: Text HOME to 741741
+• Emergency Services: 911
+
+You're not alone, and there are people who want to help you. Your life has value.`,
+    'en-GB': `I'm very concerned about what you're sharing. Your safety is the most important thing right now.
+
+Please reach out for immediate help:
+• Samaritans: 116 123
+• Crisis Text Line: Text SHOUT to 85258
+• Emergency Services: 999
+
+You're not alone, and there are people who want to help you. Your life has value.`,
+    'default': `I'm very concerned about what you're sharing. Your safety is the most important thing right now.
+
+Please reach out for immediate help:
+• Emergency Services: 112
+• Crisis helpline in your area
+• A trusted friend or family member
+
+You're not alone, and there are people who want to help you. Your life has value.`
+  };
+  
+  return responses[locale] || responses['default'];
+}
+
+async function logUsage(userId: string, type: string, content: string): Promise<void> {
+  // In production, this would log to Firestore
+  console.log(`Usage log: ${userId} - ${type} - ${content.substring(0, 100)}...`);
+}
