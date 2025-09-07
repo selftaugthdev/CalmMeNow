@@ -128,8 +128,9 @@ struct EmergencyCompanionView: View {
                 }
               }
               .padding(.horizontal, 20)
-              .padding(.bottom, 100)  // Space for input
+              .padding(.bottom, 20)  // Reduced bottom padding
             }
+            .frame(maxHeight: 280)  // Limit chat area height to give buttons more space
             .onChange(of: messages.count) { _ in
               if let lastMessage = messages.last {
                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -157,6 +158,7 @@ struct EmergencyCompanionView: View {
                 }
               )
               .padding(.horizontal, 20)
+              .padding(.top, 20)  // Add top padding for breathing room
 
               // AI Emergency Companion Button
               Button(action: {
