@@ -76,6 +76,11 @@ struct EmergencyStepRunnerView: View {
       || step.contains("phrase")
   }
 
+  private var shouldShowFloatingOrb: Bool {
+    let step = currentStep.lowercased()
+    return step.contains("breathe") || step.contains("breath")
+  }
+
   @ViewBuilder
   private var stepVisualElements: some View {
     let step = currentStep.lowercased()
@@ -190,11 +195,11 @@ struct EmergencyStepRunnerView: View {
             Circle()
               .fill(Color.red.opacity(0.1))
               .frame(width: 200, height: 200)
-              .scaleEffect(isActive ? 1.1 : 0.9)
+              .scaleEffect(isActive && shouldShowFloatingOrb ? 1.1 : 0.9)
               .animation(
                 Animation.easeInOut(duration: 2.0)
                   .repeatForever(autoreverses: true),
-                value: isActive
+                value: isActive && shouldShowFloatingOrb
               )
 
             VStack(spacing: 16) {
@@ -224,23 +229,25 @@ struct EmergencyStepRunnerView: View {
 
           // Step-specific guidance text
           if isActive {
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
               // Step-specific instructions
               Text(stepGuidanceText)
                 .font(.subheadline)
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16)
                 .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
 
               // General guidance
               Text("Take your time. Click 'Next' when ready.")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16)
             }
-            .padding(.top, 8)
+            .padding(.top, 6)
+            .padding(.bottom, 8)
           }
         }
 

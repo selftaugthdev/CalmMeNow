@@ -28,12 +28,16 @@ class AIServiceViewModel: ObservableObject {
         "symptoms": symptoms,
         "preferences": preferences,
         "duration": duration,
-        "phrase": phrase,
+        "personalizedPhrase": phrase,
+        "phrase": phrase,  // Keep both for compatibility
       ]
 
       let planData = try await aiService.generatePanicPlan(intake: intake)
 
       currentPlan = PanicPlan(from: planData)
+
+      // Store the user's phrase in UserDefaults for fallback
+      UserDefaults.standard.set(phrase, forKey: "userCalmingPhrase")
 
       // Store the plan locally for future reference
       await storePlanLocally(currentPlan!)
