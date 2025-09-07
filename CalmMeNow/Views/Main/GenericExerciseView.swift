@@ -305,14 +305,8 @@ struct GenericExerciseView: View {
     timer?.invalidate()
     timer = nil
 
-    // Stop speech service multiple times to be extra sure
-    speechService.stop()
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-      self.speechService.stop()
-    }
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-      self.speechService.stop()
-    }
+    // Stop speech service with proper cleanup
+    speechService.stopAll()
 
     // Stop haptic feedback generation
     impactFeedback.prepare()  // Reset haptic engine

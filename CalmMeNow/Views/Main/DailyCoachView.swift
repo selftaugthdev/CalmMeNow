@@ -330,16 +330,21 @@ struct DailyCoachView: View {
         Additional context: \(note.isEmpty ? "No additional details" : note)
 
         Generate a practical, immediate relief exercise that can be done anywhere in 2-3 minutes.
-        Focus on grounding, breathing, or simple movement techniques.
+        Focus on grounding techniques, body awareness, physical movement, or mindfulness practices.
+        DO NOT create a breathing exercise - focus on other calming techniques instead.
+        Provide clear step-by-step instructions.
         """
 
-      let exerciseInstructions = try await OpenAIService.shared.generateBreathingInstructions(
-        for: exercisePrompt)
+      let exerciseInstructions = try await OpenAIService.shared.sendMessage(
+        exercisePrompt,
+        systemPrompt:
+          "You are an expert in emergency calming techniques. Generate practical, step-by-step exercises that help people quickly calm down without focusing on breathing patterns."
+      )
 
-      // Create Exercise object from AI response
+      // Create Exercise object from AI response - force it to be a generic exercise
       emergencyExercise = Exercise(
         id: UUID(),
-        title: "AI Emergency Relief Exercise",
+        title: "Emergency Calming Exercise",  // Non-breathing title to avoid auto-detection
         duration: 180,  // 3 minutes for high severity
         steps: exerciseInstructions.components(separatedBy: "\n").filter {
           !$0.trimmingCharacters(in: CharacterSet.whitespaces).isEmpty
@@ -349,21 +354,21 @@ struct DailyCoachView: View {
 
     } catch {
       print("Failed to generate emergency exercise: \(error)")
-      // Fallback to a default emergency exercise
+      // Fallback to a default emergency exercise (non-breathing)
       emergencyExercise = Exercise(
         id: UUID(),
-        title: "Emergency Calm Breathing",
+        title: "Emergency Grounding Technique",
         duration: 180,
         steps: [
-          "Find a comfortable seated position",
-          "Place one hand on your chest, one on your belly",
-          "Breathe in slowly through your nose for 4 counts",
-          "Hold your breath gently for 4 counts",
-          "Exhale slowly through your mouth for 6 counts",
-          "Focus only on your breathing rhythm",
-          "Continue until you feel calmer",
+          "Look around and name 5 things you can see",
+          "Listen and name 4 things you can hear",
+          "Touch and name 3 things you can feel (your clothes, a surface, etc.)",
+          "Name 2 things you can smell",
+          "Name 1 thing you can taste",
+          "Take a moment to notice how you feel now",
+          "Repeat if needed until you feel more grounded",
         ],
-        prompt: "A calming breathing exercise for high stress moments"
+        prompt: "A 5-4-3-2-1 grounding exercise for high stress moments"
       )
     }
 

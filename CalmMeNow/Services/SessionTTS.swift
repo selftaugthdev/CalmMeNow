@@ -1,25 +1,21 @@
 import AVFoundation
 import Foundation
 
-class SpeechService: NSObject, ObservableObject {
+/// Production-ready TTS service with proper cleanup and safe voice selection
+final class SessionTTS: NSObject, ObservableObject {
   private let synthesizer = AVSpeechSynthesizer()
   @Published var isSpeaking = false
 
   override init() {
     super.init()
     synthesizer.delegate = self
-
-    // Only log voices in debug builds with special flag
-    #if DEBUG && DEBUG_TTS_DIAG
-      logAvailableVoices()
-    #endif
   }
 
-  // MARK: - Voice Selection
-
-  func getAvailableVoices() -> [AVSpeechSynthesisVoice] {
-    return AVSpeechSynthesisVoice.speechVoices()
+  deinit {
+    stopAll()
   }
+
+  // MARK: - Safe Voice Selection
 
   /// Returns the most natural-sounding voice available for the user's locale
   private func defaultCalmVoice() -> AVSpeechSynthesisVoice {
@@ -68,22 +64,9 @@ class SpeechService: NSObject, ObservableObject {
     return AVSpeechSynthesisVoice(language: "en-US") ?? allVoices.first!
   }
 
-  // Helper function to check what voices are available (for debugging only)
-  #if DEBUG && DEBUG_TTS_DIAG
-    func logAvailableVoices() {
-      let voices = AVSpeechSynthesisVoice.speechVoices()
-      print("=== Available Voices ===")
-      for voice in voices {
-        print("Name: \(voice.name)")
-        print("  Identifier: \(voice.identifier)")
-        print("  Quality: \(voice.quality.rawValue)")
-        print("  Language: \(voice.language)")
-        print("---")
-      }
-    }
-  #endif
+  // MARK: - Speech Control
 
-  func speak(_ text: String, rate: Float = 0.4, pitch: Float = 0.9) {
+  func speak(_ text: String, rate: Float = AVSpeechUtteranceDefaultSpeechRate) {
     let utterance = AVSpeechUtterance(string: text)
 
     // Use the most natural voice available
@@ -93,11 +76,8 @@ class SpeechService: NSObject, ObservableObject {
     #if DEBUG
       print("🎤 Using voice: \(selectedVoice.name) (\(selectedVoice.quality.rawValue))")
     #endif
-
-    // Optimized settings for calm, natural sound
-    utterance.rate = min(max(rate, 0.45), 0.55)  // Calm pace
-    utterance.pitchMultiplier = 1.0  // Natural pitch
-    utterance.volume = 0.9  // Keep under full to soften the sound
+    utterance.rate = min(max(rate, 0.45), 0.55)  // calm pace
+    utterance.pitchMultiplier = 1.0
     utterance.preUtteranceDelay = 0.0
     utterance.postUtteranceDelay = 0.0
 
@@ -111,11 +91,6 @@ class SpeechService: NSObject, ObservableObject {
 
     isSpeaking = true
     synthesizer.speak(utterance)
-  }
-
-  func stop() {
-    synthesizer.stopSpeaking(at: .immediate)
-    isSpeaking = false
   }
 
   func stopAll() {
@@ -143,7 +118,7 @@ class SpeechService: NSObject, ObservableObject {
 
 // MARK: - AVSpeechSynthesizerDelegate
 
-extension SpeechService: AVSpeechSynthesizerDelegate {
+extension SessionTTS: AVSpeechSynthesizerDelegate {
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance)
   {
     DispatchQueue.main.async {

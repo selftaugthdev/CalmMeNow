@@ -10,9 +10,11 @@ import Foundation
 struct OpenAIConfig {
   // MARK: - API Configuration
   static let baseURL = "https://api.openai.com/v1"
-  static let model = "gpt-3.5-turbo"
+  static let model = "gpt-4o-mini"
   static let maxTokens = 150
-  static let temperature = 0.7
+  static let maxTokensMinimal = 50  // For minimal classification tasks
+  static let temperature = 0.3  // Lower for more consistent JSON
+  static let temperatureMinimal = 0.1  // Very low for classification
 
   // MARK: - API Key Management
   static var apiKey: String {

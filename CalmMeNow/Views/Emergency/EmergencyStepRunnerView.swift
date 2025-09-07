@@ -247,7 +247,7 @@ struct EmergencyStepRunnerView: View {
 
   private func stopPlan() {
     isActive = false
-    speechService.stop()
+    speechService.stopAll()
   }
 
   private func endPlan() {

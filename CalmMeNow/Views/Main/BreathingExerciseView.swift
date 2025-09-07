@@ -303,12 +303,7 @@ struct BreathingExerciseView: View {
   }
 
   private func stopExercise() {
-    isExerciseActive = false
-    phaseTimer?.invalidate()
-    exerciseTimer?.invalidate()
-    phaseTimer = nil
-    exerciseTimer = nil
-    speechService.stop()
+    cleanup()  // Use comprehensive cleanup instead of partial cleanup
   }
 
   /// Comprehensive cleanup method for when view is dismissed
@@ -325,14 +320,8 @@ struct BreathingExerciseView: View {
     phaseTimer = nil
     exerciseTimer = nil
 
-    // Stop speech service multiple times to be extra sure
-    speechService.stop()
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-      self.speechService.stop()
-    }
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-      self.speechService.stop()
-    }
+    // Stop speech service with proper cleanup
+    speechService.stopAll()
 
     // Stop haptic feedback generation
     impactFeedback.prepare()  // Reset haptic engine
