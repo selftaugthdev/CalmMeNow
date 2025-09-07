@@ -96,6 +96,17 @@ struct EmergencyStepRunnerView: View {
           ProgressView(value: Double(currentStepIndex), total: Double(steps.count - 1))
             .progressViewStyle(LinearProgressViewStyle(tint: .red))
             .padding(.horizontal, 40)
+
+          // Guidance text
+          if isActive {
+            Text("Take your time. Click 'Next' when ready.")
+              .font(.subheadline)
+              .foregroundColor(.secondary)
+              .multilineTextAlignment(.center)
+              .padding(.horizontal, 20)
+              .padding(.top, 8)
+              .lineLimit(2)
+          }
         }
 
         Spacer()
@@ -120,80 +131,91 @@ struct EmergencyStepRunnerView: View {
               )
             }
           } else {
-            // Navigation Controls
-            HStack(spacing: 16) {
+            // Navigation Controls - Top Row
+            HStack(spacing: 12) {
               Button(action: previousStep) {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                   Image(systemName: "backward.fill")
-                  Text("Previous")
+                    .font(.system(size: 14))
+                  Text("Prev")
+                    .font(.system(size: 14, weight: .medium))
                 }
                 .foregroundColor(.white)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 16)
                 .background(
-                  RoundedRectangle(cornerRadius: 20)
+                  RoundedRectangle(cornerRadius: 18)
                     .fill(Color.blue)
                 )
               }
               .disabled(currentStepIndex == 0)
 
-              Button(action: repeatStep) {
-                HStack(spacing: 8) {
-                  Image(systemName: "repeat")
-                  Text("Repeat")
-                }
-                .foregroundColor(.white)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 20)
-                .background(
-                  RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.orange)
-                )
-              }
-
               Button(action: nextStep) {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                   Text("Next")
+                    .font(.system(size: 14, weight: .medium))
                   Image(systemName: "forward.fill")
+                    .font(.system(size: 14))
                 }
                 .foregroundColor(.white)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 16)
                 .background(
-                  RoundedRectangle(cornerRadius: 20)
+                  RoundedRectangle(cornerRadius: 18)
                     .fill(Color.green)
                 )
               }
               .disabled(currentStepIndex == steps.count - 1)
             }
-          }
 
-          // Emergency Shortcuts
-          HStack(spacing: 16) {
-            Button(action: { showingGrounding = true }) {
+            // Repeat Button - Centered below
+            Button(action: repeatStep) {
               HStack(spacing: 8) {
-                Image(systemName: "leaf.fill")
-                Text("Ground Me")
+                Image(systemName: "repeat")
+                  .font(.system(size: 16))
+                Text("Repeat Step")
+                  .font(.system(size: 16, weight: .medium))
               }
               .foregroundColor(.white)
               .padding(.vertical, 12)
-              .padding(.horizontal, 20)
+              .padding(.horizontal, 24)
               .background(
                 RoundedRectangle(cornerRadius: 20)
+                  .fill(Color.orange)
+              )
+            }
+          }
+
+          // Emergency Shortcuts
+          HStack(spacing: 12) {
+            Button(action: { showingGrounding = true }) {
+              HStack(spacing: 6) {
+                Image(systemName: "leaf.fill")
+                  .font(.system(size: 14))
+                Text("Ground Me")
+                  .font(.system(size: 14, weight: .medium))
+              }
+              .foregroundColor(.white)
+              .padding(.vertical, 10)
+              .padding(.horizontal, 16)
+              .background(
+                RoundedRectangle(cornerRadius: 18)
                   .fill(Color.green)
               )
             }
 
             Button(action: { showingCallHelp = true }) {
-              HStack(spacing: 8) {
+              HStack(spacing: 6) {
                 Image(systemName: "phone.fill")
-                Text("Call Someone")
+                  .font(.system(size: 14))
+                Text("Call Help")
+                  .font(.system(size: 14, weight: .medium))
               }
               .foregroundColor(.white)
-              .padding(.vertical, 12)
-              .padding(.horizontal, 20)
+              .padding(.vertical, 10)
+              .padding(.horizontal, 16)
               .background(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 18)
                   .fill(Color.blue)
               )
             }
@@ -201,15 +223,17 @@ struct EmergencyStepRunnerView: View {
 
           if isActive {
             Button(action: endPlan) {
-              HStack(spacing: 8) {
+              HStack(spacing: 6) {
                 Image(systemName: "stop.circle.fill")
+                  .font(.system(size: 14))
                 Text("End Plan")
+                  .font(.system(size: 14, weight: .medium))
               }
               .foregroundColor(.white)
-              .padding(.vertical, 12)
-              .padding(.horizontal, 20)
+              .padding(.vertical, 10)
+              .padding(.horizontal, 16)
               .background(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 18)
                   .fill(Color.gray)
               )
             }

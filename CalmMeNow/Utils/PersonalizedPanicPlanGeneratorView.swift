@@ -252,6 +252,7 @@ struct PersonalizedPanicPlanGeneratorView: View {
 struct PanicPlanDetailView: View {
   let plan: PanicPlan
   @Environment(\.dismiss) private var dismiss
+  @State private var showingStepRunner = false
 
   var body: some View {
     NavigationView {
@@ -346,7 +347,7 @@ struct PanicPlanDetailView: View {
           // Start Plan Button
           Button(action: {
             // Navigate to the plan execution view
-            dismiss()
+            showingStepRunner = true
           }) {
             HStack {
               Image(systemName: "play.fill")
@@ -370,6 +371,15 @@ struct PanicPlanDetailView: View {
             dismiss()
           }
         }
+      }
+      .sheet(isPresented: $showingStepRunner) {
+        EmergencyStepRunnerView(script: [
+          "plan": [
+            "steps": plan.steps,
+            "title": plan.title,
+            "duration": plan.duration,
+          ]
+        ])
       }
     }
   }
