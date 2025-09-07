@@ -378,6 +378,7 @@ struct PanicPlanDetailView: View {
             "steps": plan.steps,
             "title": plan.title,
             "duration": plan.duration,
+            "personalizedPhrase": plan.personalizedPhrase,
           ]
         ])
       }

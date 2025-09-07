@@ -38,8 +38,10 @@ struct EmergencyStepRunnerView: View {
       return
         "Look around and name 5 things you see, 4 things you can touch, 3 things you hear, 2 things you smell, and 1 thing you taste. This helps bring you back to the present moment."
     } else if step.contains("calming phrase") || step.contains("phrase") {
+      // Get phrase from the plan first, then fallback to UserDefaults
+      let planPhrase = getPlanPhrase()
       let userPhrase =
-        UserDefaults.standard.string(forKey: "userCalmingPhrase")
+        planPhrase ?? UserDefaults.standard.string(forKey: "userCalmingPhrase")
         ?? "This feeling will pass, I am safe"
       return
         "Repeat your calming phrase silently or aloud 3 times: \"\(userPhrase)\". Feel the words bring you peace and safety."
@@ -120,8 +122,9 @@ struct EmergencyStepRunnerView: View {
       .padding(.top, 8)
     } else if step.contains("calming phrase") || step.contains("phrase") {
       // Calming phrase visual
+      let planPhrase = getPlanPhrase()
       let userPhrase =
-        UserDefaults.standard.string(forKey: "userCalmingPhrase")
+        planPhrase ?? UserDefaults.standard.string(forKey: "userCalmingPhrase")
         ?? "This feeling will pass, I am safe"
       Text("\"\(userPhrase)\"")
         .font(.title3)
@@ -132,6 +135,16 @@ struct EmergencyStepRunnerView: View {
         .padding(.horizontal, 20)
         .padding(.top, 8)
     }
+  }
+
+  private func getPlanPhrase() -> String? {
+    // Try to get the phrase from the plan data
+    if let plan = script["plan"] as? [String: Any],
+      let phrase = plan["personalizedPhrase"] as? String
+    {
+      return phrase
+    }
+    return nil
   }
 
   var body: some View {
