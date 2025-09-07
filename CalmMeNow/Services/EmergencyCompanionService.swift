@@ -26,7 +26,7 @@ class EmergencyCompanionService: ObservableObject {
   @Published var lastMessageTime: Date?
 
   // Cooldown settings
-  private let cooldownInterval: TimeInterval = 60  // 60 seconds between messages
+  private let cooldownInterval: TimeInterval = 1  // 1 second between messages (prevents spam)
   private let maxDailyUsage = 6  // Free tier limit
   private let maxSessionMessages = 6  // Max messages per session
 

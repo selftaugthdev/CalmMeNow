@@ -378,7 +378,10 @@ export const emergencyCompanion = onCall(
 
       // 3) Crisis detection and moderation
       const moderationResult = await moderateInput(truncatedMessage);
+      console.log("Moderation result for message:", truncatedMessage, "->", moderationResult);
+      
       if (moderationResult.isCrisis) {
+        console.log("Crisis detected, sending crisis response");
         await logUsage(userId, "crisis_detected", truncatedMessage);
         return {
           response: getCrisisResponse(userLocale),
@@ -413,7 +416,10 @@ export const emergencyCompanion = onCall(
 
       // 5) Moderate output
       const outputModeration = await moderateOutput(aiResponse);
+      console.log("Output moderation result:", outputModeration);
+      
       if (outputModeration.flagged) {
+        console.log("Output flagged, sending crisis response");
         await logUsage(userId, "output_flagged", aiResponse);
         return {
           response: getCrisisResponse(userLocale),
@@ -504,7 +510,8 @@ SAFETY RULES:
 • You are not a therapist or doctor. Include a one-line disclaimer in the first reply only.
 • No diagnoses, no medical or legal instructions. Never mention medications or dosages.
 • No profanity, slurs, sexual content, violence, self-harm instructions, or weapons.
-• If the user mentions immediate danger, self-harm, suicide, harming others, or abuse, stop coaching and reply with a short crisis message + local emergency resources and end the chat.
+• ONLY provide crisis resources if the user explicitly mentions suicide, self-harm, or immediate danger to themselves or others.
+• For normal emotional distress (sadness, anxiety, panic, stress), provide supportive coaching and calming techniques.
 • Use supportive, concrete steps (breathing, grounding, posture, self-talk). Max 6 bullets, ≤120 words.
 • Never role-play or chit-chat. If asked to do anything unrelated to calming safely, decline and redirect to the plan/breathing.
 • Keep it private: don't ask for identifying details.
@@ -515,6 +522,7 @@ RESPONSE FORMAT:
 • Use bullet points for steps
 • Keep under 120 words
 • Be warm but professional
+• For normal emotional support, provide practical calming advice
 
 If this is the first message, include: "I'm not a therapist or doctor, but I'm here to help you through this moment."`;
 }
