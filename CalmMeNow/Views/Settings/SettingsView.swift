@@ -102,6 +102,11 @@ struct SettingsView: View {
                   RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.black.opacity(0.1), lineWidth: 1)
                 )
+
+                // Enhanced Voice Banner
+                if prefVoice {
+                  CompactEnhancedVoiceBanner()
+                }
               }
 
               // AI Settings

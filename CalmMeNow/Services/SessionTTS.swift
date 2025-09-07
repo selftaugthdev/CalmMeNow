@@ -15,13 +15,32 @@ final class SessionTTS: NSObject, ObservableObject {
     stopAll()
   }
 
-  // MARK: - Safe Voice Selection
+  // MARK: - Enhanced Voice Selection
+
+  /// Returns the best voice for the user's current locale, favoring Enhanced voices
+  private func bestVoiceForCurrentLocale() -> AVSpeechSynthesisVoice? {
+    let lang = Locale.current.identifier  // e.g. "en_BE" → iOS maps sensibly
+
+    // 1) Get voices that match the user's language
+    let matches = AVSpeechSynthesisVoice.speechVoices().filter {
+      $0.language.hasPrefix(String(lang.prefix(2)))
+    }
+
+    // 2) Prefer Enhanced, else default
+    return matches.first(where: { $0.quality == .enhanced })
+      ?? matches.first
+      ?? AVSpeechSynthesisVoice(language: "en-GB")  // good fallback near "Daniel"
+  }
 
   /// Returns the most natural-sounding voice available for the user's locale
   private func defaultCalmVoice() -> AVSpeechSynthesisVoice {
-    let allVoices = AVSpeechSynthesisVoice.speechVoices()
+    // First try to get the best voice for current locale
+    if let bestVoice = bestVoiceForCurrentLocale() {
+      return bestVoice
+    }
 
-    // First, try to find enhanced/premium voices for user's locale
+    // Fallback to enhanced voices in any language
+    let allVoices = AVSpeechSynthesisVoice.speechVoices()
     if let enhancedVoice = allVoices.first(where: { voice in
       voice.quality == .enhanced || voice.quality == .premium
     }) {
@@ -66,7 +85,7 @@ final class SessionTTS: NSObject, ObservableObject {
 
   // MARK: - Speech Control
 
-  func speak(_ text: String, rate: Float = AVSpeechUtteranceDefaultSpeechRate) {
+  func speak(_ text: String, rate: Float = 0.5) {
     let utterance = AVSpeechUtterance(string: text)
 
     // Use the most natural voice available
@@ -76,7 +95,7 @@ final class SessionTTS: NSObject, ObservableObject {
     #if DEBUG
       print("🎤 Using voice: \(selectedVoice.name) (\(selectedVoice.quality.rawValue))")
     #endif
-    utterance.rate = min(max(rate, 0.45), 0.55)  // calm pace
+    utterance.rate = min(max(rate, 0.45), 0.55)  // calmer cadence (0.45–0.55 feels natural)
     utterance.pitchMultiplier = 1.0
     utterance.preUtteranceDelay = 0.0
     utterance.postUtteranceDelay = 0.0

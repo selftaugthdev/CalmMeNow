@@ -15,17 +15,36 @@ class SpeechService: NSObject, ObservableObject {
     #endif
   }
 
-  // MARK: - Voice Selection
+  // MARK: - Enhanced Voice Selection
 
   func getAvailableVoices() -> [AVSpeechSynthesisVoice] {
     return AVSpeechSynthesisVoice.speechVoices()
   }
 
+  /// Returns the best voice for the user's current locale, favoring Enhanced voices
+  private func bestVoiceForCurrentLocale() -> AVSpeechSynthesisVoice? {
+    let lang = Locale.current.identifier  // e.g. "en_BE" → iOS maps sensibly
+
+    // 1) Get voices that match the user's language
+    let matches = AVSpeechSynthesisVoice.speechVoices().filter {
+      $0.language.hasPrefix(String(lang.prefix(2)))
+    }
+
+    // 2) Prefer Enhanced, else default
+    return matches.first(where: { $0.quality == .enhanced })
+      ?? matches.first
+      ?? AVSpeechSynthesisVoice(language: "en-GB")  // good fallback near "Daniel"
+  }
+
   /// Returns the most natural-sounding voice available for the user's locale
   private func defaultCalmVoice() -> AVSpeechSynthesisVoice {
-    let allVoices = AVSpeechSynthesisVoice.speechVoices()
+    // First try to get the best voice for current locale
+    if let bestVoice = bestVoiceForCurrentLocale() {
+      return bestVoice
+    }
 
-    // First, try to find enhanced/premium voices for user's locale
+    // Fallback to enhanced voices in any language
+    let allVoices = AVSpeechSynthesisVoice.speechVoices()
     if let enhancedVoice = allVoices.first(where: { voice in
       voice.quality == .enhanced || voice.quality == .premium
     }) {
@@ -83,7 +102,7 @@ class SpeechService: NSObject, ObservableObject {
     }
   #endif
 
-  func speak(_ text: String, rate: Float = 0.4, pitch: Float = 0.9) {
+  func speak(_ text: String, rate: Float = 0.5, pitch: Float = 1.0) {
     let utterance = AVSpeechUtterance(string: text)
 
     // Use the most natural voice available
