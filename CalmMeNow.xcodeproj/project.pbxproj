@@ -51,6 +51,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		319F24FE2E6C50BC004AD256 /* StoreKitConfiguration1.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreKitConfiguration1.storekit; sourceTree = "<group>"; };
 		E4057D232E5C7E4A0013E917 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS11.5.sdk/System/Library/Frameworks/WatchConnectivity.framework; sourceTree = DEVELOPER_DIR; };
 		E4057D252E5C7E740013E917 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 		E423FD762E6C4A4B00962AE9 /* StoreKitConfiguration1.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreKitConfiguration1.storekit; sourceTree = "<group>"; };
@@ -488,6 +489,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Relaxing Calm";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "CalmMeNow uses Face ID to securely protect your private journal entries and personal data.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -518,6 +520,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Relaxing Calm";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "CalmMeNow uses Face ID to securely protect your private journal entries and personal data.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

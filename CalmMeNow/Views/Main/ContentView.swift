@@ -11,6 +11,7 @@ struct ContentView: View {
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
   @StateObject private var paywallManager = PaywallManager.shared
+  @StateObject private var subscriptionSuccessManager = SubscriptionSuccessManager.shared
   @State private var showingPaywall = false
   @State private var selectedButton: String? = nil
   @State private var isQuickCalmPressed = false
@@ -364,6 +365,12 @@ struct ContentView: View {
     }
     .sheet(isPresented: $showingPaywall) {
       PaywallKitView()
+    }
+    .sheet(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
+      SubscriptionSuccessView()
+        .onDisappear {
+          subscriptionSuccessManager.dismissSuccessScreen()
+        }
     }
     .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
       showingPaywall = shouldShow
