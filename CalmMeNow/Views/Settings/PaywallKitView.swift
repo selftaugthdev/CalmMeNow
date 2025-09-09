@@ -44,7 +44,7 @@ struct PaywallKitView: View {
       config: paywallConfig
     ) {
       // Delay dismissal to allow our custom congratulations screen to show
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
         dismiss()
       }
     }

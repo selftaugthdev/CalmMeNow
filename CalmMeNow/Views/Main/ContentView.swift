@@ -366,7 +366,7 @@ struct ContentView: View {
     .sheet(isPresented: $showingPaywall) {
       PaywallKitView()
     }
-    .sheet(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
+    .fullScreenCover(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
       SubscriptionSuccessView()
         .onDisappear {
           subscriptionSuccessManager.dismissSuccessScreen()

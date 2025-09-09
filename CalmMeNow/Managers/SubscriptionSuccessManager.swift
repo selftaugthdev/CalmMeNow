@@ -30,8 +30,10 @@ final class SubscriptionSuccessManager: ObservableObject {
   }
   
   @objc private func handleSubscriptionSuccess() {
+    print("🎉 SubscriptionSuccessManager: Received subscription success notification")
     DispatchQueue.main.async {
       self.shouldShowSuccessScreen = true
+      print("🎉 SubscriptionSuccessManager: Set shouldShowSuccessScreen = true")
     }
   }
   

@@ -105,15 +105,20 @@ struct SubscriptionSuccessView: View {
       }
     }
     .onAppear {
+      print("🎉 SubscriptionSuccessView appeared!")
       isAnimating = true
       
       // Show content with delay
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
         showContent = true
+        print("🎉 SubscriptionSuccessView content shown!")
       }
       
       // Start countdown
       startCountdown()
+    }
+    .onDisappear {
+      print("🎉 SubscriptionSuccessView disappeared!")
     }
   }
   
