@@ -65,9 +65,9 @@ struct SubscriptionSuccessView: View {
             .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
           
           VStack(spacing: 12) {
-            FeatureRow(icon: "target", text: "Personalized Panic Plans")
-            FeatureRow(icon: "brain.head.profile", text: "AI Daily Coach")
-            FeatureRow(icon: "heart.fill", text: "Emergency AI Companion")
+            PremiumFeatureRow(icon: "target", text: "Personalized Panic Plans")
+            PremiumFeatureRow(icon: "brain.head.profile", text: "AI Daily Coach")
+            PremiumFeatureRow(icon: "heart.fill", text: "Emergency AI Companion")
           }
           .padding(.top, 10)
         }
@@ -129,7 +129,7 @@ struct SubscriptionSuccessView: View {
   }
 }
 
-struct FeatureRow: View {
+struct PremiumFeatureRow: View {
   let icon: String
   let text: String
   
