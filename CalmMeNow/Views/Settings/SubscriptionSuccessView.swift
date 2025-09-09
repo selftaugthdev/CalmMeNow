@@ -4,7 +4,7 @@ struct SubscriptionSuccessView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var isAnimating = false
   @State private var showContent = false
-  @State private var countdown = 3
+  @State private var countdown = 5
   
   var body: some View {
     ZStack {

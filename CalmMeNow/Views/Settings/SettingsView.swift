@@ -245,6 +245,20 @@ struct SettingsView: View {
 
                     Divider()
                       .background(Color.black.opacity(0.1))
+                    
+                    // Manage Account - Only show if user is subscribed
+                    SettingsActionRow(
+                      icon: "person.circle",
+                      iconColor: .green,
+                      title: "Manage Account",
+                      description: "View subscription details and manage billing",
+                      action: {
+                        openSubscriptionManagement()
+                      }
+                    )
+                    
+                    Divider()
+                      .background(Color.black.opacity(0.1))
                   }
 
                   // Upgrade Button - Only show if user is NOT subscribed
@@ -375,6 +389,15 @@ struct SettingsView: View {
       .sheet(isPresented: $showingPaywall) {
         PaywallKitView()
       }
+    }
+  }
+  
+  // MARK: - Helper Functions
+  
+  private func openSubscriptionManagement() {
+    // Open the App Store subscription management page
+    if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+      UIApplication.shared.open(url)
     }
   }
 }
