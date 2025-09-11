@@ -8,6 +8,13 @@ struct SettingsView: View {
   @AppStorage("userCalmingPhrase") private var userCalmingPhrase =
     "This feeling will pass, I am safe"
 
+  // App version
+  private var appVersion: String {
+    let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    return "\(version) (\(build))"
+  }
+
   // Paywall integration
   @StateObject private var paywallManager = PaywallManager.shared
   @StateObject private var revenueCatService = RevenueCatService.shared
@@ -353,7 +360,7 @@ struct SettingsView: View {
                     Text("Version")
                       .foregroundColor(.primary)
                     Spacer()
-                    Text("1.0.0")
+                    Text(appVersion)
                       .foregroundColor(.primary.opacity(0.6))
                   }
 

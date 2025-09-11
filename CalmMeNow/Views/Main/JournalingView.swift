@@ -569,6 +569,7 @@ struct JournalEntryDetailView: View {
               .fontWeight(.bold)
               .foregroundColor(.black)
               .padding(.top, 20)
+              .padding(.horizontal, 20)
 
             VStack(alignment: .leading, spacing: 16) {
               Text(entry.content)
@@ -646,6 +647,7 @@ struct JournalEntryDetailView: View {
                 .fill(Color.black.opacity(0.7))
             )
             .padding(.top, 20)
+            .padding(.horizontal, 20)
           }
         }
       }
