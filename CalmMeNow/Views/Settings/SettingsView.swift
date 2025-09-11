@@ -395,10 +395,27 @@ struct SettingsView: View {
   // MARK: - Helper Functions
   
   private func openSubscriptionManagement() {
-    // Open the App Store subscription management page
-    if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
-      UIApplication.shared.open(url)
-    }
+    #if targetEnvironment(simulator)
+      // In simulator, show an alert instead of opening App Store
+      DispatchQueue.main.async {
+        let alert = UIAlertController(
+          title: "Manage Account",
+          message: "In the simulator, you can't access App Store subscription management. On a real device, this would open your subscription settings where you can cancel or modify your subscription.",
+          preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+          window.rootViewController?.present(alert, animated: true)
+        }
+      }
+    #else
+      // On real device, open the App Store subscription management page
+      if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+        UIApplication.shared.open(url)
+      }
+    #endif
   }
 }
 
