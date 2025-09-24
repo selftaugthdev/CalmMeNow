@@ -277,12 +277,22 @@ struct PersonalizedPanicPlanView: View {
 
         // Parse the structured result from Firebase Functions
         await MainActor.run {
+          let steps = parseStructuredPlan(result)
+          let duration = extractDuration(from: result)
+          let techniques = extractTechniques(from: result)
+          
+          print("AI Plan Generation Debug:")
+          print("Raw result: \(result)")
+          print("Parsed steps: \(steps)")
+          print("Extracted duration: \(duration)")
+          print("Extracted techniques: \(techniques)")
+          
           let newPlan = PanicPlan(
             title: "AI-Generated Plan",
             description: "Personalized plan created just for you",
-            steps: parseStructuredPlan(result),
-            duration: extractDuration(from: result),
-            techniques: extractTechniques(from: result),
+            steps: steps,
+            duration: duration,
+            techniques: techniques,
             emergencyContact: nil,
             personalizedPhrase: "I am safe and I can handle this"
           )
@@ -653,8 +663,8 @@ struct PlanExecutionView: View {
       // Background gradient
       LinearGradient(
         gradient: Gradient(colors: [
-          Color(hex: "#E8F4FD"),
-          Color(hex: "#F0F8FF"),
+          Color.blue.opacity(0.1),
+          Color.blue.opacity(0.05),
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -770,6 +780,21 @@ struct PlanExecutionView: View {
 
   private func startPlan() {
     print("Start Plan button tapped") // Debug logging
+    print("Plan title: \(plan.title)")
+    print("Plan steps count: \(plan.steps.count)")
+    print("Plan duration: \(plan.duration)")
+    
+    // Validate plan data
+    guard !plan.steps.isEmpty else {
+      print("ERROR: Plan has no steps!")
+      return
+    }
+    
+    guard plan.duration > 0 else {
+      print("ERROR: Plan has invalid duration: \(plan.duration)")
+      return
+    }
+    
     isExecuting = true
     currentStepIndex = 0
     timeRemaining = TimeInterval(plan.duration)
