@@ -349,7 +349,7 @@ struct ContentView: View {
         )
       }
       .sheet(isPresented: $showingPersonalizedPlan) {
-        PersonalizedPanicPlanGeneratorView()
+        PersonalizedPanicPlanView()
       }
       .sheet(isPresented: $showingDailyCoach) {
         DailyCoachView()

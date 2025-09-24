@@ -288,6 +288,7 @@ struct PersonalizedPanicPlanView: View {
           )
 
           userPlans.append(newPlan)
+          selectedPlan = newPlan  // Auto-select the newly generated plan
           isGeneratingAIPlan = false
 
           // Track successful plan generation
@@ -602,8 +603,20 @@ struct PlanExecutionView: View {
       .ignoresSafeArea()
 
       VStack(spacing: 30) {
-        // Header
+        // Header with close button
         VStack(spacing: 16) {
+          HStack {
+            Spacer()
+            Button(action: {
+              presentationMode.wrappedValue.dismiss()
+            }) {
+              Image(systemName: "xmark.circle.fill")
+                .font(.title2)
+                .foregroundColor(.gray)
+            }
+          }
+          .padding(.horizontal, 20)
+          
           Text("🧩")
             .font(.system(size: 50))
 
@@ -676,6 +689,7 @@ struct PlanExecutionView: View {
   }
 
   private func startPlan() {
+    print("Start Plan button tapped") // Debug logging
     isExecuting = true
     currentStepIndex = 0
     timeRemaining = TimeInterval(plan.duration)
