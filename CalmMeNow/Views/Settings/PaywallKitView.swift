@@ -23,11 +23,11 @@ struct PaywallKitView: View {
       PaywallConfig.Feature(
         icon: "target",
         title: "Personalized Panic Plans",
-        description: "AI-generated strategies tailored to your triggers and preferences"
+        description: "Personalized strategies tailored to your triggers and preferences"
       ),
       PaywallConfig.Feature(
         icon: "brain.head.profile",
-        title: "AI Companion",
+        title: "Personalized Companion",
         description: "24/7 emotional support and guidance when you need it most"
       ),
       PaywallConfig.Feature(

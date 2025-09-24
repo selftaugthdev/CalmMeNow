@@ -154,7 +154,7 @@ struct SettingsView: View {
                 VStack(spacing: 16) {
                   HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                      Text("AI-Powered Features")
+                      Text("Personalized Features")
                         .font(.headline)
                         .foregroundColor(.primary)
 
@@ -175,7 +175,7 @@ struct SettingsView: View {
                     Image(systemName: "checkmark.circle.fill")
                       .foregroundColor(.green)
 
-                    Text("AI Configured")
+                    Text("Personalized Features Configured")
                       .font(.caption)
                       .foregroundColor(.green)
                   }
@@ -210,7 +210,8 @@ struct SettingsView: View {
                     icon: "brain.head.profile",
                     iconColor: .yellow,
                     title: "Advanced Personalization",
-                    description: "AI learns from your preferences and mood patterns",
+                    description:
+                      "Personalized features learn from your preferences and mood patterns",
                     isPremium: true
                   )
 
@@ -252,7 +253,7 @@ struct SettingsView: View {
 
                     Divider()
                       .background(Color.black.opacity(0.1))
-                    
+
                     // Manage Account - Only show if user is subscribed
                     SettingsActionRow(
                       icon: "person.circle",
@@ -263,7 +264,7 @@ struct SettingsView: View {
                         openSubscriptionManagement()
                       }
                     )
-                    
+
                     Divider()
                       .background(Color.black.opacity(0.1))
                   }
@@ -398,22 +399,24 @@ struct SettingsView: View {
       }
     }
   }
-  
+
   // MARK: - Helper Functions
-  
+
   private func openSubscriptionManagement() {
     #if targetEnvironment(simulator)
       // In simulator, show an alert instead of opening App Store
       DispatchQueue.main.async {
         let alert = UIAlertController(
           title: "Manage Account",
-          message: "In the simulator, you can't access App Store subscription management. On a real device, this would open your subscription settings where you can cancel or modify your subscription.",
+          message:
+            "In the simulator, you can't access App Store subscription management. On a real device, this would open your subscription settings where you can cancel or modify your subscription.",
           preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default))
-        
+
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first {
+          let window = windowScene.windows.first
+        {
           window.rootViewController?.present(alert, animated: true)
         }
       }

@@ -255,7 +255,7 @@ struct ContentView: View {
                 EmotionCard(
                   emoji: "🧠",
                   emotion: "Smart Plan",
-                  subtext: "AI-enhanced panic plan with insights",
+                  subtext: "Personalized panic plan with insights",
                   isSelected: selectedButton == "enhanced_panic_plan",
                   onTap: {
                     HapticManager.shared.emotionButtonTap()
