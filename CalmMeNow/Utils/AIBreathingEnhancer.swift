@@ -277,6 +277,61 @@ struct AIEnhancedBreathingView: View {
   }
 }
 
+// MARK: - Supporting Views
+
+struct IntensitySelectionSheet: View {
+  let emotion: String
+  let onIntensitySelected: (String) -> Void
+
+  private let intensities = ["Mild", "Moderate", "High", "Severe"]
+
+  var body: some View {
+    NavigationView {
+      VStack(spacing: 24) {
+        Text("How intense is your \(emotion.lowercased()) feeling?")
+          .font(.title2)
+          .fontWeight(.bold)
+          .multilineTextAlignment(.center)
+          .padding(.horizontal, 20)
+
+        VStack(spacing: 16) {
+          ForEach(intensities, id: \.self) { intensity in
+            Button(action: {
+              onIntensitySelected(intensity)
+            }) {
+              HStack {
+                Text(intensity)
+                  .font(.headline)
+                  .foregroundColor(.primary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                  .foregroundColor(.secondary)
+              }
+              .padding()
+              .background(
+                RoundedRectangle(cornerRadius: 12)
+                  .fill(Color.white.opacity(0.9))
+              )
+              .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                  .stroke(Color.black.opacity(0.1), lineWidth: 1)
+              )
+            }
+          }
+        }
+        .padding(.horizontal, 20)
+
+        Spacer()
+      }
+      .padding(.top, 20)
+      .navigationTitle("Intensity Level")
+      .navigationBarTitleDisplayMode(.inline)
+    }
+  }
+}
+
 #Preview {
   AIEnhancedBreathingView()
 }

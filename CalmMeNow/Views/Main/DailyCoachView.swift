@@ -11,6 +11,8 @@ struct DailyCoachView: View {
   @State private var showingPanicPlan = false
   @State private var emergencyExercise: Exercise?
   @State private var isGeneratingExercise = false
+  @State private var usageInsights: [String] = []
+  @State private var isLoadingInsights = false
 
   var body: some View {
     NavigationView {
@@ -183,6 +185,73 @@ struct DailyCoachView: View {
                 .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
             )
             .padding(.horizontal, 20)
+
+            // Usage Insights Section
+            if !usageInsights.isEmpty {
+              VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                  Image(systemName: "chart.line.uptrend.xyaxis")
+                    .foregroundColor(.green)
+                    .font(.title2)
+                  
+                  Text("Your Progress Insights")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(.label))
+                  
+                  Spacer()
+                }
+                
+                ForEach(usageInsights, id: \.self) { insight in
+                  HStack(alignment: .top, spacing: 12) {
+                    Text("💡")
+                      .font(.title3)
+                    
+                    Text(insight)
+                      .font(.body)
+                      .foregroundColor(Color(.label))
+                      .multilineTextAlignment(.leading)
+                  }
+                  .padding(.vertical, 4)
+                }
+              }
+              .padding(20)
+              .background(
+                RoundedRectangle(cornerRadius: 16)
+                  .fill(Color(.systemBackground))
+                  .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+              )
+              .padding(.horizontal, 20)
+            }
+            
+            // Generate Insights Button
+            if usageInsights.isEmpty {
+              Button(action: generateUsageInsights) {
+                HStack(spacing: 12) {
+                  if isLoadingInsights {
+                    ProgressView()
+                      .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                      .scaleEffect(0.8)
+                  } else {
+                    Image(systemName: "chart.bar.fill")
+                      .font(.title2)
+                  }
+                  
+                  Text(isLoadingInsights ? "Analyzing..." : "Get Progress Insights")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                  RoundedRectangle(cornerRadius: 25)
+                    .fill(isLoadingInsights ? Color.gray : Color.green)
+                )
+              }
+              .disabled(isLoadingInsights)
+              .padding(.horizontal, 20)
+            }
 
             // Results Section
             if let result = checkinResult {
@@ -400,6 +469,123 @@ struct DailyCoachView: View {
         }
       }
     }
+  }
+  
+  private func generateUsageInsights() {
+    isLoadingInsights = true
+    
+    Task {
+      do {
+        // Analyze usage patterns
+        let usageAnalysis = analyzeUsagePatterns()
+        
+        // Generate insights based on patterns
+        let insights = generateInsightsFromUsage(usageAnalysis)
+        
+        await MainActor.run {
+          usageInsights = insights
+          isLoadingInsights = false
+        }
+      } catch {
+        await MainActor.run {
+          isLoadingInsights = false
+        }
+        print("Error generating usage insights: \(error)")
+      }
+    }
+  }
+  
+  private func analyzeUsagePatterns() -> [String: Any] {
+    let progressTracker = ProgressTracker.shared
+    
+    // Analyze usage patterns
+    let totalUsage = progressTracker.totalUsage
+    let weeklyUsage = progressTracker.weeklyUsage
+    let currentStreak = progressTracker.currentStreak
+    let longestStreak = progressTracker.longestStreak
+    let daysThisWeek = progressTracker.daysThisWeek
+    
+    // Calculate usage frequency
+    let usageFrequency = totalUsage > 0 ? Double(weeklyUsage) / 7.0 : 0.0
+    
+    // Analyze relief outcomes
+    let reliefOutcomes = progressTracker.reliefOutcomes
+    let betterNowCount = reliefOutcomes.filter { $0 == .betterNow }.count
+    let stillNeedHelpCount = reliefOutcomes.filter { $0 == .stillNeedHelp }.count
+    let successRate = reliefOutcomes.count > 0 ? Double(betterNowCount) / Double(reliefOutcomes.count) : 0.0
+    
+    // Analyze help options used
+    let helpOptions = progressTracker.helpOptionsUsed
+    let mostUsedOptions = Dictionary(grouping: helpOptions, by: { $0 })
+      .mapValues { $0.count }
+      .sorted { $0.value > $1.value }
+      .prefix(3)
+    
+    return [
+      "totalUsage": totalUsage,
+      "weeklyUsage": weeklyUsage,
+      "currentStreak": currentStreak,
+      "longestStreak": longestStreak,
+      "daysThisWeek": daysThisWeek,
+      "usageFrequency": usageFrequency,
+      "successRate": successRate,
+      "betterNowCount": betterNowCount,
+      "stillNeedHelpCount": stillNeedHelpCount,
+      "mostUsedOptions": Array(mostUsedOptions),
+      "hasRecentUsage": progressTracker.lastUsedDate != nil
+    ]
+  }
+  
+  private func generateInsightsFromUsage(_ analysis: [String: Any]) -> [String] {
+    var insights: [String] = []
+    
+    let totalUsage = analysis["totalUsage"] as? Int ?? 0
+    let currentStreak = analysis["currentStreak"] as? Int ?? 0
+    let longestStreak = analysis["longestStreak"] as? Int ?? 0
+    let successRate = analysis["successRate"] as? Double ?? 0.0
+    let usageFrequency = analysis["usageFrequency"] as? Double ?? 0.0
+    let daysThisWeek = analysis["daysThisWeek"] as? Int ?? 0
+    
+    // Generate insights based on patterns
+    if currentStreak > 0 {
+      insights.append("You're on a \(currentStreak)-day streak! Consistency is key to building healthy habits.")
+    }
+    
+    if longestStreak > currentStreak {
+      insights.append("Your longest streak was \(longestStreak) days - you know you can do this!")
+    }
+    
+    if successRate > 0.7 {
+      insights.append("You're finding relief \(Int(successRate * 100))% of the time - that's excellent progress!")
+    } else if successRate > 0.5 {
+      insights.append("You're finding relief \(Int(successRate * 100))% of the time - keep practicing!")
+    }
+    
+    if usageFrequency > 0.5 {
+      insights.append("You're using the app almost daily - that's a great habit to maintain!")
+    } else if usageFrequency > 0.2 {
+      insights.append("You're building a regular practice - every bit helps!")
+    }
+    
+    if daysThisWeek >= 5 {
+      insights.append("You've used the app \(daysThisWeek) days this week - you're really committed to your wellbeing!")
+    } else if daysThisWeek >= 3 {
+      insights.append("You've used the app \(daysThisWeek) days this week - nice consistency!")
+    }
+    
+    if totalUsage > 20 {
+      insights.append("You've used the app \(totalUsage) times total - you're building real expertise in self-care!")
+    } else if totalUsage > 10 {
+      insights.append("You've used the app \(totalUsage) times - you're developing good coping skills!")
+    }
+    
+    // If no specific insights, provide encouragement
+    if insights.isEmpty {
+      insights.append("Every time you use the app, you're taking a positive step for your mental health.")
+      insights.append("Remember, progress isn't always linear - be patient with yourself.")
+    }
+    
+    return insights
   }
 }
 
