@@ -512,16 +512,32 @@ struct PlanEditorView: View {
         }
 
         Section(header: Text("Steps")) {
+          Text("Add clear, actionable steps for your panic plan. Examples:")
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .padding(.bottom, 8)
+          
           ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
-            HStack {
-              TextField("Step \(index + 1)", text: $steps[index])
+            VStack(alignment: .leading, spacing: 4) {
+              Text("Step \(index + 1)")
+                .font(.caption)
+                .foregroundColor(.secondary)
+              
+              TextField(getStepPlaceholder(for: index), text: $steps[index])
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
 
-              if steps.count > 1 {
+            if steps.count > 1 {
+              HStack {
+                Spacer()
                 Button(action: {
                   steps.remove(at: index)
                 }) {
-                  Image(systemName: "minus.circle.fill")
-                    .foregroundColor(.red)
+                  HStack {
+                    Image(systemName: "minus.circle.fill")
+                    Text("Remove Step")
+                  }
+                  .foregroundColor(.red)
                 }
               }
             }
@@ -530,6 +546,7 @@ struct PlanEditorView: View {
           Button("Add Step") {
             steps.append("")
           }
+          .foregroundColor(.blue)
         }
 
         Section(header: Text("Duration")) {
@@ -568,8 +585,36 @@ struct PlanEditorView: View {
           steps = plan.steps
           // audioFile removed from PanicPlan struct
           duration = TimeInterval(plan.duration)
+        } else {
+          // Set default values for new plans
+          name = "My Panic Plan"
+          description = "Personalized plan for managing panic attacks"
+          steps = [
+            "Take 5 deep breaths slowly",
+            "Name 5 things you can see around you",
+            "Repeat: 'I am safe and this will pass'"
+          ]
         }
       }
+    }
+  }
+  
+  private func getStepPlaceholder(for index: Int) -> String {
+    let examples = [
+      "Take 5 deep breaths slowly",
+      "Name 5 things you can see around you",
+      "Repeat: 'I am safe and this will pass'",
+      "Focus on your breathing for 30 seconds",
+      "Call a trusted friend or family member",
+      "Use your calming phrase 3 times",
+      "Do a quick body scan and relax tense muscles",
+      "Listen to calming music or sounds"
+    ]
+    
+    if index < examples.count {
+      return examples[index]
+    } else {
+      return "Add your personal calming technique"
     }
   }
 }
@@ -639,11 +684,27 @@ struct PlanExecutionView: View {
               .font(.headline)
               .foregroundColor(.blue)
 
-            Text(plan.steps[currentStepIndex])
-              .font(.title2)
-              .fontWeight(.medium)
-              .multilineTextAlignment(.center)
-              .padding(.horizontal, 20)
+            // Step content with better formatting
+            VStack(spacing: 12) {
+              Text("What to do:")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+              
+              Text(plan.steps[currentStepIndex])
+                .font(.title2)
+                .fontWeight(.medium)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.blue.opacity(0.1))
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                )
+            }
 
             // Progress indicator
             ProgressView(value: Double(currentStepIndex), total: Double(plan.steps.count - 1))
@@ -651,10 +712,15 @@ struct PlanExecutionView: View {
               .padding(.horizontal, 40)
 
             // Timer
-            Text(timeString(from: timeRemaining))
-              .font(.title)
-              .fontWeight(.bold)
-              .foregroundColor(.blue)
+            VStack(spacing: 4) {
+              Text("Time remaining:")
+                .font(.caption)
+                .foregroundColor(.secondary)
+              Text(timeString(from: timeRemaining))
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.blue)
+            }
           }
         } else {
           // Start button
