@@ -1,17 +1,18 @@
 import Foundation
 
-struct PanicPlan: Codable, Identifiable {
-  let id = UUID()
-  let title: String
-  let description: String
-  let steps: [String]
-  let duration: Int
-  let techniques: [String]
-  let emergencyContact: String?
-  let personalizedPhrase: String
+struct PanicPlan: Codable, Identifiable, Hashable {
+  let id: UUID
+  var title: String
+  var description: String
+  var steps: [String]
+  var duration: Int
+  var techniques: [String]
+  var emergencyContact: String?
+  var personalizedPhrase: String?
   let createdAt: Date
 
   init(from dict: [String: Any]) {
+    self.id = UUID()
     self.title = dict["title"] as? String ?? "Personalized Calm Plan"
     self.description =
       dict["description"] as? String ?? "Your customized plan for managing overwhelming moments"
@@ -27,7 +28,18 @@ struct PanicPlan: Codable, Identifiable {
   }
   
   // Custom initializer for creating PanicPlan instances
-  init(title: String, description: String, steps: [String], duration: Int, techniques: [String], emergencyContact: String? = nil, personalizedPhrase: String, createdAt: Date = Date()) {
+  init(
+    id: UUID = UUID(),
+    title: String,
+    description: String,
+    steps: [String],
+    duration: Int,
+    techniques: [String],
+    emergencyContact: String? = nil,
+    personalizedPhrase: String? = nil,
+    createdAt: Date = Date()
+  ) {
+    self.id = id
     self.title = title
     self.description = description
     self.steps = steps

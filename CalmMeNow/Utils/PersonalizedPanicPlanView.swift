@@ -5,28 +5,12 @@ struct PersonalizedPanicPlanView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
+  @StateObject private var planStore = PlanStore()
 
   @AppStorage("prefSounds") private var prefSounds = true
 
   @State private var selectedPlan: PanicPlan?
   @State private var showingPlanEditor = false
-
-  // Sample panic plans - in a real app, these would be stored in UserDefaults or Core Data
-  @State private var userPlans: [PanicPlan] = [
-    PanicPlan(
-      title: "My Emergency Plan",
-      description: "Quick relief for panic attacks",
-      steps: [
-        "Take 3 deep breaths",
-        "Ground yourself with 5-4-3-2-1",
-        "Listen to calming sounds",
-        "Call a trusted friend if needed",
-      ],
-      duration: 120,
-      techniques: ["Breathing", "Grounding", "Social Support"],
-      personalizedPhrase: "I am safe and I can handle this"
-    )
-  ]
 
   @State private var isGeneratingAIPlan = false
   #if DEBUG
@@ -70,7 +54,7 @@ struct PersonalizedPanicPlanView: View {
 
             // Plans List
             VStack(spacing: 16) {
-              ForEach(userPlans) { plan in
+              ForEach(planStore.plans) { plan in
                 PlanCard(
                   plan: plan,
                   onTap: {
@@ -83,7 +67,7 @@ struct PersonalizedPanicPlanView: View {
                     showingPlanEditor = true
                   },
                   onDelete: {
-                    deletePlan(plan)
+                    planStore.delete(plan)
                   }
                 )
               }
@@ -234,13 +218,7 @@ struct PersonalizedPanicPlanView: View {
         PlanEditorView(
           plan: selectedPlan,
           onSave: { newPlan in
-            if let existingPlan = selectedPlan,
-              let index = userPlans.firstIndex(where: { $0.id == existingPlan.id })
-            {
-              userPlans[index] = newPlan
-            } else {
-              userPlans.append(newPlan)
-            }
+            planStore.upsert(newPlan)
             showingPlanEditor = false
           }
         )
@@ -249,10 +227,6 @@ struct PersonalizedPanicPlanView: View {
         PlanExecutionView(plan: plan)
       }
     }
-  }
-  
-  private func deletePlan(_ plan: PanicPlan) {
-    userPlans.removeAll { $0.id == plan.id }
   }
 
   // MARK: - AI Methods
@@ -295,8 +269,8 @@ struct PersonalizedPanicPlanView: View {
             personalizedPhrase: "I am safe and I can handle this"
           )
 
-          userPlans.append(newPlan)
-          selectedPlan = newPlan  // Auto-select the newly generated plan
+                  planStore.upsert(newPlan)
+                  selectedPlan = newPlan  // Auto-select the newly generated plan
           isGeneratingAIPlan = false
 
           // Track successful plan generation

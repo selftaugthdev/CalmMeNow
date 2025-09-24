@@ -614,7 +614,7 @@ struct PanicPlanEditorView: View {
           description = existingPlan.description
           steps = existingPlan.steps.isEmpty ? [""] : existingPlan.steps
           duration = existingPlan.duration
-          personalizedPhrase = existingPlan.personalizedPhrase
+          personalizedPhrase = existingPlan.personalizedPhrase ?? "I am safe and I can handle this"
         }
       }
     }
@@ -641,7 +641,7 @@ struct PanicPlanExecutionView: View {
           .multilineTextAlignment(.center)
           .padding(.horizontal)
         
-        Text(plan.personalizedPhrase)
+        Text(plan.personalizedPhrase ?? "I am safe and I can handle this")
           .font(.title2)
           .fontWeight(.medium)
           .foregroundColor(.blue)
