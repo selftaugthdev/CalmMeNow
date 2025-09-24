@@ -403,39 +403,55 @@ struct PlanCard: View {
   let onDelete: () -> Void
 
   var body: some View {
-    Button(action: onTap) {
-      VStack(alignment: .leading, spacing: 12) {
-        HStack {
-          VStack(alignment: .leading, spacing: 4) {
-            Text(plan.title)
-              .font(.title3)
-              .fontWeight(.semibold)
-              .foregroundColor(Color(.label))
+            VStack(alignment: .leading, spacing: 12) {
+              HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                  Text(plan.title)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color(.label))
 
-            Text(plan.description)
-              .font(.caption)
-              .foregroundColor(Color(.secondaryLabel))
-              .lineLimit(2)
-          }
+                  Text(plan.description)
+                    .font(.caption)
+                    .foregroundColor(Color(.secondaryLabel))
+                    .lineLimit(2)
+                }
 
-          Spacer()
+                Spacer()
 
-          HStack(spacing: 8) {
-            Button(action: onEdit) {
-              Image(systemName: "pencil.circle.fill")
-                .font(.title2)
-                .foregroundColor(.blue)
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            Button(action: onDelete) {
-              Image(systemName: "trash.circle.fill")
-                .font(.title2)
-                .foregroundColor(.red)
-            }
-            .buttonStyle(PlainButtonStyle())
-          }
-        }
+                HStack(spacing: 8) {
+                  Button(action: onEdit) {
+                    Image(systemName: "pencil.circle.fill")
+                      .font(.title2)
+                      .foregroundColor(.blue)
+                  }
+                  .buttonStyle(PlainButtonStyle())
+                  
+                  Button(action: onDelete) {
+                    Image(systemName: "trash.circle.fill")
+                      .font(.title2)
+                      .foregroundColor(.red)
+                  }
+                  .buttonStyle(PlainButtonStyle())
+                }
+              }
+              
+              // Add Start Plan button
+              Button(action: onTap) {
+                HStack {
+                  Image(systemName: "play.fill")
+                    .font(.caption)
+                  Text("Start Plan")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.blue)
+                .cornerRadius(8)
+              }
+              .buttonStyle(PlainButtonStyle())
 
         // Steps preview
         VStack(alignment: .leading, spacing: 4) {
@@ -460,34 +476,32 @@ struct PlanCard: View {
           }
         }
 
-        HStack {
-          Label("\(Int(plan.duration / 60)) min", systemImage: "clock")
-            .font(.caption)
-            .foregroundColor(Color(.secondaryLabel))
+              HStack {
+                Label("\(Int(plan.duration / 60)) min", systemImage: "clock")
+                  .font(.caption)
+                  .foregroundColor(Color(.secondaryLabel))
 
-          Spacer()
+                Spacer()
 
-          // Note: isDefault property removed, using duration instead
-          Text("\(plan.duration / 60) min")
-            .font(.caption)
-            .fontWeight(.medium)
-            .foregroundColor(.blue)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
+                // Note: isDefault property removed, using duration instead
+                Text("\(plan.duration / 60) min")
+                  .font(.caption)
+                  .fontWeight(.medium)
+                  .foregroundColor(.blue)
+                  .padding(.horizontal, 8)
+                  .padding(.vertical, 2)
+                  .background(
+                    RoundedRectangle(cornerRadius: 8)
+                      .fill(Color.blue.opacity(0.2))
+                  )
+              }
+            }
+            .padding(16)
             .background(
-              RoundedRectangle(cornerRadius: 8)
-                .fill(Color.green)
+              RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
             )
-        }
-      }
-      .padding(16)
-      .background(
-        RoundedRectangle(cornerRadius: 16)
-          .fill(Color(.systemBackground))
-          .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-      )
-    }
-    .buttonStyle(PlainButtonStyle())
   }
 }
 
