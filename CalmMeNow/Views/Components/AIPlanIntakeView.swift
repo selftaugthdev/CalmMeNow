@@ -407,7 +407,11 @@ struct AIPlanIntakeView: View {
         await MainActor.run {
           let newPlan = createPlanFromResult(result)
           onPlanGenerated(newPlan)
-          isPresented = false
+
+          // Add a small delay to prevent multiple sheets from presenting simultaneously
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            isPresented = false
+          }
         }
       } catch {
         await MainActor.run {
