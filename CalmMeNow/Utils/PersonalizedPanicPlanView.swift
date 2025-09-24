@@ -81,6 +81,9 @@ struct PersonalizedPanicPlanView: View {
                   onEdit: {
                     selectedPlan = plan
                     showingPlanEditor = true
+                  },
+                  onDelete: {
+                    deletePlan(plan)
                   }
                 )
               }
@@ -249,6 +252,10 @@ struct PersonalizedPanicPlanView: View {
       }
     }
   }
+  
+  private func deletePlan(_ plan: PanicPlan) {
+    userPlans.removeAll { $0.id == plan.id }
+  }
 
   // MARK: - AI Methods
 
@@ -392,6 +399,7 @@ struct PlanCard: View {
   let plan: PanicPlan
   let onTap: () -> Void
   let onEdit: () -> Void
+  let onDelete: () -> Void
 
   var body: some View {
     Button(action: onTap) {
@@ -411,12 +419,21 @@ struct PlanCard: View {
 
           Spacer()
 
-          Button(action: onEdit) {
-            Image(systemName: "pencil.circle.fill")
-              .font(.title2)
-              .foregroundColor(.blue)
+          HStack(spacing: 8) {
+            Button(action: onEdit) {
+              Image(systemName: "pencil.circle.fill")
+                .font(.title2)
+                .foregroundColor(.blue)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Button(action: onDelete) {
+              Image(systemName: "trash.circle.fill")
+                .font(.title2)
+                .foregroundColor(.red)
+            }
+            .buttonStyle(PlainButtonStyle())
           }
-          .buttonStyle(PlainButtonStyle())
         }
 
         // Steps preview

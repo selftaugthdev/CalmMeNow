@@ -180,6 +180,13 @@ struct EnhancedPanicPlanView: View {
                     onExecute: { 
                       selectedPlan = plan
                       showingPlanExecution = true
+                    },
+                    onEdit: { 
+                      selectedPlan = plan
+                      showingPlanEditor = true
+                    },
+                    onDelete: {
+                      deletePlan(plan)
                     }
                   )
                 }
@@ -233,8 +240,17 @@ struct EnhancedPanicPlanView: View {
       )
       .sheet(isPresented: $showingPlanEditor) {
         PanicPlanEditorView(
+          plan: selectedPlan,
           onSave: { plan in
-            userPlans.append(plan)
+            if let selectedPlan = selectedPlan,
+               let index = userPlans.firstIndex(where: { $0.id == selectedPlan.id }) {
+              // Update existing plan
+              userPlans[index] = plan
+            } else {
+              // Add new plan
+              userPlans.append(plan)
+            }
+            saveUserPlans()
           }
         )
       }
@@ -265,6 +281,11 @@ struct EnhancedPanicPlanView: View {
     if let data = try? JSONEncoder().encode(userPlans) {
       UserDefaults.standard.set(data, forKey: "userPanicPlans")
     }
+  }
+  
+  private func deletePlan(_ plan: PanicPlan) {
+    userPlans.removeAll { $0.id == plan.id }
+    saveUserPlans()
   }
   
   private func generateInsights() {
@@ -435,6 +456,8 @@ struct PanicPlanCard: View {
   let plan: PanicPlan
   let onSelect: () -> Void
   let onExecute: () -> Void
+  let onEdit: () -> Void
+  let onDelete: () -> Void
   
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -452,14 +475,30 @@ struct PanicPlanCard: View {
         
         Spacer()
         
-        Text("\(plan.duration)s")
-          .font(.caption)
-          .fontWeight(.medium)
-          .padding(.horizontal, 8)
-          .padding(.vertical, 4)
-          .background(Color.blue.opacity(0.2))
-          .foregroundColor(.blue)
-          .cornerRadius(8)
+        HStack(spacing: 8) {
+          Text("\(plan.duration)s")
+            .font(.caption)
+            .fontWeight(.medium)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.blue.opacity(0.2))
+            .foregroundColor(.blue)
+            .cornerRadius(8)
+          
+          // Edit button
+          Button(action: onEdit) {
+            Image(systemName: "pencil.circle.fill")
+              .font(.title3)
+              .foregroundColor(.blue)
+          }
+          
+          // Delete button
+          Button(action: onDelete) {
+            Image(systemName: "trash.circle.fill")
+              .font(.title3)
+              .foregroundColor(.red)
+          }
+        }
       }
       
       HStack(spacing: 8) {
@@ -516,6 +555,7 @@ struct PanicPlanCard: View {
 
 struct PanicPlanEditorView: View {
   @Environment(\.presentationMode) var presentationMode
+  let plan: PanicPlan?
   let onSave: (PanicPlan) -> Void
   
   @State private var title = ""
@@ -549,13 +589,13 @@ struct PanicPlanEditorView: View {
           TextField("Your calming phrase", text: $personalizedPhrase)
         }
       }
-      .navigationTitle("New Panic Plan")
+      .navigationTitle(plan == nil ? "New Panic Plan" : "Edit Panic Plan")
       .navigationBarItems(
         leading: Button("Cancel") {
           presentationMode.wrappedValue.dismiss()
         },
         trailing: Button("Save") {
-          let plan = PanicPlan(
+          let newPlan = PanicPlan(
             title: title.isEmpty ? "My Plan" : title,
             description: description.isEmpty ? "Personalized panic plan" : description,
             steps: steps.filter { !$0.isEmpty },
@@ -563,11 +603,20 @@ struct PanicPlanEditorView: View {
             techniques: ["Custom"],
             personalizedPhrase: personalizedPhrase
           )
-          onSave(plan)
+          onSave(newPlan)
           presentationMode.wrappedValue.dismiss()
         }
         .disabled(title.isEmpty || steps.allSatisfy { $0.isEmpty })
       )
+      .onAppear {
+        if let existingPlan = plan {
+          title = existingPlan.title
+          description = existingPlan.description
+          steps = existingPlan.steps.isEmpty ? [""] : existingPlan.steps
+          duration = existingPlan.duration
+          personalizedPhrase = existingPlan.personalizedPhrase
+        }
+      }
     }
   }
   
