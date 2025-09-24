@@ -5,29 +5,12 @@ struct PersonalizedPanicPlanView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
+  @StateObject private var planStore = PlanStore()
 
   @AppStorage("prefSounds") private var prefSounds = true
 
   @State private var selectedPlan: PanicPlan?
   @State private var showingPlanEditor = false
-  @State private var showingPlanExecution = false
-
-  // Sample panic plans - in a real app, these would be stored in UserDefaults or Core Data
-  @State private var userPlans: [PanicPlan] = [
-    PanicPlan(
-      title: "My Emergency Plan",
-      description: "Quick relief for panic attacks",
-      steps: [
-        "Take 3 deep breaths",
-        "Ground yourself with 5-4-3-2-1",
-        "Listen to calming sounds",
-        "Call a trusted friend if needed",
-      ],
-      duration: 120,
-      techniques: ["Breathing", "Grounding", "Social Support"],
-      personalizedPhrase: "I am safe and I can handle this"
-    )
-  ]
 
   @State private var isGeneratingAIPlan = false
   #if DEBUG
@@ -71,16 +54,20 @@ struct PersonalizedPanicPlanView: View {
 
             // Plans List
             VStack(spacing: 16) {
-              ForEach(userPlans) { plan in
+              ForEach(planStore.plans) { plan in
                 PlanCard(
                   plan: plan,
                   onTap: {
+                    print("Plan card tapped: \(plan.title)")
+                    print("Plan steps: \(plan.steps)")
                     selectedPlan = plan
-                    showingPlanExecution = true
                   },
                   onEdit: {
                     selectedPlan = plan
                     showingPlanEditor = true
+                  },
+                  onDelete: {
+                    planStore.delete(plan)
                   }
                 )
               }
@@ -231,21 +218,13 @@ struct PersonalizedPanicPlanView: View {
         PlanEditorView(
           plan: selectedPlan,
           onSave: { newPlan in
-            if let existingPlan = selectedPlan,
-              let index = userPlans.firstIndex(where: { $0.id == existingPlan.id })
-            {
-              userPlans[index] = newPlan
-            } else {
-              userPlans.append(newPlan)
-            }
+            planStore.upsert(newPlan)
             showingPlanEditor = false
           }
         )
       }
-      .sheet(isPresented: $showingPlanExecution) {
-        if let plan = selectedPlan {
-          PlanExecutionView(plan: plan)
-        }
+      .sheet(item: $selectedPlan) { plan in
+        PlanExecutionView(plan: plan)
       }
     }
   }
@@ -270,17 +249,28 @@ struct PersonalizedPanicPlanView: View {
 
         // Parse the structured result from Firebase Functions
         await MainActor.run {
+          let steps = parseStructuredPlan(result)
+          let duration = extractDuration(from: result)
+          let techniques = extractTechniques(from: result)
+          
+          print("AI Plan Generation Debug:")
+          print("Raw result: \(result)")
+          print("Parsed steps: \(steps)")
+          print("Extracted duration: \(duration)")
+          print("Extracted techniques: \(techniques)")
+          
           let newPlan = PanicPlan(
             title: "AI-Generated Plan",
             description: "Personalized plan created just for you",
-            steps: parseStructuredPlan(result),
-            duration: extractDuration(from: result),
-            techniques: extractTechniques(from: result),
+            steps: steps,
+            duration: duration,
+            techniques: techniques,
             emergencyContact: nil,
             personalizedPhrase: "I am safe and I can handle this"
           )
 
-          userPlans.append(newPlan)
+                  planStore.upsert(newPlan)
+                  selectedPlan = newPlan  // Auto-select the newly generated plan
           isGeneratingAIPlan = false
 
           // Track successful plan generation
@@ -304,47 +294,58 @@ struct PersonalizedPanicPlanView: View {
 
   /// Parse structured plan from Firebase Functions response
   private func parseStructuredPlan(_ result: [String: Any]) -> [String] {
-    guard let steps = result["steps"] as? [[String: Any]] else {
-      return ["Take 5 deep breaths", "Ground yourself", "Listen to calming sounds"]
+    guard let raw = result["steps"] as? [[String: Any]] else {
+      return defaultSteps()
     }
-
-    return steps.compactMap { step in
-      if let type = step["type"] as? String {
-        switch type {
-        case "breathing":
-          if let pattern = step["pattern"] as? String, let seconds = step["seconds"] as? Int {
-            return "\(pattern.capitalized) breathing for \(seconds) seconds"
-          }
-        case "grounding":
-          if let method = step["method"] as? String, let seconds = step["seconds"] as? Int {
-            return "\(method.capitalized) grounding for \(seconds) seconds"
-          }
-        case "muscle_release":
-          if let area = step["area"] as? String, let seconds = step["seconds"] as? Int {
-            return "Release \(area) for \(seconds) seconds"
-          }
-        case "affirmation":
-          if let text = step["text"] as? String, let seconds = step["seconds"] as? Int {
-            return "Repeat: '\(text)' for \(seconds) seconds"
-          }
-        default:
-          break
+    
+    let parsed = raw.compactMap { step -> String? in
+      let type = (step["type"] as? String)?.lowercased() ?? ""
+      switch type {
+      case "breathing":
+        if let pattern = step["pattern"] as? String, let seconds = step["seconds"] as? Int {
+          return "\(pattern.capitalized) breathing for \(seconds) seconds"
         }
+        if let pattern = step["pattern"] as? String {
+          return "\(pattern.capitalized) breathing"
+        }
+        return "Slow breathing: In 4 • Hold 4 • Out 4 • Hold 4"
+      case "grounding":
+        if let method = step["method"] as? String, let seconds = step["seconds"] as? Int {
+          return "\(method.capitalized) grounding for \(seconds) seconds"
+        }
+        return "5-4-3-2-1 grounding"
+      case "muscle_release":
+        let area = (step["area"] as? String) ?? "shoulders"
+        let seconds = (step["seconds"] as? Int) ?? 20
+        return "Release \(area) for \(seconds) seconds"
+      case "affirmation":
+        let text = (step["text"] as? String) ?? "I am safe. This will pass."
+        return "Repeat: '\(text)'"
+      default:
+        // Try a generic "text" field
+        if let text = step["text"] as? String { return text }
+        return nil
       }
-      return nil
-    }.filter { !$0.isEmpty }
+    }
+    return parsed.isEmpty ? defaultSteps() : parsed
+  }
+  
+  private func defaultSteps() -> [String] {
+    [
+      "Take 5 slow breaths (in 4 • hold 4 • out 4 • hold 4)",
+      "5-4-3-2-1 grounding: 5 see • 4 touch • 3 hear • 2 smell • 1 taste",
+      "Repeat: 'I am safe. This will pass.'"
+    ]
   }
 
   /// Extract duration from structured plan
   private func extractDuration(from result: [String: Any]) -> Int {
-    // Calculate total duration from steps
-    guard let steps = result["steps"] as? [[String: Any]] else { return 180 }
-
-    let totalSeconds = steps.compactMap { step in
-      step["seconds"] as? Int
-    }.reduce(0, +)
-
-    return max(60, min(180, totalSeconds))  // Ensure 60-180s range
+    if let total = (result["total_seconds"] as? Int), total > 0 {
+      return min(max(total, 60), 300)
+    }
+    guard let steps = result["steps"] as? [[String: Any]] else { return 120 }
+    let sum = steps.compactMap { $0["seconds"] as? Int }.reduce(0, +)
+    return min(max(sum, 60), 300)
   }
 
   /// Extract techniques from structured plan
@@ -392,32 +393,58 @@ struct PlanCard: View {
   let plan: PanicPlan
   let onTap: () -> Void
   let onEdit: () -> Void
+  let onDelete: () -> Void
 
   var body: some View {
-    Button(action: onTap) {
-      VStack(alignment: .leading, spacing: 12) {
-        HStack {
-          VStack(alignment: .leading, spacing: 4) {
-            Text(plan.title)
-              .font(.title3)
-              .fontWeight(.semibold)
-              .foregroundColor(Color(.label))
+            VStack(alignment: .leading, spacing: 12) {
+              HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                  Text(plan.title)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color(.label))
 
-            Text(plan.description)
-              .font(.caption)
-              .foregroundColor(Color(.secondaryLabel))
-              .lineLimit(2)
-          }
+                  Text(plan.description)
+                    .font(.caption)
+                    .foregroundColor(Color(.secondaryLabel))
+                    .lineLimit(2)
+                }
 
-          Spacer()
+                Spacer()
 
-          Button(action: onEdit) {
-            Image(systemName: "pencil.circle.fill")
-              .font(.title2)
-              .foregroundColor(.blue)
-          }
-          .buttonStyle(PlainButtonStyle())
-        }
+                HStack(spacing: 8) {
+                  Button(action: onEdit) {
+                    Image(systemName: "pencil.circle.fill")
+                      .font(.title2)
+                      .foregroundColor(.blue)
+                  }
+                  .buttonStyle(PlainButtonStyle())
+                  
+                  Button(action: onDelete) {
+                    Image(systemName: "trash.circle.fill")
+                      .font(.title2)
+                      .foregroundColor(.red)
+                  }
+                  .buttonStyle(PlainButtonStyle())
+                }
+              }
+              
+              // Add Start Plan button
+              Button(action: onTap) {
+                HStack {
+                  Image(systemName: "play.fill")
+                    .font(.caption)
+                  Text("Start Plan")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.blue)
+                .cornerRadius(8)
+              }
+              .buttonStyle(PlainButtonStyle())
 
         // Steps preview
         VStack(alignment: .leading, spacing: 4) {
@@ -442,34 +469,32 @@ struct PlanCard: View {
           }
         }
 
-        HStack {
-          Label("\(Int(plan.duration / 60)) min", systemImage: "clock")
-            .font(.caption)
-            .foregroundColor(Color(.secondaryLabel))
+              HStack {
+                Label("\(Int(plan.duration / 60)) min", systemImage: "clock")
+                  .font(.caption)
+                  .foregroundColor(Color(.secondaryLabel))
 
-          Spacer()
+                Spacer()
 
-          // Note: isDefault property removed, using duration instead
-          Text("\(plan.duration / 60) min")
-            .font(.caption)
-            .fontWeight(.medium)
-            .foregroundColor(.blue)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
+                // Note: isDefault property removed, using duration instead
+                Text("\(plan.duration / 60) min")
+                  .font(.caption)
+                  .fontWeight(.medium)
+                  .foregroundColor(.blue)
+                  .padding(.horizontal, 8)
+                  .padding(.vertical, 2)
+                  .background(
+                    RoundedRectangle(cornerRadius: 8)
+                      .fill(Color.blue.opacity(0.2))
+                  )
+              }
+            }
+            .padding(16)
             .background(
-              RoundedRectangle(cornerRadius: 8)
-                .fill(Color.green)
+              RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
             )
-        }
-      }
-      .padding(16)
-      .background(
-        RoundedRectangle(cornerRadius: 16)
-          .fill(Color(.systemBackground))
-          .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-      )
-    }
-    .buttonStyle(PlainButtonStyle())
   }
 }
 
@@ -494,16 +519,32 @@ struct PlanEditorView: View {
         }
 
         Section(header: Text("Steps")) {
+          Text("Add clear, actionable steps for your panic plan. Examples:")
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .padding(.bottom, 8)
+          
           ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
-            HStack {
-              TextField("Step \(index + 1)", text: $steps[index])
+            VStack(alignment: .leading, spacing: 4) {
+              Text("Step \(index + 1)")
+                .font(.caption)
+                .foregroundColor(.secondary)
+              
+              TextField(getStepPlaceholder(for: index), text: $steps[index])
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
 
-              if steps.count > 1 {
+            if steps.count > 1 {
+              HStack {
+                Spacer()
                 Button(action: {
                   steps.remove(at: index)
                 }) {
-                  Image(systemName: "minus.circle.fill")
-                    .foregroundColor(.red)
+                  HStack {
+                    Image(systemName: "minus.circle.fill")
+                    Text("Remove Step")
+                  }
+                  .foregroundColor(.red)
                 }
               }
             }
@@ -512,6 +553,7 @@ struct PlanEditorView: View {
           Button("Add Step") {
             steps.append("")
           }
+          .foregroundColor(.blue)
         }
 
         Section(header: Text("Duration")) {
@@ -550,8 +592,36 @@ struct PlanEditorView: View {
           steps = plan.steps
           // audioFile removed from PanicPlan struct
           duration = TimeInterval(plan.duration)
+        } else {
+          // Set default values for new plans
+          name = "My Panic Plan"
+          description = "Personalized plan for managing panic attacks"
+          steps = [
+            "Take 5 deep breaths slowly",
+            "Name 5 things you can see around you",
+            "Repeat: 'I am safe and this will pass'"
+          ]
         }
       }
+    }
+  }
+  
+  private func getStepPlaceholder(for index: Int) -> String {
+    let examples = [
+      "Take 5 deep breaths slowly",
+      "Name 5 things you can see around you",
+      "Repeat: 'I am safe and this will pass'",
+      "Focus on your breathing for 30 seconds",
+      "Call a trusted friend or family member",
+      "Use your calming phrase 3 times",
+      "Do a quick body scan and relax tense muscles",
+      "Listen to calming music or sounds"
+    ]
+    
+    if index < examples.count {
+      return examples[index]
+    } else {
+      return "Add your personal calming technique"
     }
   }
 }
@@ -570,14 +640,16 @@ struct PlanExecutionView: View {
   @State private var timeRemaining: TimeInterval = 0
   @State private var isExecuting = false
   @State private var showCompletion = false
+  @State private var showValidationAlert = false
+  @State private var validationMessage = ""
 
   var body: some View {
     ZStack {
       // Background gradient
       LinearGradient(
         gradient: Gradient(colors: [
-          Color(hex: "#E8F4FD"),
-          Color(hex: "#F0F8FF"),
+          Color.blue.opacity(0.1),
+          Color.blue.opacity(0.05),
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -585,8 +657,20 @@ struct PlanExecutionView: View {
       .ignoresSafeArea()
 
       VStack(spacing: 30) {
-        // Header
+        // Header with close button
         VStack(spacing: 16) {
+          HStack {
+            Spacer()
+            Button(action: {
+              presentationMode.wrappedValue.dismiss()
+            }) {
+              Image(systemName: "xmark.circle.fill")
+                .font(.title2)
+                .foregroundColor(.gray)
+            }
+          }
+          .padding(.horizontal, 20)
+          
           Text("🧩")
             .font(.system(size: 50))
 
@@ -609,11 +693,27 @@ struct PlanExecutionView: View {
               .font(.headline)
               .foregroundColor(.blue)
 
-            Text(plan.steps[currentStepIndex])
-              .font(.title2)
-              .fontWeight(.medium)
-              .multilineTextAlignment(.center)
-              .padding(.horizontal, 20)
+            // Step content with better formatting
+            VStack(spacing: 12) {
+              Text("What to do:")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+              
+              Text(plan.steps[currentStepIndex])
+                .font(.title2)
+                .fontWeight(.medium)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.blue.opacity(0.1))
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                )
+            }
 
             // Progress indicator
             ProgressView(value: Double(currentStepIndex), total: Double(plan.steps.count - 1))
@@ -621,10 +721,15 @@ struct PlanExecutionView: View {
               .padding(.horizontal, 40)
 
             // Timer
-            Text(timeString(from: timeRemaining))
-              .font(.title)
-              .fontWeight(.bold)
-              .foregroundColor(.blue)
+            VStack(spacing: 4) {
+              Text("Time remaining:")
+                .font(.caption)
+                .foregroundColor(.secondary)
+              Text(timeString(from: timeRemaining))
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.blue)
+            }
           }
         } else {
           // Start button
@@ -656,9 +761,40 @@ struct PlanExecutionView: View {
         presentationMode.wrappedValue.dismiss()
       }
     }
+    .onAppear {
+      print("PlanExecutionView appeared")
+      print("Plan title: \(plan.title)")
+      print("Plan steps: \(plan.steps)")
+      print("Plan duration: \(plan.duration)")
+    }
+    .alert(isPresented: $showValidationAlert) {
+      Alert(
+        title: Text("Can't Start Plan"),
+        message: Text(validationMessage),
+        dismissButton: .default(Text("OK"))
+      )
+    }
   }
 
   private func startPlan() {
+    print("Start Plan button tapped") // Debug logging
+    print("Plan title: \(plan.title)")
+    print("Plan steps count: \(plan.steps.count)")
+    print("Plan duration: \(plan.duration)")
+    
+    // Validate plan data
+    guard !plan.steps.isEmpty else {
+      validationMessage = "This plan has no steps. Edit or regenerate it."
+      showValidationAlert = true
+      return
+    }
+    
+    guard plan.duration > 0 else {
+      validationMessage = "This plan has no duration. Edit or regenerate it."
+      showValidationAlert = true
+      return
+    }
+    
     isExecuting = true
     currentStepIndex = 0
     timeRemaining = TimeInterval(plan.duration)
@@ -667,7 +803,10 @@ struct PlanExecutionView: View {
 
     // Start audio if enabled
     if prefSounds {
-      // audioManager.playSound(plan.audioFile, loop: true) // audioFile removed
+      // Play appropriate calming sound based on plan content
+      let soundFile = getAppropriateSound(for: plan)
+      print("Playing sound: \(soundFile)")
+      audioManager.playSound(soundFile, loop: true)
     }
 
     // Start timer
@@ -694,6 +833,22 @@ struct PlanExecutionView: View {
     let minutes = Int(timeInterval) / 60
     let seconds = Int(timeInterval) % 60
     return String(format: "%02d:%02d", minutes, seconds)
+  }
+  
+  private func getAppropriateSound(for plan: PanicPlan) -> String {
+    // Check if any step mentions specific emotions or situations
+    let allSteps = plan.steps.joined(separator: " ").lowercased()
+    
+    if allSteps.contains("angry") || allSteps.contains("anger") {
+      return "mixkit-just-chill-angry.mp3"
+    } else if allSteps.contains("anxious") || allSteps.contains("anxiety") {
+      return "mixkit-serene-anxious.mp3"
+    } else if allSteps.contains("sad") || allSteps.contains("depressed") {
+      return "mixkit-jazz-sad.mp3"
+    } else {
+      // Default calming sound
+      return "perfect-beauty-1-min.m4a"
+    }
   }
 }
 

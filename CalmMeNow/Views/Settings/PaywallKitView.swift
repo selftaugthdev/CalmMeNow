@@ -43,7 +43,10 @@ struct PaywallKitView: View {
       manager: revenueCatService,
       config: paywallConfig
     ) {
-      dismiss()
+      // Delay dismissal to allow our custom congratulations screen to show
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        dismiss()
+      }
     }
   }
 }

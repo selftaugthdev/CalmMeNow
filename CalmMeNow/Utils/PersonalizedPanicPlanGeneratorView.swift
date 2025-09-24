@@ -321,7 +321,7 @@ struct PanicPlanDetailView: View {
             Text("Your Calming Phrase")
               .font(.headline)
 
-            Text(plan.personalizedPhrase)
+            Text(plan.personalizedPhrase ?? "I am safe and I can handle this")
               .font(.title3)
               .italic()
               .padding()

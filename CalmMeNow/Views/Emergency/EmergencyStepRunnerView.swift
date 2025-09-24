@@ -198,7 +198,7 @@ struct EmergencyStepRunnerView: View {
                 .frame(width: 200, height: 200)
                 .scaleEffect(isActive ? 1.1 : 0.9)
                 .animation(
-                  Animation.easeInOut(duration: 2.0)
+                  Animation.easeInOut(duration: 4.0)
                     .repeatForever(autoreverses: true),
                   value: isActive
                 )

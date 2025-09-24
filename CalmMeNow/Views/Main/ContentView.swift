@@ -11,6 +11,7 @@ struct ContentView: View {
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
   @StateObject private var paywallManager = PaywallManager.shared
+  @StateObject private var subscriptionSuccessManager = SubscriptionSuccessManager.shared
   @State private var showingPaywall = false
   @State private var selectedButton: String? = nil
   @State private var isQuickCalmPressed = false
@@ -25,7 +26,7 @@ struct ContentView: View {
   @State private var showingGameSelection = false
   @State private var showingPersonalizedPlan = false
   @State private var showingDailyCoach = false
-  @State private var showingEmergencyCompanion = false
+  @State private var showingEnhancedPanicPlan = false
   @State private var showingAIDebug = false
 
   @State private var selectedEmotion = ""
@@ -76,10 +77,13 @@ struct ContentView: View {
                   Text("CALM ME DOWN NOW")
                     .font(.title3)
                     .fontWeight(.bold)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 }
                 .padding(.vertical, 20)
                 .padding(.horizontal, 20)
-                .frame(maxWidth: .infinity, minHeight: 60)
+                .frame(maxWidth: .infinity)
+                .frame(height: 60)
                 .background(
                   LinearGradient(
                     gradient: Gradient(colors: [
@@ -97,10 +101,7 @@ struct ContentView: View {
                     .stroke(Color.red.opacity(0.5), lineWidth: 2)
                 )
                 .shadow(color: .red.opacity(0.4), radius: 12, x: 0, y: 6)
-                .scaleEffect(isQuickCalmPressed ? 0.95 : 1.0)
-                .animation(.easeInOut(duration: 0.1), value: isQuickCalmPressed)
-                // Enhanced visual effects for more striking appearance
-                .scaleEffect(1.0 + (calmButtonPulse ? 0.03 : 0.0))
+                .scaleEffect(isQuickCalmPressed ? 0.95 : (1.0 + (calmButtonPulse ? 0.03 : 0.0)))
                 .shadow(
                   color: .red.opacity(calmButtonPulse ? 0.7 : 0.4),
                   radius: calmButtonPulse ? 20 : 12,
@@ -114,6 +115,7 @@ struct ContentView: View {
                       lineWidth: calmButtonPulse ? 3 : 2
                     )
                 )
+                .animation(.easeInOut(duration: 0.1), value: isQuickCalmPressed)
                 .animation(
                   .easeInOut(duration: 2.5)
                     .repeatForever(autoreverses: true),
@@ -249,28 +251,28 @@ struct ContentView: View {
                   }
                 )
 
-                // Emergency Companion Card (AI Feature - Requires Subscription)
+                // Enhanced Panic Plan Card (AI Feature - Requires Subscription)
                 EmotionCard(
-                  emoji: "🤖",
-                  emotion: "Emergency",
-                  subtext: "AI companion for crisis moments",
-                  isSelected: selectedButton == "emergency_companion",
+                  emoji: "🧠",
+                  emotion: "Smart Plan",
+                  subtext: "AI-enhanced panic plan with insights",
+                  isSelected: selectedButton == "enhanced_panic_plan",
                   onTap: {
                     HapticManager.shared.emotionButtonTap()
-                    selectedEmotion = "emergency_companion"
-                    selectedEmoji = "🤖"
+                    selectedEmotion = "enhanced_panic_plan"
+                    selectedEmoji = "🧠"
 
                     // Track feature selection
                     FirebaseAnalyticsService.shared.trackEmotionSelected(
-                      emotion: "emergency_companion")
+                      emotion: "enhanced_panic_plan")
 
                     // Check paywall access for AI feature
                     Task {
                       let hasAccess = await paywallManager.requestAIAccess()
                       if hasAccess {
-                        // Navigate to emergency companion
+                        // Navigate to enhanced panic plan
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                          showingEmergencyCompanion = true
+                          showingEnhancedPanicPlan = true
                         }
                       }
                       // If no access, paywall will be shown automatically
@@ -347,13 +349,13 @@ struct ContentView: View {
         )
       }
       .sheet(isPresented: $showingPersonalizedPlan) {
-        PersonalizedPanicPlanGeneratorView()
+        PersonalizedPanicPlanView()
       }
       .sheet(isPresented: $showingDailyCoach) {
         DailyCoachView()
       }
-      .sheet(isPresented: $showingEmergencyCompanion) {
-        EmergencyCompanionView()
+      .sheet(isPresented: $showingEnhancedPanicPlan) {
+        EnhancedPanicPlanView()
       }
       #if DEBUG
         .sheet(isPresented: $showingAIDebug) {
@@ -364,6 +366,12 @@ struct ContentView: View {
     }
     .sheet(isPresented: $showingPaywall) {
       PaywallKitView()
+    }
+    .fullScreenCover(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
+      SubscriptionSuccessView()
+        .onDisappear {
+          subscriptionSuccessManager.dismissSuccessScreen()
+        }
     }
     .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
       showingPaywall = shouldShow

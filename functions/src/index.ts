@@ -113,11 +113,16 @@ export const generatePanicPlan = onCall(
     console.log("generatePanicPlan uid:", req.auth.uid, "data:", req.data);
     try {
 
+      // Extract user's desired duration from intake
+      const intake = req.data?.intake ?? {};
+      const userDuration = intake.duration || 120; // Default to 2 minutes if not specified
+      const durationMinutes = Math.round(userDuration / 60);
+      
       const system =
         req.data?.systemPrompt ??
         `
 You are a calm, non-clinical coach. Output STRICT JSON {version,title,steps[],personalizedPhrase} only.
-Total duration 60–180 seconds. Allowed steps:
+Total duration should be approximately ${userDuration} seconds (${durationMinutes} minutes). Allowed steps:
 - breathing{pattern:"box|478|coherence", seconds}
 - grounding{method:"54321|countback|sensory", seconds}
 - muscle_release{area, seconds}
@@ -332,121 +337,7 @@ Match to mood/tags. Keep it practical, non-clinical, no medical advice. JSON onl
   }
 );
 
-// ---- Emergency Companion with Safety Measures
-export const emergencyCompanion = onCall(
-  { region: "europe-west1", secrets: [OPENAI_API_KEY] },
-  async (req) => {
-    // 🔎 Monitor App Check (don't block)
-    if (!req.app) {
-      console.warn("emergencyCompanion: NO AppCheck token (monitoring only)");
-    } else {
-      console.log("emergencyCompanion: AppCheck ok", req.app);
-    }
-
-    // 🔐 Require Firebase Auth
-    if (!req.auth) throw new HttpsError("unauthenticated", "Missing auth.");
-
-    const userId = req.auth.uid;
-    const userMessage = req.data?.message;
-    const userLocale = req.data?.locale || "en-US";
-    const conversationHistory = req.data?.conversationHistory || [];
-
-    console.log("emergencyCompanion uid:", userId, "message length:", userMessage?.length || 0);
-
-    try {
-      // 1) Rate limiting check
-      const canUse = await checkRateLimit(userId);
-      if (!canUse.allowed) {
-        return { 
-          response: canUse.message,
-          isCrisis: false,
-          usageCount: canUse.usageCount,
-          rateLimited: true
-        };
-      }
-
-      // 2) Input validation and moderation
-      if (!userMessage || typeof userMessage !== "string" || userMessage.trim().length === 0) {
-        return { 
-          response: "I'm here to help. Please tell me how you're feeling right now.",
-          isCrisis: false,
-          usageCount: canUse.usageCount
-        };
-      }
-
-      // Truncate input to prevent abuse
-      const truncatedMessage = userMessage.trim().substring(0, 700);
-
-      // 3) Crisis detection and moderation
-      const moderationResult = await moderateInput(truncatedMessage);
-      console.log("Moderation result for message:", truncatedMessage, "->", moderationResult);
-      
-      if (moderationResult.isCrisis) {
-        console.log("Crisis detected, sending crisis response");
-        await logUsage(userId, "crisis_detected", truncatedMessage);
-        return {
-          response: getCrisisResponse(userLocale),
-          isCrisis: true,
-          usageCount: canUse.usageCount,
-          crisisDetected: true
-        };
-      }
-
-      if (moderationResult.isDisallowed) {
-        await logUsage(userId, "disallowed_content", truncatedMessage);
-        return {
-          response: "I'm here to help with calming and grounding techniques. Let's focus on breathing exercises or grounding methods that can help you feel more centered.",
-          isCrisis: false,
-          usageCount: canUse.usageCount,
-          redirected: true
-        };
-      }
-
-      // 4) Generate AI response with safety constraints
-      const systemPrompt = getEmergencyCompanionSystemPrompt();
-      const input = [
-        { role: "system", content: systemPrompt },
-        ...conversationHistory.slice(-6), // Keep last 6 messages for context
-        { role: "user", content: truncatedMessage }
-      ];
-
-      const aiResponse = await callOpenAI(input, {
-        model: "gpt-4o-mini",
-        response_format: "text",
-        temperature: 0.4
-      });
-
-      // 5) Moderate output
-      const outputModeration = await moderateOutput(aiResponse);
-      console.log("Output moderation result:", outputModeration);
-      
-      if (outputModeration.flagged) {
-        console.log("Output flagged, sending crisis response");
-        await logUsage(userId, "output_flagged", aiResponse);
-        return {
-          response: getCrisisResponse(userLocale),
-          isCrisis: true,
-          usageCount: canUse.usageCount,
-          outputFlagged: true
-        };
-      }
-
-      // 6) Log successful usage
-      await logUsage(userId, "normal_response", truncatedMessage);
-
-      return {
-        response: aiResponse,
-        isCrisis: false,
-        usageCount: canUse.usageCount + 1
-      };
-
-    } catch (e: any) {
-      console.error("emergencyCompanion error:", e?.message ?? e);
-      await logUsage(userId, "error", e?.message ?? "unknown error");
-      throw new HttpsError("internal", "Emergency companion failed", String(e?.message ?? e));
-    }
-  }
-);
+// ---- Emergency Companion removed - replaced with AI-enhanced Panic Plan and Daily Coach
 
 // ---- Safety and Moderation Functions
 
@@ -601,5 +492,6 @@ function getCrisisHotline(countryCode: string): string {
 
 async function logUsage(userId: string, type: string, content: string): Promise<void> {
   // In production, this would log to Firestore
+  // eslint-disable-next-line no-console
   console.log(`Usage log: ${userId} - ${type} - ${content.substring(0, 100)}...`);
 }

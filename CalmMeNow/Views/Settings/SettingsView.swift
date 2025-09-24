@@ -8,6 +8,13 @@ struct SettingsView: View {
   @AppStorage("userCalmingPhrase") private var userCalmingPhrase =
     "This feeling will pass, I am safe"
 
+  // App version
+  private var appVersion: String {
+    let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    return "\(version) (\(build))"
+  }
+
   // Paywall integration
   @StateObject private var paywallManager = PaywallManager.shared
   @StateObject private var revenueCatService = RevenueCatService.shared
@@ -245,6 +252,20 @@ struct SettingsView: View {
 
                     Divider()
                       .background(Color.black.opacity(0.1))
+                    
+                    // Manage Account - Only show if user is subscribed
+                    SettingsActionRow(
+                      icon: "person.circle",
+                      iconColor: .green,
+                      title: "Manage Account",
+                      description: "View subscription details and manage billing",
+                      action: {
+                        openSubscriptionManagement()
+                      }
+                    )
+                    
+                    Divider()
+                      .background(Color.black.opacity(0.1))
                   }
 
                   // Upgrade Button - Only show if user is NOT subscribed
@@ -339,7 +360,7 @@ struct SettingsView: View {
                     Text("Version")
                       .foregroundColor(.primary)
                     Spacer()
-                    Text("1.0.0")
+                    Text(appVersion)
                       .foregroundColor(.primary.opacity(0.6))
                   }
 
@@ -376,6 +397,32 @@ struct SettingsView: View {
         PaywallKitView()
       }
     }
+  }
+  
+  // MARK: - Helper Functions
+  
+  private func openSubscriptionManagement() {
+    #if targetEnvironment(simulator)
+      // In simulator, show an alert instead of opening App Store
+      DispatchQueue.main.async {
+        let alert = UIAlertController(
+          title: "Manage Account",
+          message: "In the simulator, you can't access App Store subscription management. On a real device, this would open your subscription settings where you can cancel or modify your subscription.",
+          preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+          window.rootViewController?.present(alert, animated: true)
+        }
+      }
+    #else
+      // On real device, open the App Store subscription management page
+      if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+        UIApplication.shared.open(url)
+      }
+    #endif
   }
 }
 
