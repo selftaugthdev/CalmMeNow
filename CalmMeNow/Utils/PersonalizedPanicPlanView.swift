@@ -10,7 +10,6 @@ struct PersonalizedPanicPlanView: View {
 
   @State private var selectedPlan: PanicPlan?
   @State private var showingPlanEditor = false
-  @State private var showingPlanExecution = false
 
   // Sample panic plans - in a real app, these would be stored in UserDefaults or Core Data
   @State private var userPlans: [PanicPlan] = [
@@ -75,8 +74,9 @@ struct PersonalizedPanicPlanView: View {
                 PlanCard(
                   plan: plan,
                   onTap: {
+                    print("Plan card tapped: \(plan.title)")
+                    print("Plan steps: \(plan.steps)")
                     selectedPlan = plan
-                    showingPlanExecution = true
                   },
                   onEdit: {
                     selectedPlan = plan
@@ -245,10 +245,8 @@ struct PersonalizedPanicPlanView: View {
           }
         )
       }
-      .sheet(isPresented: $showingPlanExecution) {
-        if let plan = selectedPlan {
-          PlanExecutionView(plan: plan)
-        }
+      .sheet(item: $selectedPlan) { plan in
+        PlanExecutionView(plan: plan)
       }
     }
   }
@@ -322,47 +320,58 @@ struct PersonalizedPanicPlanView: View {
 
   /// Parse structured plan from Firebase Functions response
   private func parseStructuredPlan(_ result: [String: Any]) -> [String] {
-    guard let steps = result["steps"] as? [[String: Any]] else {
-      return ["Take 5 deep breaths", "Ground yourself", "Listen to calming sounds"]
+    guard let raw = result["steps"] as? [[String: Any]] else {
+      return defaultSteps()
     }
-
-    return steps.compactMap { step in
-      if let type = step["type"] as? String {
-        switch type {
-        case "breathing":
-          if let pattern = step["pattern"] as? String, let seconds = step["seconds"] as? Int {
-            return "\(pattern.capitalized) breathing for \(seconds) seconds"
-          }
-        case "grounding":
-          if let method = step["method"] as? String, let seconds = step["seconds"] as? Int {
-            return "\(method.capitalized) grounding for \(seconds) seconds"
-          }
-        case "muscle_release":
-          if let area = step["area"] as? String, let seconds = step["seconds"] as? Int {
-            return "Release \(area) for \(seconds) seconds"
-          }
-        case "affirmation":
-          if let text = step["text"] as? String, let seconds = step["seconds"] as? Int {
-            return "Repeat: '\(text)' for \(seconds) seconds"
-          }
-        default:
-          break
+    
+    let parsed = raw.compactMap { step -> String? in
+      let type = (step["type"] as? String)?.lowercased() ?? ""
+      switch type {
+      case "breathing":
+        if let pattern = step["pattern"] as? String, let seconds = step["seconds"] as? Int {
+          return "\(pattern.capitalized) breathing for \(seconds) seconds"
         }
+        if let pattern = step["pattern"] as? String {
+          return "\(pattern.capitalized) breathing"
+        }
+        return "Slow breathing: In 4 • Hold 4 • Out 4 • Hold 4"
+      case "grounding":
+        if let method = step["method"] as? String, let seconds = step["seconds"] as? Int {
+          return "\(method.capitalized) grounding for \(seconds) seconds"
+        }
+        return "5-4-3-2-1 grounding"
+      case "muscle_release":
+        let area = (step["area"] as? String) ?? "shoulders"
+        let seconds = (step["seconds"] as? Int) ?? 20
+        return "Release \(area) for \(seconds) seconds"
+      case "affirmation":
+        let text = (step["text"] as? String) ?? "I am safe. This will pass."
+        return "Repeat: '\(text)'"
+      default:
+        // Try a generic "text" field
+        if let text = step["text"] as? String { return text }
+        return nil
       }
-      return nil
-    }.filter { !$0.isEmpty }
+    }
+    return parsed.isEmpty ? defaultSteps() : parsed
+  }
+  
+  private func defaultSteps() -> [String] {
+    [
+      "Take 5 slow breaths (in 4 • hold 4 • out 4 • hold 4)",
+      "5-4-3-2-1 grounding: 5 see • 4 touch • 3 hear • 2 smell • 1 taste",
+      "Repeat: 'I am safe. This will pass.'"
+    ]
   }
 
   /// Extract duration from structured plan
   private func extractDuration(from result: [String: Any]) -> Int {
-    // Calculate total duration from steps
-    guard let steps = result["steps"] as? [[String: Any]] else { return 180 }
-
-    let totalSeconds = steps.compactMap { step in
-      step["seconds"] as? Int
-    }.reduce(0, +)
-
-    return max(60, min(180, totalSeconds))  // Ensure 60-180s range
+    if let total = (result["total_seconds"] as? Int), total > 0 {
+      return min(max(total, 60), 300)
+    }
+    guard let steps = result["steps"] as? [[String: Any]] else { return 120 }
+    let sum = steps.compactMap { $0["seconds"] as? Int }.reduce(0, +)
+    return min(max(sum, 60), 300)
   }
 
   /// Extract techniques from structured plan
@@ -657,6 +666,8 @@ struct PlanExecutionView: View {
   @State private var timeRemaining: TimeInterval = 0
   @State private var isExecuting = false
   @State private var showCompletion = false
+  @State private var showValidationAlert = false
+  @State private var validationMessage = ""
 
   var body: some View {
     ZStack {
@@ -776,6 +787,19 @@ struct PlanExecutionView: View {
         presentationMode.wrappedValue.dismiss()
       }
     }
+    .onAppear {
+      print("PlanExecutionView appeared")
+      print("Plan title: \(plan.title)")
+      print("Plan steps: \(plan.steps)")
+      print("Plan duration: \(plan.duration)")
+    }
+    .alert(isPresented: $showValidationAlert) {
+      Alert(
+        title: Text("Can't Start Plan"),
+        message: Text(validationMessage),
+        dismissButton: .default(Text("OK"))
+      )
+    }
   }
 
   private func startPlan() {
@@ -786,12 +810,14 @@ struct PlanExecutionView: View {
     
     // Validate plan data
     guard !plan.steps.isEmpty else {
-      print("ERROR: Plan has no steps!")
+      validationMessage = "This plan has no steps. Edit or regenerate it."
+      showValidationAlert = true
       return
     }
     
     guard plan.duration > 0 else {
-      print("ERROR: Plan has invalid duration: \(plan.duration)")
+      validationMessage = "This plan has no duration. Edit or regenerate it."
+      showValidationAlert = true
       return
     }
     
@@ -803,7 +829,10 @@ struct PlanExecutionView: View {
 
     // Start audio if enabled
     if prefSounds {
-      // audioManager.playSound(plan.audioFile, loop: true) // audioFile removed
+      // Play appropriate calming sound based on plan content
+      let soundFile = getAppropriateSound(for: plan)
+      print("Playing sound: \(soundFile)")
+      audioManager.playSound(soundFile, loop: true)
     }
 
     // Start timer
@@ -830,6 +859,22 @@ struct PlanExecutionView: View {
     let minutes = Int(timeInterval) / 60
     let seconds = Int(timeInterval) % 60
     return String(format: "%02d:%02d", minutes, seconds)
+  }
+  
+  private func getAppropriateSound(for plan: PanicPlan) -> String {
+    // Check if any step mentions specific emotions or situations
+    let allSteps = plan.steps.joined(separator: " ").lowercased()
+    
+    if allSteps.contains("angry") || allSteps.contains("anger") {
+      return "mixkit-just-chill-angry.mp3"
+    } else if allSteps.contains("anxious") || allSteps.contains("anxiety") {
+      return "mixkit-serene-anxious.mp3"
+    } else if allSteps.contains("sad") || allSteps.contains("depressed") {
+      return "mixkit-jazz-sad.mp3"
+    } else {
+      // Default calming sound
+      return "perfect-beauty-1-min.m4a"
+    }
   }
 }
 
