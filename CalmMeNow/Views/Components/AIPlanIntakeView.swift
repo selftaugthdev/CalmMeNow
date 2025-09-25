@@ -458,6 +458,8 @@ struct AIPlanIntakeView: View {
       let text = step["text"] as? String ?? ""
       let seconds = step["seconds"] as? Int
 
+      print("🔍 Parsing step: type='\(type)', text='\(text)', seconds=\(seconds ?? 0)")
+
       // Map AI types to our StepType enum
       let stepType: StepType
       switch type {
@@ -477,7 +479,9 @@ struct AIPlanIntakeView: View {
         stepType = .custom
       }
 
-      return PlanStep(type: stepType, text: text, seconds: seconds)
+      let planStep = PlanStep(type: stepType, text: text, seconds: seconds)
+      print("🔍 Created PlanStep: \(planStep.type.rawValue) - '\(planStep.text)'")
+      return planStep
     }
 
     return parsed.isEmpty ? defaultPlanSteps() : parsed
