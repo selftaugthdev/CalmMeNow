@@ -193,6 +193,37 @@ struct CheckInResponseView: View {
     case processIt
   }
 
+  // Computed properties with fallbacks
+  private var coachLine: String {
+    checkIn.coachLine ?? "I hear you. Let's take a moment to reset and choose your next step."
+  }
+
+  private var quickResetSteps: [String] {
+    checkIn.quickResetSteps ?? [
+      "Sit comfortably with your feet flat on the floor",
+      "Take a deep breath in through your nose for 4 seconds",
+      "Hold your breath gently for 4 seconds",
+      "Exhale slowly through your mouth for 6 seconds",
+      "Repeat this breathing pattern for 3 cycles",
+    ]
+  }
+
+  private var processItSteps: [String] {
+    checkIn.processItSteps ?? [
+      "Label the feeling",
+      "Choose a reframe",
+      "Pick an action",
+    ]
+  }
+
+  private var reframeChips: [String] {
+    checkIn.reframeChips ?? [
+      "I'm safe in this moment",
+      "This feeling will pass",
+      "I can handle this one step at a time",
+    ]
+  }
+
   var body: some View {
     NavigationView {
       ScrollView {
@@ -220,127 +251,130 @@ struct CheckInResponseView: View {
           }
           .padding(.top)
 
-          // Coach Line
-          if let coachLine = checkIn.coachLine {
-            VStack(spacing: 12) {
-              Text(coachLine)
-                .font(.headline)
-                .foregroundColor(.primary)
-                .multilineTextAlignment(.center)
+          // Coach Line (with fallback)
+          VStack(spacing: 12) {
+            Text(coachLine)
+              .font(.headline)
+              .foregroundColor(.primary)
+              .multilineTextAlignment(.center)
+              .padding()
+              .background(Color.blue.opacity(0.1))
+              .cornerRadius(12)
+
+            // Two Path Selection
+            HStack(spacing: 12) {
+              Button(action: {
+                selectedPath = .quickReset
+                showProcessItFlow = false
+              }) {
+                VStack(spacing: 4) {
+                  Image(systemName: "wind")
+                    .font(.title2)
+                  Text("Quick Reset")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                  Text("60-90s")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                }
+                .foregroundColor(selectedPath == .quickReset ? .white : .blue)
+                .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.blue.opacity(0.1))
+                .background(selectedPath == .quickReset ? Color.blue : Color.blue.opacity(0.1))
                 .cornerRadius(12)
+              }
 
-              // Two Path Selection
-              HStack(spacing: 12) {
-                Button(action: {
-                  selectedPath = .quickReset
-                  showProcessItFlow = false
-                }) {
-                  VStack(spacing: 4) {
-                    Image(systemName: "wind")
-                      .font(.title2)
-                    Text("Quick Reset")
-                      .font(.caption)
-                      .fontWeight(.medium)
-                    Text("60-90s")
-                      .font(.caption2)
-                      .foregroundColor(.secondary)
-                  }
-                  .foregroundColor(selectedPath == .quickReset ? .white : .blue)
-                  .frame(maxWidth: .infinity)
-                  .padding()
-                  .background(selectedPath == .quickReset ? Color.blue : Color.blue.opacity(0.1))
-                  .cornerRadius(12)
+              Button(action: {
+                selectedPath = .processIt
+                showProcessItFlow = true
+                currentProcessStep = 0
+              }) {
+                VStack(spacing: 4) {
+                  Image(systemName: "brain.head.profile")
+                    .font(.title2)
+                  Text("Process It")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                  Text("2-3 min")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
                 }
-
-                Button(action: {
-                  selectedPath = .processIt
-                  showProcessItFlow = true
-                  currentProcessStep = 0
-                }) {
-                  VStack(spacing: 4) {
-                    Image(systemName: "brain.head.profile")
-                      .font(.title2)
-                    Text("Process It")
-                      .font(.caption)
-                      .fontWeight(.medium)
-                    Text("2-3 min")
-                      .font(.caption2)
-                      .foregroundColor(.secondary)
-                  }
-                  .foregroundColor(selectedPath == .processIt ? .white : .blue)
-                  .frame(maxWidth: .infinity)
-                  .padding()
-                  .background(selectedPath == .processIt ? Color.blue : Color.blue.opacity(0.1))
-                  .cornerRadius(12)
-                }
+                .foregroundColor(selectedPath == .processIt ? .white : .blue)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(selectedPath == .processIt ? Color.blue : Color.blue.opacity(0.1))
+                .cornerRadius(12)
               }
             }
           }
 
           // Quick Reset Flow
-          if selectedPath == .quickReset, let steps = checkIn.quickResetSteps {
-            QuickResetView(steps: steps, onStartExercise: startQuickResetExercise)
+          if selectedPath == .quickReset {
+            QuickResetView(steps: quickResetSteps, onStartExercise: startQuickResetExercise)
           }
 
           // Process It Flow
           if selectedPath == .processIt && showProcessItFlow {
             ProcessItFlowView(
-              steps: checkIn.processItSteps ?? [],
-              reframeChips: checkIn.reframeChips ?? [],
+              steps: processItSteps,
+              reframeChips: reframeChips,
               selectedReframe: $selectedReframe,
               currentStep: $currentProcessStep
             )
           }
 
-          // Micro Insight
-          if let insight = checkIn.microInsight {
-            VStack(alignment: .leading, spacing: 8) {
-              HStack {
-                Image(systemName: "lightbulb.fill")
-                  .foregroundColor(.yellow)
-                Text("Insight")
-                  .font(.headline)
-                Spacer()
-              }
-
-              Text(insight)
-                .font(.body)
-                .foregroundColor(.secondary)
+          // Micro Insight (with fallback)
+          VStack(alignment: .leading, spacing: 8) {
+            HStack {
+              Image(systemName: "lightbulb.fill")
+                .foregroundColor(.yellow)
+              Text("Insight")
+                .font(.headline)
+              Spacer()
             }
-            .padding()
-            .background(Color.yellow.opacity(0.1))
-            .cornerRadius(12)
+
+            Text(
+              checkIn.microInsight
+                ?? "Taking time to check in with yourself is a powerful act of self-care."
+            )
+            .font(.body)
+            .foregroundColor(.secondary)
           }
+          .padding()
+          .background(Color.yellow.opacity(0.1))
+          .cornerRadius(12)
 
-          // If-Then Plan
-          if let ifThenPlan = checkIn.ifThenPlan {
-            VStack(alignment: .leading, spacing: 8) {
-              HStack {
-                Image(systemName: "arrow.clockwise")
-                  .foregroundColor(.green)
-                Text("Save as Plan")
-                  .font(.headline)
-                Spacer()
-              }
-
-              Text(ifThenPlan)
-                .font(.body)
-                .foregroundColor(.secondary)
-
-              Button("Save Plan") {
-                // TODO: Save to user's plans
-                print("Saving plan: \(ifThenPlan)")
-              }
-              .font(.caption)
-              .foregroundColor(.green)
-              .padding(.top, 4)
+          // If-Then Plan (with fallback)
+          VStack(alignment: .leading, spacing: 8) {
+            HStack {
+              Image(systemName: "arrow.clockwise")
+                .foregroundColor(.green)
+              Text("Save as Plan")
+                .font(.headline)
+              Spacer()
             }
-            .padding()
-            .background(Color.green.opacity(0.1))
-            .cornerRadius(12)
+
+            Text(
+              checkIn.ifThenPlan
+                ?? "If I feel overwhelmed, then I'll do 3 rounds of breathing and choose one small action."
+            )
+            .font(.body)
+            .foregroundColor(.secondary)
+
+            Button("Save Plan") {
+              // TODO: Save to user's plans
+              let plan =
+                checkIn.ifThenPlan
+                ?? "If I feel overwhelmed, then I'll do 3 rounds of breathing and choose one small action."
+              print("Saving plan: \(plan)")
+            }
+            .font(.caption)
+            .foregroundColor(.green)
+            .padding(.top, 4)
           }
+          .padding()
+          .background(Color.green.opacity(0.1))
+          .cornerRadius(12)
 
           // Severity Indicator (for high severity cases)
           if checkIn.severity >= 2 {
@@ -428,7 +462,7 @@ struct CheckInResponseView: View {
       id: UUID(),
       title: "Quick Reset Breathing",
       duration: 90,
-      steps: checkIn.quickResetSteps ?? ["Take slow, deep breaths"],
+      steps: quickResetSteps,
       prompt: nil
     )
 
