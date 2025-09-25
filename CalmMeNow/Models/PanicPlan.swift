@@ -106,6 +106,8 @@ struct DailyCheckInResponse: Codable, Identifiable {
   let resources: [String]?
   let message: String
   let recommendations: [String]
+  let reason: String?
+  let suggestedPath: String?
 
   // Enhanced coach features
   let coachLine: String?
@@ -125,6 +127,8 @@ struct DailyCheckInResponse: Codable, Identifiable {
     self.resources = dict.val(["resources"])
     self.message = dict.val(["message", "note"]) ?? "Thank you for checking in"
     self.recommendations = dict.val(["recommendations", "suggestions"]) ?? []
+    self.reason = dict.val(["reason", "why"])
+    self.suggestedPath = dict.val(["suggested_path", "suggestedPath"])
 
     // Enhanced features
     self.coachLine = dict.val(["coachLine", "coach_line", "coach"])
@@ -136,7 +140,7 @@ struct DailyCheckInResponse: Codable, Identifiable {
     self.ifThenPlan = dict.val(["ifThenPlan", "if_then_plan"])
 
     print(
-      "🔍 Parsed response - coachLine: \(self.coachLine ?? "nil"), quickResetSteps: \(self.quickResetSteps?.count ?? 0)"
+      "🔍 Parsed response - coachLine: \(self.coachLine ?? "nil"), quickResetSteps: \(self.quickResetSteps?.count ?? 0), reason: \(self.reason ?? "nil")"
     )
   }
 }

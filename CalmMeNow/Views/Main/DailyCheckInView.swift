@@ -228,6 +228,22 @@ struct CheckInResponseView: View {
     NavigationView {
       ScrollView {
         VStack(spacing: 24) {
+          // Debug info
+          VStack {
+            Text("DEBUG: Coach Line: \(coachLine)")
+              .font(.caption)
+              .foregroundColor(.red)
+            Text("DEBUG: Quick Reset Steps: \(quickResetSteps.count)")
+              .font(.caption)
+              .foregroundColor(.red)
+            Text("DEBUG: Reframe Chips: \(reframeChips.count)")
+              .font(.caption)
+              .foregroundColor(.red)
+          }
+          .padding()
+          .background(Color.red.opacity(0.1))
+          .cornerRadius(8)
+
           // Header
           VStack(spacing: 16) {
             Image(

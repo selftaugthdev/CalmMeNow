@@ -80,10 +80,15 @@ class AIServiceViewModel: ObservableObject {
           userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])
       }
 
-      lastCheckIn = DailyCheckInResponse(from: dict)
+      let parsedResponse = DailyCheckInResponse(from: dict)
+
+      // Ensure UI update happens on main thread
+      await MainActor.run {
+        self.lastCheckIn = parsedResponse
+      }
 
       // Handle the response based on severity
-      await handleCheckInResponse(lastCheckIn!)
+      await handleCheckInResponse(parsedResponse)
 
       // Track successful check-in submission
       let latencyMs = Int((CFAbsoluteTimeGetCurrent() - startTime) * 1000)
