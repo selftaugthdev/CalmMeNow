@@ -329,6 +329,45 @@ Match to mood/tags. Keep it practical, non-clinical, no medical advice. JSON onl
   }
 );
 
+// ---- Test Function for Debugging
+export const testDailyCheckIn = onCall(
+  { region: "europe-west1" },
+  async (req) => {
+    console.log("🧪 testDailyCheckIn called with data:", req.data);
+    
+    // Return a hardcoded response to test the shape
+    const testResponse = {
+      severity: 1,
+      message: "Test response - this should work!",
+      exercise: "Test Quick Calm Down Breath",
+      resources: ["Test resource"],
+      recommendations: ["Test recommendation"],
+      coachLine: "That was frustrating. Let's settle your body first.",
+      protocolType: "quickBreath",
+      quickResetSteps: [
+        "Sit comfortably and soften your gaze",
+        "Inhale 4 seconds, Hold 4, Exhale 6",
+        "Repeat 3 rounds"
+      ],
+      processItSteps: [
+        "Name the feeling in one word",
+        "Pick a helpful reframe",
+        "Choose a tiny next step"
+      ],
+      reframeChips: [
+        "I'm safe now",
+        "Not worth my energy",
+        "Arrive calm"
+      ],
+      microInsight: "Your spikes tend to settle within ~90s with paced breathing.",
+      ifThenPlan: "If road rage → 3 rounds 4/6 breathing → reframe: 'Not worth it'."
+    };
+    
+    console.log("🧪 Returning test response:", testResponse);
+    return testResponse;
+  }
+);
+
 // ---- HTTP Test Functions (no auth required)
 import { onRequest } from "firebase-functions/v2/https";
 

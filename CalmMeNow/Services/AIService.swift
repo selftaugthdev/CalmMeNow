@@ -4,6 +4,17 @@ import FirebaseAuth
 import FirebaseFunctions
 import Foundation
 
+// MARK: - JSON Pretty Printer
+func printJSON(_ any: Any, prefix: String = "🔎") {
+  if let d = try? JSONSerialization.data(withJSONObject: any, options: [.prettyPrinted]),
+    let s = String(data: d, encoding: .utf8)
+  {
+    print("\(prefix) JSON:\n\(s)")
+  } else {
+    print("\(prefix) <non-JSON> \(any)")
+  }
+}
+
 final class AiService {
   static let shared = AiService()
 
@@ -42,12 +53,42 @@ final class AiService {
     print("📅 AiService: Submitting daily check-in...")
     _ = try await AuthManager.shared.ensureSignedIn()  // ✅
     print("📅 AiService: Calling dailyCheckIn function...")
-    let result = try await functions.httpsCallable("dailyCheckIn").call(["checkin": checkin])
+
+    let requestData = ["checkin": checkin]
+    printJSON(requestData, prefix: "📤 Sending to Firebase")
+
+    let result = try await functions.httpsCallable("dailyCheckIn").call(requestData)
     print("📅 AiService: Function call successful")
-    return result.data as? [String: Any] ?? [:]
+
+    printJSON(result.data, prefix: "🧩 CheckIn raw response")
+
+    guard let dict = result.data as? [String: Any] else {
+      print("❌ Failed to cast response to [String: Any]")
+      return [:]
+    }
+
+    return dict
   }
 
   // MARK: - Debug Methods
+
+  /// Test the daily check-in function with a hardcoded response
+  func testDailyCheckIn() async {
+    print("🧪 Testing daily check-in function...")
+    do {
+      let result = try await functions.httpsCallable("testDailyCheckIn").call([:])
+      printJSON(result.data, prefix: "🧪 Test response")
+
+      if let dict = result.data as? [String: Any] {
+        let response = DailyCheckInResponse(from: dict)
+        print(
+          "🧪 Parsed test response - coachLine: \(response.coachLine ?? "nil"), quickResetSteps: \(response.quickResetSteps?.count ?? 0)"
+        )
+      }
+    } catch {
+      print("🧪 Test failed: \(error)")
+    }
+  }
 
   func generatePlanDebug() async {
     print("🧠 AiService: Generating panic plan...")

@@ -1,17 +1,6 @@
 import Foundation
 import SwiftUI
 
-// MARK: - JSON Pretty Printer
-func printJSON(_ any: Any, prefix: String = "🔎") {
-  if let d = try? JSONSerialization.data(withJSONObject: any, options: [.prettyPrinted]),
-    let s = String(data: d, encoding: .utf8)
-  {
-    print("\(prefix) JSON:\n\(s)")
-  } else {
-    print("\(prefix) <non-JSON printable> \(any)")
-  }
-}
-
 @MainActor
 class AIServiceViewModel: ObservableObject {
   @Published var isLoading = false
