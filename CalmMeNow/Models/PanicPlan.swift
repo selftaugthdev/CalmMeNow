@@ -1,5 +1,16 @@
 import Foundation
 
+// MARK: - Dictionary Extensions for Tolerant Parsing
+extension Dictionary where Key == String, Value == Any {
+  func val<T>(_ keys: [String]) -> T? {
+    for k in keys { if let v = self[k] as? T { return v } }
+    return nil
+  }
+  var maybeData: [String: Any] {
+    (self["data"] as? [String: Any]) ?? self
+  }
+}
+
 struct PanicPlan: Codable, Identifiable, Hashable {
   let id: UUID
   var title: String
@@ -105,20 +116,27 @@ struct DailyCheckInResponse: Codable, Identifiable {
   let microInsight: String?
   let ifThenPlan: String?
 
-  init(from dict: [String: Any]) {
-    self.severity = dict["severity"] as? Int ?? 1
-    self.exercise = dict["exercise"] as? String
-    self.resources = dict["resources"] as? [String]
-    self.message = dict["message"] as? String ?? "Thank you for checking in"
-    self.recommendations = dict["recommendations"] as? [String] ?? []
+  init(from dictRaw: [String: Any]) {
+    let dict = dictRaw.maybeData
+    print("🔍 DailyCheckInResponse init - dict: \(dict)")
+
+    self.severity = dict.val(["severity", "level", "severityLevel"]) ?? 1
+    self.exercise = dict.val(["exercise", "title"]) ?? "Quick Calm Down Breath"
+    self.resources = dict.val(["resources"])
+    self.message = dict.val(["message", "note"]) ?? "Thank you for checking in"
+    self.recommendations = dict.val(["recommendations", "suggestions"]) ?? []
 
     // Enhanced features
-    self.coachLine = dict["coachLine"] as? String
-    self.protocolType = dict["protocolType"] as? String
-    self.quickResetSteps = dict["quickResetSteps"] as? [String]
-    self.processItSteps = dict["processItSteps"] as? [String]
-    self.reframeChips = dict["reframeChips"] as? [String]
-    self.microInsight = dict["microInsight"] as? String
-    self.ifThenPlan = dict["ifThenPlan"] as? String
+    self.coachLine = dict.val(["coachLine", "coach_line", "coach"])
+    self.protocolType = dict.val(["protocolType", "protocol_type", "protocol"])
+    self.quickResetSteps = dict.val(["quickResetSteps", "quick_reset_steps", "resetSteps"])
+    self.processItSteps = dict.val(["processItSteps", "process_it_steps", "processSteps"])
+    self.reframeChips = dict.val(["reframeChips", "reframe_chips", "reframes"])
+    self.microInsight = dict.val(["microInsight", "insight"])
+    self.ifThenPlan = dict.val(["ifThenPlan", "if_then_plan"])
+
+    print(
+      "🔍 Parsed response - coachLine: \(self.coachLine ?? "nil"), quickResetSteps: \(self.quickResetSteps?.count ?? 0)"
+    )
   }
 }

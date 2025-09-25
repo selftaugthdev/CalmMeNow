@@ -294,6 +294,8 @@ Keep tone validating, agency-supporting, non-blaming. No medical advice.
         { model: "gpt-4o-mini", response_format: "json_object", temperature: 0.4 }
       );
 
+      console.log("🤖 Coach Response:", coachResponse);
+
       // 3) Generate micro-exercise for backward compatibility
       const exerciseSystem = `
 Generate ONE 30–90s micro-exercise as STRICT JSON:
@@ -309,11 +311,18 @@ Match to mood/tags. Keep it practical, non-clinical, no medical advice. JSON onl
         { model: "gpt-4o-mini", response_format: "json_object", temperature: 0.3 }
       );
 
-      return { 
+      console.log("🏃 Exercise Response:", exercise);
+
+      const finalResponse = { 
         ...classification, 
         ...coachResponse,
         exercise: exercise?.title || "Quick Calm Down Breath"
       };
+
+      console.log("📤 Final Response:", finalResponse);
+      
+      // IMPORTANT: Return the object as-is (not nested in { data: ... })
+      return finalResponse;
     } catch (e: any) {
       throw new HttpsError("internal", "dailyCheckIn failed", String(e?.message ?? e));
     }

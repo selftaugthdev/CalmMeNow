@@ -1,6 +1,17 @@
 import Foundation
 import SwiftUI
 
+// MARK: - JSON Pretty Printer
+func printJSON(_ any: Any, prefix: String = "🔎") {
+  if let d = try? JSONSerialization.data(withJSONObject: any, options: [.prettyPrinted]),
+    let s = String(data: d, encoding: .utf8)
+  {
+    print("\(prefix) JSON:\n\(s)")
+  } else {
+    print("\(prefix) <non-JSON printable> \(any)")
+  }
+}
+
 @MainActor
 class AIServiceViewModel: ObservableObject {
   @Published var isLoading = false
@@ -70,7 +81,17 @@ class AIServiceViewModel: ObservableObject {
 
       let checkInData = try await aiService.dailyCheckIn(checkin: checkin)
 
-      lastCheckIn = DailyCheckInResponse(from: checkInData)
+      // Debug: Pretty print the raw response
+      printJSON(checkInData, prefix: "🧩 CheckIn raw")
+
+      guard let dict = checkInData as? [String: Any] else {
+        print("❌ Failed to cast response to [String: Any]")
+        throw NSError(
+          domain: "ParseError", code: 1,
+          userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])
+      }
+
+      lastCheckIn = DailyCheckInResponse(from: dict)
 
       // Handle the response based on severity
       await handleCheckInResponse(lastCheckIn!)
