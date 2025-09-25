@@ -4,17 +4,6 @@ import FirebaseAuth
 import FirebaseFunctions
 import Foundation
 
-// MARK: - JSON Pretty Printer
-func printJSON(_ any: Any, prefix: String = "🔎") {
-  if let d = try? JSONSerialization.data(withJSONObject: any, options: [.prettyPrinted]),
-    let s = String(data: d, encoding: .utf8)
-  {
-    print("\(prefix) JSON:\n\(s)")
-  } else {
-    print("\(prefix) <non-JSON> \(any)")
-  }
-}
-
 final class AiService {
   static let shared = AiService()
 

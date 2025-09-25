@@ -1,4 +1,17 @@
+import Firebase
+import FirebaseFunctions
 import SwiftUI
+
+// MARK: - JSON Pretty Printer
+func printJSON(_ any: Any, prefix: String = "🔎") {
+  if let d = try? JSONSerialization.data(withJSONObject: any, options: [.prettyPrinted]),
+    let s = String(data: d, encoding: .utf8)
+  {
+    print("\(prefix) JSON:\n\(s)")
+  } else {
+    print("\(prefix) <non-JSON> \(any)")
+  }
+}
 
 struct DailyCoachView: View {
   @Environment(\.presentationMode) var presentationMode
@@ -13,6 +26,11 @@ struct DailyCoachView: View {
   @State private var isGeneratingExercise = false
   @State private var usageInsights: [String] = []
   @State private var isLoadingInsights = false
+
+  // Enhanced coach response state
+  @State private var checkInResponse: DailyCheckInResponse?
+  @State private var isLoadingResponse = false
+  @State private var responseError: String?
 
   var body: some View {
     NavigationView {
@@ -155,7 +173,7 @@ struct DailyCoachView: View {
               // Check-in Button
               Button(action: runCheckIn) {
                 HStack(spacing: 12) {
-                  if isLoading {
+                  if isLoadingResponse {
                     ProgressView()
                       .progressViewStyle(CircularProgressViewStyle(tint: .white))
                       .scaleEffect(0.8)
@@ -163,7 +181,7 @@ struct DailyCoachView: View {
                     Text("💙")
                       .font(.title2)
                   }
-                  Text(isLoading ? "Processing..." : "Get Support")
+                  Text(isLoadingResponse ? "Processing..." : "Get Support")
                     .font(.headline)
                     .fontWeight(.semibold)
                 }
@@ -175,7 +193,7 @@ struct DailyCoachView: View {
                     .fill(Color.blue)
                 )
               }
-              .disabled(isLoading)
+              .disabled(isLoadingResponse)
               .padding(.horizontal, 20)
             }
             .padding(20)
@@ -193,20 +211,20 @@ struct DailyCoachView: View {
                   Image(systemName: "chart.line.uptrend.xyaxis")
                     .foregroundColor(.green)
                     .font(.title2)
-                  
+
                   Text("Your Progress Insights")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(Color(.label))
-                  
+
                   Spacer()
                 }
-                
+
                 ForEach(usageInsights, id: \.self) { insight in
                   HStack(alignment: .top, spacing: 12) {
                     Text("💡")
                       .font(.title3)
-                    
+
                     Text(insight)
                       .font(.body)
                       .foregroundColor(Color(.label))
@@ -223,7 +241,7 @@ struct DailyCoachView: View {
               )
               .padding(.horizontal, 20)
             }
-            
+
             // Generate Insights Button
             if usageInsights.isEmpty {
               Button(action: generateUsageInsights) {
@@ -236,7 +254,7 @@ struct DailyCoachView: View {
                     Image(systemName: "chart.bar.fill")
                       .font(.title2)
                   }
-                  
+
                   Text(isLoadingInsights ? "Analyzing..." : "Get Progress Insights")
                     .font(.headline)
                     .fontWeight(.semibold)
@@ -253,88 +271,41 @@ struct DailyCoachView: View {
               .padding(.horizontal, 20)
             }
 
-            // Results Section
-            if let result = checkinResult {
-              VStack(spacing: 20) {
-                Text("Your Check-in Results")
-                  .font(.title2)
-                  .fontWeight(.bold)
-                  .foregroundColor(Color(.label))
+            // Enhanced Results Section
+            VStack(alignment: .leading, spacing: 16) {
+              Text("Your Check-in Results")
+                .font(.title3).fontWeight(.semibold)
 
-                // Severity Display
-                if let severity = result["severity"] as? Int {
-                  SeverityCard(severity: severity)
-                }
-
-                // Action Buttons
-                if let severity = result["severity"] as? Int, severity >= 2 {
-                  // High severity - show exercise and panic plan options
-                  VStack(spacing: 16) {
-                    Button(action: {
-                      Task {
-                        await generateEmergencyExercise()
-                      }
-                    }) {
-                      HStack(spacing: 12) {
-                        Image(
-                          systemName: isGeneratingExercise ? "hourglass" : "figure.mind.and.body"
-                        )
-                        .font(.title2)
-                        Text(isGeneratingExercise ? "Generating Exercise..." : "Do an Exercise Now")
-                          .font(.headline)
-                          .fontWeight(.semibold)
-                      }
-                      .foregroundColor(.white)
-                      .frame(maxWidth: .infinity)
-                      .padding(.vertical, 16)
-                      .background(
-                        RoundedRectangle(cornerRadius: 25)
-                          .fill(isGeneratingExercise ? Color.gray : Color.orange)
-                      )
-                    }
-                    .disabled(isGeneratingExercise)
-
-                    Button(action: { showingPanicPlan = true }) {
-                      HStack(spacing: 12) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                          .font(.title2)
-                        Text("Open Panic Plan")
-                          .font(.headline)
-                          .fontWeight(.semibold)
-                      }
-                      .foregroundColor(.white)
-                      .frame(maxWidth: .infinity)
-                      .padding(.vertical, 16)
-                      .background(
-                        RoundedRectangle(cornerRadius: 25)
-                          .fill(Color.red)
-                      )
-                    }
-                  }
-                  .padding(.horizontal, 20)
+              Group {
+                if isLoadingResponse {
+                  ProgressView("Thinking…")
+                } else if let err = responseError {
+                  Text("Hmm, something went wrong: \(err)")
+                    .font(.footnote).foregroundColor(.secondary)
+                  // show a safe default
+                  EnhancedCoachCard(
+                    response: DailyCheckInResponse(from: [
+                      "severity": 1,
+                      "coachLine": "That was a lot. Let's reset your body first—60 seconds.",
+                      "quickResetSteps": [
+                        "Sit comfortably and soften your gaze",
+                        "Inhale 4 seconds, Hold 4, Exhale 6",
+                        "Repeat 3 rounds",
+                      ],
+                    ]))
+                } else if let r = checkInResponse {
+                  EnhancedCoachCard(response: r)
                 } else {
-                  // Low severity - show micro-exercise
-                  if let exercise = result["exercise"] as? [String: Any] {
-                    MicroExerciseCard(exercise: exercise)
-                  }
-                }
-
-                // Debug Info (can be removed in production)
-                if let debugInfo = result["debug"] as? String {
-                  Text(debugInfo)
-                    .font(.caption)
-                    .foregroundColor(Color(.secondaryLabel))
-                    .padding(.horizontal, 20)
+                  // nothing fetched yet → hide card or show a hint
+                  Text("Tap **Get Support** to see your coach's suggestion.")
+                    .font(.footnote).foregroundColor(.secondary)
                 }
               }
-              .padding(20)
-              .background(
-                RoundedRectangle(cornerRadius: 16)
-                  .fill(Color(.systemBackground))
-                  .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-              )
-              .padding(.horizontal, 20)
             }
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemBackground)))
+            .shadow(color: .black.opacity(0.08), radius: 6, y: 3)
+            .padding(.horizontal, 20)
 
             // Error Display
             if let error = error {
@@ -445,43 +416,60 @@ struct DailyCoachView: View {
   }
 
   private func runCheckIn() {
-    isLoading = true
-    error = nil
-    checkinResult = nil
-
-    let checkin: [String: Any] = [
-      "mood": mood,
-      "tags": Array(tags),
-      "note": note,
-    ]
+    isLoadingResponse = true
+    responseError = nil
+    checkInResponse = nil
 
     Task {
       do {
-        let result = try await AiService.shared.dailyCheckIn(checkin: checkin)
+        let functions = Functions.functions(region: "europe-west1")
+        let callable = functions.httpsCallable("dailyCheckIn")
+
+        let payload: [String: Any] = [
+          "checkin": [
+            "mood": mood,
+            "tags": Array(tags).map { $0.lowercased() },
+            "note": note,
+          ]
+        ]
+
+        let result = try await callable.call(payload)
+
+        // Log shape once, super handy:
+        printJSON(result.data, prefix: "🧩 CheckIn raw response")
+
+        guard let outer = result.data as? [String: Any] else {
+          throw NSError(
+            domain: "Parse", code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])
+        }
+        let dict = (outer["data"] as? [String: Any]) ?? outer
+        let parsed = DailyCheckInResponse(from: dict)
+
         await MainActor.run {
-          checkinResult = result
-          isLoading = false
+          self.checkInResponse = parsed
+          self.isLoadingResponse = false
         }
       } catch {
         await MainActor.run {
-          self.error = error.localizedDescription
-          isLoading = false
+          self.responseError = error.localizedDescription
+          self.isLoadingResponse = false
         }
       }
     }
   }
-  
+
   private func generateUsageInsights() {
     isLoadingInsights = true
-    
+
     Task {
       do {
         // Analyze usage patterns
         let usageAnalysis = analyzeUsagePatterns()
-        
+
         // Generate insights based on patterns
         let insights = generateInsightsFromUsage(usageAnalysis)
-        
+
         await MainActor.run {
           usageInsights = insights
           isLoadingInsights = false
@@ -494,33 +482,34 @@ struct DailyCoachView: View {
       }
     }
   }
-  
+
   private func analyzeUsagePatterns() -> [String: Any] {
     let progressTracker = ProgressTracker.shared
-    
+
     // Analyze usage patterns
     let totalUsage = progressTracker.totalUsage
     let weeklyUsage = progressTracker.weeklyUsage
     let currentStreak = progressTracker.currentStreak
     let longestStreak = progressTracker.longestStreak
     let daysThisWeek = progressTracker.daysThisWeek
-    
+
     // Calculate usage frequency
     let usageFrequency = totalUsage > 0 ? Double(weeklyUsage) / 7.0 : 0.0
-    
+
     // Analyze relief outcomes
     let reliefOutcomes = progressTracker.reliefOutcomes
     let betterNowCount = reliefOutcomes.filter { $0 == .betterNow }.count
     let stillNeedHelpCount = reliefOutcomes.filter { $0 == .stillNeedHelp }.count
-    let successRate = reliefOutcomes.count > 0 ? Double(betterNowCount) / Double(reliefOutcomes.count) : 0.0
-    
+    let successRate =
+      reliefOutcomes.count > 0 ? Double(betterNowCount) / Double(reliefOutcomes.count) : 0.0
+
     // Analyze help options used
     let helpOptions = progressTracker.helpOptionsUsed
     let mostUsedOptions = Dictionary(grouping: helpOptions, by: { $0 })
       .mapValues { $0.count }
       .sorted { $0.value > $1.value }
       .prefix(3)
-    
+
     return [
       "totalUsage": totalUsage,
       "weeklyUsage": weeklyUsage,
@@ -532,59 +521,68 @@ struct DailyCoachView: View {
       "betterNowCount": betterNowCount,
       "stillNeedHelpCount": stillNeedHelpCount,
       "mostUsedOptions": Array(mostUsedOptions),
-      "hasRecentUsage": progressTracker.lastUsedDate != nil
+      "hasRecentUsage": progressTracker.lastUsedDate != nil,
     ]
   }
-  
+
   private func generateInsightsFromUsage(_ analysis: [String: Any]) -> [String] {
     var insights: [String] = []
-    
+
     let totalUsage = analysis["totalUsage"] as? Int ?? 0
     let currentStreak = analysis["currentStreak"] as? Int ?? 0
     let longestStreak = analysis["longestStreak"] as? Int ?? 0
     let successRate = analysis["successRate"] as? Double ?? 0.0
     let usageFrequency = analysis["usageFrequency"] as? Double ?? 0.0
     let daysThisWeek = analysis["daysThisWeek"] as? Int ?? 0
-    
+
     // Generate insights based on patterns
     if currentStreak > 0 {
-      insights.append("You're on a \(currentStreak)-day streak! Consistency is key to building healthy habits.")
+      insights.append(
+        "You're on a \(currentStreak)-day streak! Consistency is key to building healthy habits.")
     }
-    
+
     if longestStreak > currentStreak {
       insights.append("Your longest streak was \(longestStreak) days - you know you can do this!")
     }
-    
+
     if successRate > 0.7 {
-      insights.append("You're finding relief \(Int(successRate * 100))% of the time - that's excellent progress!")
+      insights.append(
+        "You're finding relief \(Int(successRate * 100))% of the time - that's excellent progress!")
     } else if successRate > 0.5 {
-      insights.append("You're finding relief \(Int(successRate * 100))% of the time - keep practicing!")
+      insights.append(
+        "You're finding relief \(Int(successRate * 100))% of the time - keep practicing!")
     }
-    
+
     if usageFrequency > 0.5 {
       insights.append("You're using the app almost daily - that's a great habit to maintain!")
     } else if usageFrequency > 0.2 {
       insights.append("You're building a regular practice - every bit helps!")
     }
-    
+
     if daysThisWeek >= 5 {
-      insights.append("You've used the app \(daysThisWeek) days this week - you're really committed to your wellbeing!")
+      insights.append(
+        "You've used the app \(daysThisWeek) days this week - you're really committed to your wellbeing!"
+      )
     } else if daysThisWeek >= 3 {
       insights.append("You've used the app \(daysThisWeek) days this week - nice consistency!")
     }
-    
+
     if totalUsage > 20 {
-      insights.append("You've used the app \(totalUsage) times total - you're building real expertise in self-care!")
+      insights.append(
+        "You've used the app \(totalUsage) times total - you're building real expertise in self-care!"
+      )
     } else if totalUsage > 10 {
-      insights.append("You've used the app \(totalUsage) times - you're developing good coping skills!")
+      insights.append(
+        "You've used the app \(totalUsage) times - you're developing good coping skills!")
     }
-    
+
     // If no specific insights, provide encouragement
     if insights.isEmpty {
-      insights.append("Every time you use the app, you're taking a positive step for your mental health.")
+      insights.append(
+        "Every time you use the app, you're taking a positive step for your mental health.")
       insights.append("Remember, progress isn't always linear - be patient with yourself.")
     }
-    
+
     return insights
   }
 }
@@ -862,6 +860,109 @@ struct FlowResult {
 
     self.positions = positions
     self.size = CGSize(width: maxWidthUsed, height: currentY + lineHeight)
+  }
+}
+
+// MARK: - Enhanced Coach Card Component
+struct EnhancedCoachCard: View {
+  let response: DailyCheckInResponse
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+
+      // Severity pill (keeps your existing visual language)
+      HStack {
+        Label(
+          response.severity <= 2
+            ? "Mild Concern" : response.severity <= 4 ? "Moderate Concern" : "High Concern",
+          systemImage: "exclamationmark.triangle"
+        )
+        .font(.subheadline)
+        Spacer()
+        Text("Level \(response.severity)").font(.caption).foregroundColor(.secondary)
+      }
+      .padding(12)
+      .background(RoundedRectangle(cornerRadius: 10).fill(Color.blue.opacity(0.08)))
+
+      if let coach = response.coachLine {
+        Text(coach).font(.body)
+      }
+
+      // Quick Reset
+      let quick =
+        response.quickResetSteps ?? [
+          "Sit comfortably and soften your gaze",
+          "Inhale 4 seconds, Hold 4, Exhale 6",
+          "Repeat 3 rounds",
+        ]
+
+      VStack(alignment: .leading, spacing: 8) {
+        HStack {
+          Image(systemName: "figure.mind.and.body").foregroundColor(.blue)
+          Text(response.exercise ?? "Quick Reset").font(.headline)
+          Spacer()
+          Text("≈ 60–90s").font(.caption).foregroundColor(.secondary)
+        }
+        ForEach(Array(quick.enumerated()), id: \.offset) { i, s in
+          HStack(alignment: .top) {
+            Text("\(i+1).").font(.caption).foregroundColor(.blue)
+            Text(s).font(.subheadline)
+          }
+        }
+
+        Button {
+          // start exercise flow
+        } label: {
+          Label("Start Exercise", systemImage: "play.fill")
+        }
+        .buttonStyle(.borderedProminent)
+      }
+      .padding()
+      .background(RoundedRectangle(cornerRadius: 12).fill(Color.blue.opacity(0.08)))
+
+      // Process It (optional)
+      if let process = response.processItSteps, !process.isEmpty {
+        VStack(alignment: .leading, spacing: 8) {
+          HStack {
+            Image(systemName: "text.bubble").foregroundColor(.purple)
+            Text("Process It (2–3 min)").font(.headline)
+          }
+          ForEach(Array(process.enumerated()), id: \.offset) { i, s in
+            HStack(alignment: .top) {
+              Text("\(i+1).").font(.caption).foregroundColor(.purple)
+              Text(s).font(.subheadline)
+            }
+          }
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.purple.opacity(0.08)))
+      }
+
+      // Reframe chips (optional)
+      if let chips = response.reframeChips, !chips.isEmpty {
+        WrapChips(chips: chips)
+      }
+
+      if let insight = response.microInsight {
+        Text(insight).font(.footnote).foregroundColor(.secondary)
+      }
+      if let plan = response.ifThenPlan {
+        Text("If-Then: \(plan)").font(.footnote)
+      }
+    }
+  }
+}
+
+struct WrapChips: View {
+  let chips: [String]
+  var body: some View {
+    FlowLayout(spacing: 8) {
+      ForEach(chips, id: \.self) { c in
+        Text(c).font(.caption)
+          .padding(.horizontal, 10).padding(.vertical, 6)
+          .background(Capsule().fill(Color(.secondarySystemBackground)))
+      }
+    }
   }
 }
 
