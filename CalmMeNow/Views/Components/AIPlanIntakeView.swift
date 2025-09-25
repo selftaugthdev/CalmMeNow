@@ -638,7 +638,37 @@ struct AIPlanIntakeView: View {
       print("🔍 No steps found, using default duration: 120")
       return 120
     }
-    let sum = steps.compactMap { $0["seconds"] as? Int }.reduce(0, +)
+    let sum = steps.compactMap { step -> Int? in
+      // Handle AI's nested format
+      if let breathingData = step["breathing"] as? [String: Any],
+        let seconds = breathingData["seconds"] as? Int
+      {
+        return seconds
+      } else if let groundingData = step["grounding"] as? [String: Any],
+        let seconds = groundingData["seconds"] as? Int
+      {
+        return seconds
+      } else if let muscleData = step["muscle_release"] as? [String: Any],
+        let seconds = muscleData["seconds"] as? Int
+      {
+        return seconds
+      } else if let affirmationData = step["affirmation"] as? [String: Any],
+        let seconds = affirmationData["seconds"] as? Int
+      {
+        return seconds
+      } else if let mindfulnessData = step["mindfulness"] as? [String: Any],
+        let seconds = mindfulnessData["seconds"] as? Int
+      {
+        return seconds
+      } else if let cognitiveData = step["cognitive_reframing"] as? [String: Any],
+        let seconds = cognitiveData["seconds"] as? Int
+      {
+        return seconds
+      } else {
+        // Fallback to standard format
+        return step["seconds"] as? Int
+      }
+    }.reduce(0, +)
     let duration = min(max(sum, 60), 300)
     print("🔍 Extracted duration from step sum: \(duration)")
     return duration
