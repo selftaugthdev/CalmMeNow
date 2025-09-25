@@ -57,9 +57,14 @@ struct PlanStep: Identifiable, Codable, Hashable {
 
 struct StepLibrary {
   static let breathing: [PlanStep] = [
-    .init(type: .breathing, text: "Box breathing: in 4 • hold 4 • out 4 • hold 4", seconds: 60),
-    .init(type: .breathing, text: "Paced breathing: in 4 • out 6", seconds: 60),
-    .init(type: .breathing, text: "4-7-8 breathing: in 4 • hold 7 • out 8", seconds: 60),
+    .init(
+      type: .breathing,
+      text: "Box breathing: in 4 seconds • hold 4 seconds • out 4 seconds • hold 4 seconds",
+      seconds: 60),
+    .init(type: .breathing, text: "Paced breathing: in 4 seconds • out 6 seconds", seconds: 60),
+    .init(
+      type: .breathing, text: "4-7-8 breathing: in 4 seconds • hold 7 seconds • out 8 seconds",
+      seconds: 60),
     .init(
       type: .breathing, text: "Diaphragmatic breathing: breathe deeply into your belly", seconds: 60
     ),

@@ -64,14 +64,15 @@ final class PlanStore: ObservableObject {
         description: "Quick relief for panic attacks",
         steps: [
           PlanStep(
-            type: .breathing, text: "Take 5 slow breaths (in 4 • hold 4 • out 4 • hold 4)",
+            type: .breathing,
+            text:
+              "Take 5 slow breaths (in 4 seconds • hold 4 seconds • out 4 seconds • hold 4 seconds)",
             seconds: 60),
           PlanStep(
             type: .grounding,
             text: "5-4-3-2-1 grounding: 5 see • 4 touch • 3 hear • 2 smell • 1 taste", seconds: 60),
           PlanStep(type: .affirmation, text: "Repeat: 'I am safe. This will pass.'", seconds: 20),
         ],
-        duration: 120,
         techniques: ["Breathing", "Grounding", "Affirmation"],
         personalizedPhrase: "I am safe and I can handle this"
       )

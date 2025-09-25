@@ -20,7 +20,7 @@ class AudioManager: NSObject, ObservableObject {
   private var isAboutToComplete = false
 
   let sounds = [
-    "perfect-beauty-1-min", "mixkit-jazz-sad", "mixkit-serene-anxious", "mixkit-just-chill-angry",
+    "ethereal-night-loop", "mixkit-jazz-sad", "mixkit-serene-anxious", "mixkit-just-chill-angry",
   ]
 
   override init() {

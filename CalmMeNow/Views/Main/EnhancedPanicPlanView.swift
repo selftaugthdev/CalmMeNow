@@ -23,12 +23,15 @@ struct EnhancedPanicPlanView: View {
       title: "My Emergency Plan",
       description: "Quick relief for panic attacks",
       steps: [
-        PlanStep(type: .breathing, text: "Take 3 deep breaths", seconds: 30),
+        PlanStep(
+          type: .breathing,
+          text:
+            "Take 3 deep breaths (in 4 seconds • hold 4 seconds • out 4 seconds • hold 4 seconds)",
+          seconds: 30),
         PlanStep(type: .grounding, text: "Ground yourself with 5-4-3-2-1", seconds: 60),
         PlanStep(type: .mindfulness, text: "Listen to calming sounds", seconds: 30),
         PlanStep(type: .affirmation, text: "Call a trusted friend if needed", seconds: 20),
       ],
-      duration: 120,
       techniques: ["Breathing", "Grounding", "Social Support"],
       personalizedPhrase: "I am safe and I can handle this"
     )
@@ -454,6 +457,7 @@ struct EnhancedPanicPlanView: View {
     }
     return ["Breathing", "Grounding", "Mindfulness"]
   }
+
 }
 
 // MARK: - Supporting Views
@@ -482,7 +486,8 @@ struct PanicPlanCard: View {
         Spacer()
 
         HStack(spacing: 8) {
-          Text("\(plan.duration)s")
+          let totalSec = totalPlannedSeconds(for: plan)
+          Text("\(totalSec / 60) min")
             .font(.caption)
             .fontWeight(.medium)
             .padding(.horizontal, 8)

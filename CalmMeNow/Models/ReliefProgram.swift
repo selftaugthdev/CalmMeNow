@@ -148,7 +148,7 @@ extension ReliefProgram {
     ReliefProgram(
       emotion: .frustrated,
       intensity: .mild,
-      audio: "perfect-beauty-1-min",
+      audio: "ethereal-night-loop",
       breathing: .fiveFive,
       guidance: .none,
       showControlsAfter: 0,
@@ -162,7 +162,7 @@ extension ReliefProgram {
     ReliefProgram(
       emotion: .frustrated,
       intensity: .severe,
-      audio: "perfect-beauty-1-min",  // Will loop for 2 minutes
+      audio: "ethereal-night-loop",  // Will loop for 2 minutes
       breathing: .fourSix,
       guidance: .smallAction,
       showControlsAfter: 15,

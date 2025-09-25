@@ -192,7 +192,7 @@ struct EmergencyCalmView: View {
 
     // Start the emergency calming sound (only if sounds are enabled)
     if prefSounds {
-      audioManager.playSound("perfect-beauty-1-min")
+      audioManager.playSound("ethereal-night-loop")
     }
 
     // Start countdown timer

@@ -335,7 +335,8 @@ struct PanicPlanDetailView: View {
             Image(systemName: "clock")
               .foregroundColor(.blue)
 
-            Text("Plan Duration: \(plan.duration / 60) minutes")
+            let totalSec = totalPlannedSeconds(for: plan)
+            Text("Plan Duration: \(totalSec / 60) minutes")
               .font(.subheadline)
 
             Spacer()
@@ -384,6 +385,7 @@ struct PanicPlanDetailView: View {
       }
     }
   }
+
 }
 
 #Preview {

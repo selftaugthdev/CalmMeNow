@@ -1,6 +1,18 @@
 import Firebase
 import SwiftUI
 
+// MARK: - Shared Utilities
+
+func totalPlannedSeconds(for plan: PanicPlan) -> Int {
+  let perStep = plan.steps.compactMap { $0.seconds }
+  if perStep.count == plan.steps.count {
+    // All steps timed → sum controls the session
+    return max(perStep.reduce(0, +), 60)
+  }
+  // Fallback to plan.duration if not all steps have seconds
+  return max(plan.duration, 60)
+}
+
 struct PersonalizedPanicPlanView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var audioManager = AudioManager.shared
@@ -360,7 +372,10 @@ struct PersonalizedPanicPlanView: View {
   private func defaultPlanSteps() -> [PlanStep] {
     return [
       PlanStep(
-        type: .breathing, text: "Take 5 slow breaths (in 4 • hold 4 • out 4 • hold 4)", seconds: 60),
+        type: .breathing,
+        text:
+          "Take 5 slow breaths (in 4 seconds • hold 4 seconds • out 4 seconds • hold 4 seconds)",
+        seconds: 60),
       PlanStep(
         type: .grounding, text: "5-4-3-2-1 grounding: 5 see • 4 touch • 3 hear • 2 smell • 1 taste",
         seconds: 60),
@@ -370,7 +385,7 @@ struct PersonalizedPanicPlanView: View {
 
   private func defaultSteps() -> [String] {
     [
-      "Take 5 slow breaths (in 4 • hold 4 • out 4 • hold 4)",
+      "Take 5 slow breaths (in 4 seconds • hold 4 seconds • out 4 seconds • hold 4 seconds)",
       "5-4-3-2-1 grounding: 5 see • 4 touch • 3 hear • 2 smell • 1 taste",
       "Repeat: 'I am safe. This will pass.'",
     ]
@@ -508,14 +523,15 @@ struct PlanCard: View {
       }
 
       HStack {
-        Label("\(Int(plan.duration / 60)) min", systemImage: "clock")
+        let totalSec = totalPlannedSeconds(for: plan)
+        Label("\(totalSec / 60) min", systemImage: "clock")
           .font(.caption)
           .foregroundColor(Color(.secondaryLabel))
 
         Spacer()
 
         // Note: isDefault property removed, using duration instead
-        Text("\(plan.duration / 60) min")
+        Text("\(totalSec / 60) min")
           .font(.caption)
           .fontWeight(.medium)
           .foregroundColor(.blue)
@@ -635,7 +651,11 @@ struct PlanExecutionView: View {
                   }
                 }
 
-                Text(plan.steps[currentStepIndex].text)
+                let step = plan.steps[currentStepIndex]
+                let displayText =
+                  (step.type == .breathing) ? prettyBreathingText(step.text) : step.text
+
+                Text(displayText)
                   .font(.title2)
                   .fontWeight(.medium)
                   .multilineTextAlignment(.center)
@@ -750,7 +770,8 @@ struct PlanExecutionView: View {
 
     isExecuting = true
     currentStepIndex = 0
-    timeRemaining = TimeInterval(plan.duration)
+    let total = totalPlannedSeconds(for: plan)
+    timeRemaining = TimeInterval(total)
     currentStepStartTime = Date()
 
     progressTracker.recordUsage()
@@ -772,7 +793,8 @@ struct PlanExecutionView: View {
         timeRemaining -= 1
 
         // Progress to next step based on actual step durations or equal distribution
-        let elapsedTime = TimeInterval(plan.duration) - timeRemaining
+        let total = totalPlannedSeconds(for: plan)
+        let elapsedTime = TimeInterval(total) - timeRemaining
         var nextStepIndex = 0
 
         // Check if all steps have proper durations
@@ -830,12 +852,12 @@ struct PlanExecutionView: View {
     var message = "Step \(stepNumber) of \(totalSteps). "
 
     // Add the step instruction with natural pauses
+    let spoken = (step.type == .breathing) ? prettyBreathingText(step.text) : step.text
     if step.type == .breathing {
       // For breathing exercises, speak more slowly and with pauses
-      message +=
-        "Now, let's focus on breathing. " + step.text.replacingOccurrences(of: "•", with: ", ")
+      message += "Now, let's focus on breathing. " + spoken
     } else {
-      message += step.text
+      message += spoken
     }
 
     // Add detailed explanation if available, with a pause
@@ -860,9 +882,11 @@ struct PlanExecutionView: View {
     // Breathing exercises
     if lowercasedStep.contains("breathing") || lowercasedStep.contains("breath") {
       if lowercasedStep.contains("478") || lowercasedStep.contains("4-7-8") {
-        return "This breathing pattern helps activate your body's relaxation response."
+        return
+          "Inhale through your nose for 4 seconds, hold your breath for 7 seconds, then exhale through your mouth for 8 seconds. This breathing pattern helps activate your body's relaxation response."
       } else if lowercasedStep.contains("box") {
-        return "Imagine tracing a square with your breath."
+        return
+          "Inhale for 4 seconds, hold for 4 seconds, exhale for 4 seconds, then hold empty for 4 seconds. Imagine tracing a square with your breath."
       } else if lowercasedStep.contains("coherence") {
         return
           "Focus on your heart as you breathe. This creates harmony between your heart and brain."
@@ -903,6 +927,30 @@ struct PlanExecutionView: View {
     return nil
   }
 
+  // MARK: - Breathing Text Formatter
+
+  private func prettyBreathingText(_ raw: String) -> String {
+    let t = raw.lowercased()
+
+    // Extract numbers in order (works for "in 4 • hold 4 • out 6", "in 4, hold 7, out 8", etc.)
+    let nums = t.components(separatedBy: CharacterSet.decimalDigits.inverted)
+      .compactMap { Int($0) }
+
+    // We handle 3- or 4-number patterns
+    if t.contains("in") && t.contains("out") && (t.contains("hold") || nums.count >= 3) {
+      let a = nums.indices.contains(0) ? nums[0] : 4
+      let b = nums.indices.contains(1) ? nums[1] : a
+      let c = nums.indices.contains(2) ? nums[2] : a
+      let d = nums.indices.contains(3) ? nums[3] : 0
+
+      let holdTail = d > 0 ? ", Hold \(d) seconds" : ""
+      return "In \(a) seconds, Hold \(b) seconds, Out \(c) seconds\(holdTail)"
+    }
+
+    // Fallback: just swap the bullets for commas
+    return raw.replacingOccurrences(of: "•", with: ", ")
+  }
+
   private func getAppropriateSound(for plan: PanicPlan) -> String {
     // Check if any step mentions specific emotions or situations
     let allSteps = plan.steps.map { $0.text }.joined(separator: " ").lowercased()
@@ -915,7 +963,7 @@ struct PlanExecutionView: View {
       return "mixkit-jazz-sad"
     } else {
       // Default calming sound
-      return "perfect-beauty-1-min"
+      return "ethereal-night-loop"
     }
   }
 }
@@ -925,6 +973,7 @@ struct PlanExecutionView: View {
 struct PlanCompletionView: View {
   let plan: PanicPlan
   let onDismiss: () -> Void
+  @State private var showAdditionalHelp = false
 
   var body: some View {
     VStack(spacing: 30) {
@@ -955,7 +1004,7 @@ struct PlanCompletionView: View {
         )
 
         Button("I need more help") {
-          onDismiss()
+          showAdditionalHelp = true
         }
         .foregroundColor(.blue)
         .padding(.vertical, 12)
@@ -967,6 +1016,9 @@ struct PlanCompletionView: View {
       }
     }
     .padding(40)
+    .sheet(isPresented: $showAdditionalHelp) {
+      AdditionalHelpView(onReturnHome: onDismiss)
+    }
   }
 
 }

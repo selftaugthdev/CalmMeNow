@@ -69,7 +69,7 @@ extension CooldownModel {
       id: "frustrated",
       emotion: "Frustrated",
       emoji: "😤",
-      soundFileName: "perfect-beauty-1-min",
+      soundFileName: "ethereal-night-loop",
       backgroundColors: [
         Color(red: 0.85, green: 0.95, blue: 0.85),
         Color(red: 0.70, green: 0.90, blue: 0.90),

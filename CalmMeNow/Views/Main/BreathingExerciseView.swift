@@ -44,6 +44,7 @@ struct BreathingExerciseView: View {
   @State private var phaseTimer: Timer?
   @State private var exerciseTimer: Timer?
   @State private var orbScale: CGFloat = 1.0
+
   @State private var orbOpacity: Double = 0.8
   @State private var boxProgress: CGFloat = 0.0
   @State private var currentBoxSide = 0

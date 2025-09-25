@@ -115,7 +115,27 @@ export const generatePanicPlan = onCall(
 
       // Extract user's desired duration from intake
       const intake = req.data?.intake ?? {};
-      const userDuration = intake.duration || 120; // Default to 2 minutes if not specified
+      
+      // Map duration string to seconds
+      let userDuration = 120; // Default to 2 minutes
+      if (typeof intake.duration === 'string') {
+        switch (intake.duration) {
+          case 'short':
+            userDuration = 90; // 60-90 seconds, use 90
+            break;
+          case 'medium':
+            userDuration = 150; // 2-3 minutes, use 2.5 minutes
+            break;
+          case 'long':
+            userDuration = 270; // 4-5 minutes, use 4.5 minutes
+            break;
+          default:
+            userDuration = 120; // Default fallback
+        }
+      } else if (typeof intake.duration === 'number') {
+        userDuration = intake.duration;
+      }
+      
       const durationMinutes = Math.round(userDuration / 60);
       
       const system =
@@ -150,12 +170,14 @@ OUTPUT FORMAT (STRICT JSON):
 }
 
 EVIDENCE-BASED TECHNIQUES TO CHOOSE FROM:
-- Breathing: Box breathing (4-4-4-4), 4-7-8 breathing, diaphragmatic breathing, paced breathing
+- Breathing: Box breathing (in 4 seconds • hold 4 seconds • out 4 seconds • hold 4 seconds), 4-7-8 breathing (in 4 seconds • hold 7 seconds • out 8 seconds), diaphragmatic breathing, paced breathing
 - Grounding: 5-4-3-2-1 technique, temperature grounding, counting backwards, sensory awareness
 - Muscle Release: Progressive muscle relaxation, tension-release cycles
 - Cognitive: Reframing thoughts, reality checking, present moment awareness
 - Mindfulness: Body scan, mindful observation, acceptance techniques
 - Behavioral: Posture change, movement, environmental adjustment
+
+IMPORTANT FOR BREATHING INSTRUCTIONS: Always include "seconds" after numbers (e.g., "in 4 seconds • hold 4 seconds • out 4 seconds")
 
 PERSONALIZE BASED ON:
 - Triggers: Crowded places, work stress, social situations, etc.

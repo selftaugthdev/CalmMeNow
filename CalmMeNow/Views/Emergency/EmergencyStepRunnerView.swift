@@ -466,6 +466,7 @@ struct EmergencyStepRunnerView: View {
 
 struct EmergencyCompletionView: View {
   let onDismiss: () -> Void
+  @State private var showAdditionalHelp = false
 
   var body: some View {
     VStack(spacing: 30) {
@@ -496,7 +497,7 @@ struct EmergencyCompletionView: View {
         )
 
         Button("I need more help") {
-          onDismiss()
+          showAdditionalHelp = true
         }
         .foregroundColor(.blue)
         .padding(.vertical, 12)
@@ -508,6 +509,9 @@ struct EmergencyCompletionView: View {
       }
     }
     .padding(40)
+    .sheet(isPresented: $showAdditionalHelp) {
+      AdditionalHelpView(onReturnHome: onDismiss)
+    }
   }
 }
 

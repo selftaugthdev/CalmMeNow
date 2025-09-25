@@ -11,6 +11,11 @@ struct PanicPlan: Codable, Identifiable, Hashable {
   var personalizedPhrase: String?
   let createdAt: Date
 
+  // Method to recalculate duration from steps
+  mutating func recalculateDuration() {
+    self.duration = steps.compactMap { $0.seconds }.reduce(0, +)
+  }
+
   init(from dict: [String: Any]) {
     self.id = UUID()
     self.title = dict["title"] as? String ?? "Personalized Calm Plan"
@@ -41,7 +46,7 @@ struct PanicPlan: Codable, Identifiable, Hashable {
     title: String,
     description: String,
     steps: [PlanStep],
-    duration: Int,
+    duration: Int? = nil,  // Make duration optional
     techniques: [String],
     emergencyContact: String? = nil,
     personalizedPhrase: String? = nil,
@@ -51,7 +56,8 @@ struct PanicPlan: Codable, Identifiable, Hashable {
     self.title = title
     self.description = description
     self.steps = steps
-    self.duration = duration
+    // Calculate duration from steps if not provided
+    self.duration = duration ?? steps.compactMap { $0.seconds }.reduce(0, +)
     self.techniques = techniques
     self.emergencyContact = emergencyContact
     self.personalizedPhrase = personalizedPhrase

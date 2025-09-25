@@ -10,6 +10,9 @@ struct AdditionalHelpView: View {
   @State private var showBreathingExercise = false
   @State private var showJournaling = false
 
+  // Completion handler to dismiss all the way back to home
+  var onReturnHome: (() -> Void)?
+
   enum HelpOption: String, CaseIterable {
     case anotherSound = "Try another calming sound"
     case bubbleGame = "Play a relaxing game"
@@ -119,7 +122,7 @@ struct AdditionalHelpView: View {
 
         // Back to home option
         Button("Return to Home") {
-          presentationMode.wrappedValue.dismiss()
+          onReturnHome?() ?? presentationMode.wrappedValue.dismiss()
         }
         .foregroundColor(.black)
         .padding(.vertical, 12)
@@ -156,10 +159,10 @@ struct AdditionalHelpView: View {
       // Play a different calming sound (only if sounds are enabled)
       if prefSounds {
         let sounds = [
-          "perfect-beauty-1-min", "mixkit-serene-anxious", "mixkit-just-chill-angry",
+          "ethereal-night-loop", "mixkit-serene-anxious", "mixkit-just-chill-angry",
           "mixkit-jazz-sad",
         ]
-        let randomSound = sounds.randomElement() ?? "perfect-beauty-1-min"
+        let randomSound = sounds.randomElement() ?? "ethereal-night-loop"
         audioManager.playSound(randomSound)
       }
 
