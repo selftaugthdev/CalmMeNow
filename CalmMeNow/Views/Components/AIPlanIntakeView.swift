@@ -454,30 +454,79 @@ struct AIPlanIntakeView: View {
     }
 
     let parsed = steps.compactMap { step -> PlanStep? in
-      let type = (step["type"] as? String)?.lowercased() ?? ""
-      let text = step["text"] as? String ?? ""
-      let seconds = step["seconds"] as? Int
+      print("🔍 Raw step data: \(step)")
 
-      print("🔍 Parsing step: type='\(type)', text='\(text)', seconds=\(seconds ?? 0)")
+      // Handle the AI's format where step type is the key
+      var stepType: StepType = .custom
+      var stepData: [String: Any] = [:]
+      var seconds: Int? = nil
+      var text: String = ""
 
-      // Map AI types to our StepType enum
-      let stepType: StepType
-      switch type {
-      case "breathing":
+      // Check if this is the AI's format (type as key)
+      if let breathingData = step["breathing"] as? [String: Any] {
         stepType = .breathing
-      case "grounding":
+        stepData = breathingData
+        if let pattern = breathingData["pattern"] as? String {
+          text = "\(pattern.capitalized) breathing"
+        }
+      } else if let groundingData = step["grounding"] as? [String: Any] {
         stepType = .grounding
-      case "muscle_release":
+        stepData = groundingData
+        if let method = groundingData["method"] as? String {
+          text = "\(method.capitalized) grounding"
+        }
+      } else if let muscleData = step["muscle_release"] as? [String: Any] {
         stepType = .muscleRelease
-      case "affirmation":
+        stepData = muscleData
+        if let area = muscleData["area"] as? String {
+          text = "Release \(area)"
+        }
+      } else if let affirmationData = step["affirmation"] as? [String: Any] {
         stepType = .affirmation
-      case "mindfulness":
+        stepData = affirmationData
+        if let affirmationText = affirmationData["text"] as? String {
+          text = "Repeat: '\(affirmationText)'"
+        }
+      } else if let mindfulnessData = step["mindfulness"] as? [String: Any] {
         stepType = .mindfulness
-      case "cognitive_reframing":
+        stepData = mindfulnessData
+        text = "Mindful awareness"
+      } else if let cognitiveData = step["cognitive_reframing"] as? [String: Any] {
         stepType = .cognitiveReframing
-      default:
-        stepType = .custom
+        stepData = cognitiveData
+        text = "Cognitive reframing"
+      } else {
+        // Fallback to standard format
+        let type = (step["type"] as? String)?.lowercased() ?? ""
+        text = step["text"] as? String ?? ""
+
+        switch type {
+        case "breathing":
+          stepType = .breathing
+        case "grounding":
+          stepType = .grounding
+        case "muscle_release":
+          stepType = .muscleRelease
+        case "affirmation":
+          stepType = .affirmation
+        case "mindfulness":
+          stepType = .mindfulness
+        case "cognitive_reframing":
+          stepType = .cognitiveReframing
+        default:
+          stepType = .custom
+        }
       }
+
+      // Extract seconds from stepData or step
+      seconds = stepData["seconds"] as? Int ?? step["seconds"] as? Int
+
+      // Enhance text with duration if available
+      if let duration = seconds, duration > 0 {
+        text += " for \(duration) seconds"
+      }
+
+      print("🔍 Parsing step: type='\(stepType.rawValue)', text='\(text)', seconds=\(seconds ?? 0)")
 
       let planStep = PlanStep(type: stepType, text: text, seconds: seconds)
       print("🔍 Created PlanStep: \(planStep.type.rawValue) - '\(planStep.text)'")
