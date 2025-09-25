@@ -493,7 +493,7 @@ struct PlanCard: View {
               .fontWeight(.bold)
               .foregroundColor(.blue)
 
-            Text(step)
+            Text(step.text)
               .font(.caption)
               .foregroundColor(Color(.secondaryLabel))
               .lineLimit(1)
@@ -771,9 +771,23 @@ struct PlanExecutionView: View {
       if timeRemaining > 0 {
         timeRemaining -= 1
 
-        // Progress to next step based on time
-        let stepDuration = TimeInterval(plan.duration) / TimeInterval(plan.steps.count)
-        let nextStepIndex = Int((TimeInterval(plan.duration) - timeRemaining) / stepDuration)
+        // Progress to next step based on actual step durations
+        let elapsedTime = TimeInterval(plan.duration) - timeRemaining
+        var accumulatedTime: TimeInterval = 0
+        var nextStepIndex = 0
+
+        for (index, step) in plan.steps.enumerated() {
+          let stepDuration = TimeInterval(step.seconds ?? 30)  // Default to 30 seconds if not specified
+          if elapsedTime >= accumulatedTime && elapsedTime < accumulatedTime + stepDuration {
+            nextStepIndex = index
+            break
+          }
+          accumulatedTime += stepDuration
+          nextStepIndex = index + 1
+        }
+
+        // Ensure we don't go beyond the last step
+        nextStepIndex = min(nextStepIndex, plan.steps.count - 1)
 
         if nextStepIndex != currentStepIndex && nextStepIndex < plan.steps.count {
           currentStepIndex = nextStepIndex
