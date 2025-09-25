@@ -38,32 +38,87 @@ class SpeechService: NSObject, ObservableObject {
 
   /// Returns the most natural-sounding voice available for the user's locale
   private func defaultCalmVoice() -> AVSpeechSynthesisVoice {
+    // Get all available voices for more robust selection
+    let allVoices = AVSpeechSynthesisVoice.speechVoices()
+
+    // First, try to find Alex or Daniel by name (more reliable than identifiers)
+    if let alexVoice = allVoices.first(where: { $0.name.lowercased().contains("alex") }) {
+      #if DEBUG
+        print(
+          "🎤 SpeechService Found Alex voice by name: \(alexVoice.name) - \(alexVoice.identifier)")
+      #endif
+      return alexVoice
+    }
+
+    if let danielVoice = allVoices.first(where: { $0.name.lowercased().contains("daniel") }) {
+      #if DEBUG
+        print(
+          "🎤 SpeechService Found Daniel voice by name: \(danielVoice.name) - \(danielVoice.identifier)"
+        )
+      #endif
+      return danielVoice
+    }
+
+    // Try specific identifiers as fallback
+    if let alexVoice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.alex-compact") {
+      #if DEBUG
+        print("🎤 SpeechService Found Alex voice: \(alexVoice.name)")
+      #endif
+      return alexVoice
+    }
+
+    if let danielVoice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.daniel-compact") {
+      #if DEBUG
+        print("🎤 SpeechService Found Daniel voice: \(danielVoice.name)")
+      #endif
+      return danielVoice
+    }
+
+    // Try enhanced versions
+    if let alexEnhanced = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.alex-premium") {
+      #if DEBUG
+        print("🎤 SpeechService Found Alex Enhanced voice: \(alexEnhanced.name)")
+      #endif
+      return alexEnhanced
+    }
+
+    if let danielEnhanced = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.daniel-premium")
+    {
+      #if DEBUG
+        print("🎤 SpeechService Found Daniel Enhanced voice: \(danielEnhanced.name)")
+      #endif
+      return danielEnhanced
+    }
+
     // First try to get the best voice for current locale
     if let bestVoice = bestVoiceForCurrentLocale() {
       return bestVoice
     }
 
     // Fallback to enhanced voices in any language
-    let allVoices = AVSpeechSynthesisVoice.speechVoices()
     if let enhancedVoice = allVoices.first(where: { voice in
       voice.quality == .enhanced || voice.quality == .premium
     }) {
       return enhancedVoice
     }
 
-    // Look for the most natural-sounding compact voices
+    // Look for the most natural-sounding voices (prioritizing deeper, less robotic voices)
     let naturalVoiceIdentifiers = [
-      // Siri voices (most natural)
-      "com.apple.ttsbundle.siri_female_en-US_compact",
-      "com.apple.ttsbundle.siri_male_en-US_compact",
-      // Samantha and Alex (classic natural voices)
-      "com.apple.ttsbundle.samantha-compact",
+      // Alex and Daniel (most natural, deeper voices)
       "com.apple.ttsbundle.alex-compact",
-      // Other natural-sounding voices
-      "com.apple.ttsbundle.veena-compact",
       "com.apple.ttsbundle.daniel-compact",
+      // Enhanced versions if available
+      "com.apple.ttsbundle.alex-premium",
+      "com.apple.ttsbundle.daniel-premium",
+      // Other natural-sounding voices
+      "com.apple.ttsbundle.samantha-compact",
       "com.apple.ttsbundle.karen-compact",
       "com.apple.ttsbundle.moira-compact",
+      // Siri voices (more natural but higher pitched)
+      "com.apple.ttsbundle.siri_male_en-US_compact",
+      "com.apple.ttsbundle.siri_female_en-US_compact",
+      // Other voices
+      "com.apple.ttsbundle.veena-compact",
     ]
 
     for identifier in naturalVoiceIdentifiers {
@@ -110,7 +165,9 @@ class SpeechService: NSObject, ObservableObject {
     utterance.voice = selectedVoice
 
     #if DEBUG
-      print("🎤 Using voice: \(selectedVoice.name) (\(selectedVoice.quality.rawValue))")
+      print(
+        "🎤 SpeechService Using voice: \(selectedVoice.name) (\(selectedVoice.quality.rawValue)) - \(selectedVoice.identifier)"
+      )
     #endif
 
     // Optimized settings for calm, natural sound

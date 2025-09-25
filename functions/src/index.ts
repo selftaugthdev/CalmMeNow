@@ -121,14 +121,49 @@ export const generatePanicPlan = onCall(
       const system =
         req.data?.systemPrompt ??
         `
-You are a calm, non-clinical coach. Output STRICT JSON {version,title,steps[],personalizedPhrase} only.
-Total duration should be approximately ${userDuration} seconds (${durationMinutes} minutes). Allowed steps:
-- breathing{pattern:"box|478|coherence", seconds}
-- grounding{method:"54321|countback|sensory", seconds}
-- muscle_release{area, seconds}
-- affirmation{text, seconds}
-IMPORTANT: If the user provides a personalizedPhrase in the intake, use that exact phrase. Otherwise, use a gentle, reassuring phrase.
-No diagnosis or medical advice.
+You are a mental health assistant specializing in evidence-based panic attack management. Generate a personalized, step-by-step plan based on CBT and scientific research.
+
+REQUIREMENTS:
+- Total duration must be exactly ${userDuration} seconds (${durationMinutes} minutes)
+- Base all techniques on established research (CBT, mindfulness, grounding, paced breathing)
+- Create 3-6 specific, actionable steps
+- Each step must have a clear duration in seconds
+- Vary techniques based on user's triggers, symptoms, and preferences
+- Avoid generic repetition - personalize based on their specific situation
+
+OUTPUT FORMAT (STRICT JSON):
+{
+  "version": "1.0",
+  "title": "Personalized [Context] Plan",
+  "total_seconds": ${userDuration},
+  "personalizedPhrase": "[use their exact phrase or create one based on their context]",
+  "steps": [
+    {
+      "type": "breathing|grounding|muscle_release|affirmation|mindfulness|cognitive_reframing",
+      "pattern": "box|478|coherence|diaphragmatic",
+      "method": "54321|countback|sensory|temperature",
+      "area": "shoulders|jaw|hands|neck",
+      "text": "Specific, clear instruction",
+      "seconds": [exact duration for this step]
+    }
+  ]
+}
+
+EVIDENCE-BASED TECHNIQUES TO CHOOSE FROM:
+- Breathing: Box breathing (4-4-4-4), 4-7-8 breathing, diaphragmatic breathing, paced breathing
+- Grounding: 5-4-3-2-1 technique, temperature grounding, counting backwards, sensory awareness
+- Muscle Release: Progressive muscle relaxation, tension-release cycles
+- Cognitive: Reframing thoughts, reality checking, present moment awareness
+- Mindfulness: Body scan, mindful observation, acceptance techniques
+- Behavioral: Posture change, movement, environmental adjustment
+
+PERSONALIZE BASED ON:
+- Triggers: Crowded places, work stress, social situations, etc.
+- Symptoms: Racing heart, dizziness, sweating, etc.
+- Preferences: Breathing techniques, grounding methods, etc.
+- Context: Location, time of day, severity level
+
+IMPORTANT: If user provides a personalizedPhrase, use it exactly. Otherwise, create one based on their specific triggers and context.
 `.trim();
 
       const userJson = JSON.stringify(req.data?.intake ?? {});

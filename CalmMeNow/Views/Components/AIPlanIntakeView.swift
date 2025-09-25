@@ -451,7 +451,19 @@ struct AIPlanIntakeView: View {
       switch type {
       case "breathing":
         if let pattern = step["pattern"] as? String, let seconds = step["seconds"] as? Int {
-          return "\(pattern.capitalized) breathing for \(seconds) seconds"
+          // Handle specific breathing patterns
+          switch pattern.lowercased() {
+          case "478":
+            return "4-7-8 breathing for \(seconds) seconds"
+          case "box":
+            return "Box breathing for \(seconds) seconds"
+          case "coherence":
+            return "Heart coherence breathing for \(seconds) seconds"
+          case "diaphragmatic":
+            return "Diaphragmatic breathing for \(seconds) seconds"
+          default:
+            return "\(pattern.capitalized) breathing for \(seconds) seconds"
+          }
         }
         if let pattern = step["pattern"] as? String {
           return "\(pattern.capitalized) breathing"
@@ -459,7 +471,17 @@ struct AIPlanIntakeView: View {
         return "Slow breathing: In 4 • Hold 4 • Out 4 • Hold 4"
       case "grounding":
         if let method = step["method"] as? String, let seconds = step["seconds"] as? Int {
-          return "\(method.capitalized) grounding for \(seconds) seconds"
+          // Handle specific grounding methods
+          switch method.lowercased() {
+          case "54321":
+            return "5-4-3-2-1 grounding for \(seconds) seconds"
+          case "countback":
+            return "Countdown grounding for \(seconds) seconds"
+          case "sensory":
+            return "Sensory grounding for \(seconds) seconds"
+          default:
+            return "\(method.capitalized) grounding for \(seconds) seconds"
+          }
         }
         return "5-4-3-2-1 grounding"
       case "muscle_release":
@@ -469,6 +491,12 @@ struct AIPlanIntakeView: View {
       case "affirmation":
         let text = (step["text"] as? String) ?? "I am safe. This will pass."
         return "Repeat: '\(text)'"
+      case "mindfulness":
+        let text = (step["text"] as? String) ?? "Focus on the present moment"
+        return text
+      case "cognitive_reframing":
+        let text = (step["text"] as? String) ?? "This is uncomfortable but not dangerous"
+        return "Reframe: '\(text)'"
       default:
         if let text = step["text"] as? String { return text }
         return nil
@@ -478,11 +506,22 @@ struct AIPlanIntakeView: View {
   }
 
   private func defaultSteps() -> [String] {
-    [
-      "Take 5 slow breaths (in 4 • hold 4 • out 4 • hold 4)",
-      "5-4-3-2-1 grounding: 5 see • 4 touch • 3 hear • 2 smell • 1 taste",
-      "Repeat: 'I am safe. This will pass.'",
+    // Evidence-based techniques pool for fallback
+    let techniques = [
+      "Box breathing: Inhale 4, hold 4, exhale 4, hold 4",
+      "4-7-8 breathing: Inhale 4, hold 7, exhale 8",
+      "5-4-3-2-1 grounding: 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste",
+      "Temperature grounding: Hold something cold, notice the sensation",
+      "Progressive muscle relaxation: Tense and release your shoulders",
+      "Cognitive reframing: 'This is uncomfortable but not dangerous'",
+      "Mindful body scan: Notice your feet touching the ground",
+      "Counting backwards: Count slowly from 20 to 1",
+      "Diaphragmatic breathing: Breathe deeply into your belly",
+      "Sensory awareness: Focus on one sound around you",
     ]
+
+    // Return 3 random techniques for variety
+    return Array(techniques.shuffled().prefix(3))
   }
 
   private func extractDuration(from result: [String: Any]) -> Int {

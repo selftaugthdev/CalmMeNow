@@ -9,11 +9,32 @@ final class SessionTTS: NSObject, ObservableObject {
   override init() {
     super.init()
     synthesizer.delegate = self
+
+    #if DEBUG
+      // Log available voices on initialization to help debug voice selection
+      logAvailableVoices()
+    #endif
   }
 
   deinit {
     stopAll()
   }
+
+  // MARK: - Debug Methods
+
+  #if DEBUG
+    func logAvailableVoices() {
+      let voices = AVSpeechSynthesisVoice.speechVoices()
+      print("=== Available Voices for SessionTTS ===")
+      for voice in voices {
+        print("Name: \(voice.name)")
+        print("  Identifier: \(voice.identifier)")
+        print("  Quality: \(voice.quality.rawValue)")
+        print("  Language: \(voice.language)")
+        print("---")
+      }
+    }
+  #endif
 
   // MARK: - Enhanced Voice Selection
 
@@ -34,6 +55,37 @@ final class SessionTTS: NSObject, ObservableObject {
 
   /// Returns the most natural-sounding voice available for the user's locale
   private func defaultCalmVoice() -> AVSpeechSynthesisVoice {
+    // First, try to get Alex or Daniel specifically (the most natural, less robotic voices)
+    if let alexVoice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.alex-compact") {
+      #if DEBUG
+        print("🎤 Found Alex voice: \(alexVoice.name)")
+      #endif
+      return alexVoice
+    }
+
+    if let danielVoice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.daniel-compact") {
+      #if DEBUG
+        print("🎤 Found Daniel voice: \(danielVoice.name)")
+      #endif
+      return danielVoice
+    }
+
+    // Try enhanced versions
+    if let alexEnhanced = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.alex-premium") {
+      #if DEBUG
+        print("🎤 Found Alex Enhanced voice: \(alexEnhanced.name)")
+      #endif
+      return alexEnhanced
+    }
+
+    if let danielEnhanced = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.daniel-premium")
+    {
+      #if DEBUG
+        print("🎤 Found Daniel Enhanced voice: \(danielEnhanced.name)")
+      #endif
+      return danielEnhanced
+    }
+
     // First try to get the best voice for current locale
     if let bestVoice = bestVoiceForCurrentLocale() {
       return bestVoice
@@ -47,19 +99,23 @@ final class SessionTTS: NSObject, ObservableObject {
       return enhancedVoice
     }
 
-    // Look for the most natural-sounding compact voices
+    // Look for the most natural-sounding voices (prioritizing deeper, less robotic voices)
     let naturalVoiceIdentifiers = [
-      // Siri voices (most natural)
-      "com.apple.ttsbundle.siri_female_en-US_compact",
-      "com.apple.ttsbundle.siri_male_en-US_compact",
-      // Samantha and Alex (classic natural voices)
-      "com.apple.ttsbundle.samantha-compact",
+      // Alex and Daniel (most natural, deeper voices)
       "com.apple.ttsbundle.alex-compact",
-      // Other natural-sounding voices
-      "com.apple.ttsbundle.veena-compact",
       "com.apple.ttsbundle.daniel-compact",
+      // Enhanced versions if available
+      "com.apple.ttsbundle.alex-premium",
+      "com.apple.ttsbundle.daniel-premium",
+      // Other natural-sounding voices
+      "com.apple.ttsbundle.samantha-compact",
       "com.apple.ttsbundle.karen-compact",
       "com.apple.ttsbundle.moira-compact",
+      // Siri voices (more natural but higher pitched)
+      "com.apple.ttsbundle.siri_male_en-US_compact",
+      "com.apple.ttsbundle.siri_female_en-US_compact",
+      // Other voices
+      "com.apple.ttsbundle.veena-compact",
     ]
 
     for identifier in naturalVoiceIdentifiers {
@@ -93,7 +149,9 @@ final class SessionTTS: NSObject, ObservableObject {
     utterance.voice = selectedVoice
 
     #if DEBUG
-      print("🎤 Using voice: \(selectedVoice.name) (\(selectedVoice.quality.rawValue))")
+      print(
+        "🎤 SessionTTS Using voice: \(selectedVoice.name) (\(selectedVoice.quality.rawValue)) - \(selectedVoice.identifier)"
+      )
     #endif
     utterance.rate = min(max(rate, 0.45), 0.55)  // calmer cadence (0.45–0.55 feels natural)
     utterance.pitchMultiplier = 1.0

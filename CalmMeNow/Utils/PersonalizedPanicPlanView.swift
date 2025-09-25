@@ -652,6 +652,7 @@ struct PlanExecutionView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
+  @StateObject private var speechService = SpeechService()
   @AppStorage("prefSounds") private var prefSounds = true
 
   let plan: PanicPlan
@@ -662,6 +663,8 @@ struct PlanExecutionView: View {
   @State private var showCompletion = false
   @State private var showValidationAlert = false
   @State private var validationMessage = ""
+  @State private var stepTimer: Timer?
+  @State private var currentStepStartTime: Date?
 
   var body: some View {
     ZStack {
@@ -682,6 +685,10 @@ struct PlanExecutionView: View {
           HStack {
             Spacer()
             Button(action: {
+              // Clean up audio before dismissing
+              stepTimer?.invalidate()
+              audioManager.stopSound()
+              speechService.stopAll()
               presentationMode.wrappedValue.dismiss()
             }) {
               Image(systemName: "xmark.circle.fill")
@@ -733,6 +740,16 @@ struct PlanExecutionView: View {
                   RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.blue.opacity(0.3), lineWidth: 1)
                 )
+
+              // Detailed explanation for the current step
+              if let explanation = getStepExplanation(for: plan.steps[currentStepIndex]) {
+                Text(explanation)
+                  .font(.body)
+                  .foregroundColor(.secondary)
+                  .multilineTextAlignment(.center)
+                  .padding(.horizontal, 20)
+                  .padding(.top, 8)
+              }
             }
 
             // Progress indicator
@@ -787,6 +804,12 @@ struct PlanExecutionView: View {
       print("Plan steps: \(plan.steps)")
       print("Plan duration: \(plan.duration)")
     }
+    .onDisappear {
+      // Clean up when view disappears
+      stepTimer?.invalidate()
+      audioManager.stopSound()
+      speechService.stopAll()
+    }
     .alert(isPresented: $showValidationAlert) {
       Alert(
         title: Text("Can't Start Plan"),
@@ -818,6 +841,7 @@ struct PlanExecutionView: View {
     isExecuting = true
     currentStepIndex = 0
     timeRemaining = TimeInterval(plan.duration)
+    currentStepStartTime = Date()
 
     progressTracker.recordUsage()
 
@@ -829,21 +853,27 @@ struct PlanExecutionView: View {
       audioManager.playSound(soundFile, loop: true)
     }
 
-    // Start timer
-    Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+    // Start with voice guidance for the first step
+    speakCurrentStep()
+
+    // Start main timer
+    stepTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
       if timeRemaining > 0 {
         timeRemaining -= 1
 
-        // Progress to next step
+        // Progress to next step based on time
         let stepDuration = TimeInterval(plan.duration) / TimeInterval(plan.steps.count)
         let nextStepIndex = Int((TimeInterval(plan.duration) - timeRemaining) / stepDuration)
 
         if nextStepIndex != currentStepIndex && nextStepIndex < plan.steps.count {
           currentStepIndex = nextStepIndex
+          currentStepStartTime = Date()
+          speakCurrentStep()
         }
       } else {
         timer.invalidate()
         audioManager.stopSound()
+        speechService.stopAll()
         showCompletion = true
       }
     }
@@ -855,19 +885,102 @@ struct PlanExecutionView: View {
     return String(format: "%02d:%02d", minutes, seconds)
   }
 
+  // MARK: - Voice Guidance Methods
+
+  private func speakCurrentStep() {
+    let step = plan.steps[currentStepIndex]
+    let stepNumber = currentStepIndex + 1
+    let totalSteps = plan.steps.count
+
+    // Create a more natural voice message with pauses
+    var message = "Step \(stepNumber) of \(totalSteps). "
+
+    // Add the step instruction with natural pauses
+    if step.contains("breathing") || step.contains("breath") {
+      // For breathing exercises, speak more slowly and with pauses
+      message += "Now, let's focus on breathing. " + step.replacingOccurrences(of: "•", with: ", ")
+    } else {
+      message += step
+    }
+
+    // Add detailed explanation if available, with a pause
+    if let explanation = getStepExplanation(for: step) {
+      message += ". " + explanation
+    }
+
+    // Add personalized phrase if this is the last step
+    if currentStepIndex == plan.steps.count - 1, let phrase = plan.personalizedPhrase {
+      message += ". Remember your calming phrase: \(phrase)"
+    }
+
+    print("🎤 Speaking step guidance: \(message)")
+    // Use a slower rate for breathing exercises
+    let rate: Float = step.contains("breathing") || step.contains("breath") ? 0.4 : 0.5
+    speechService.speak(message, rate: rate)
+  }
+
+  private func getStepExplanation(for step: String) -> String? {
+    let lowercasedStep = step.lowercased()
+
+    // Breathing exercises
+    if lowercasedStep.contains("breathing") || lowercasedStep.contains("breath") {
+      if lowercasedStep.contains("478") || lowercasedStep.contains("4-7-8") {
+        return "This breathing pattern helps activate your body's relaxation response."
+      } else if lowercasedStep.contains("box") {
+        return "Imagine tracing a square with your breath."
+      } else if lowercasedStep.contains("coherence") {
+        return
+          "Focus on your heart as you breathe. This creates harmony between your heart and brain."
+      } else {
+        return "Let your breath anchor you to the present moment."
+      }
+    }
+
+    // Grounding exercises
+    if lowercasedStep.contains("grounding") || lowercasedStep.contains("54321") {
+      if lowercasedStep.contains("54321") || lowercasedStep.contains("5-4-3-2-1") {
+        return
+          "This grounding technique helps you connect with your surroundings. Notice 5 things you can see, 4 things you can touch, 3 things you can hear, 2 things you can smell, and 1 thing you can taste. This brings your attention to the present moment."
+      } else if lowercasedStep.contains("countback") || lowercasedStep.contains("countdown") {
+        return
+          "Count backwards from 10 to 1, focusing on each number. This helps ground you in the present moment."
+      } else if lowercasedStep.contains("sensory") {
+        return
+          "Focus on your senses one at a time. Notice what you can see, hear, feel, smell, and taste right now."
+      } else {
+        return
+          "This grounding technique helps you connect with your surroundings and brings your attention to the present moment."
+      }
+    }
+
+    // Muscle release
+    if lowercasedStep.contains("release") || lowercasedStep.contains("muscle") {
+      return
+        "Gently tense the muscle group for a few seconds, then slowly release. Notice the difference between tension and relaxation."
+    }
+
+    // Affirmations
+    if lowercasedStep.contains("repeat") || lowercasedStep.contains("phrase") {
+      return
+        "Speak your calming phrase slowly and with intention. Let the words sink in and bring you comfort."
+    }
+
+    return nil
+  }
+
   private func getAppropriateSound(for plan: PanicPlan) -> String {
     // Check if any step mentions specific emotions or situations
     let allSteps = plan.steps.joined(separator: " ").lowercased()
 
     if allSteps.contains("angry") || allSteps.contains("anger") {
-      return "mixkit-just-chill-angry.mp3"
+      return "mixkit-just-chill-angry"
     } else if allSteps.contains("anxious") || allSteps.contains("anxiety") {
-      return "mixkit-serene-anxious.mp3"
+      return "mixkit-serene-anxious"
     } else if allSteps.contains("sad") || allSteps.contains("depressed") {
-      return "mixkit-jazz-sad.mp3"
+      return "mixkit-jazz-sad"
     } else {
       // Default calming sound
-      return "perfect-beauty-1-min.m4a"
+      return "perfect-beauty-1-min"
     }
   }
 }
