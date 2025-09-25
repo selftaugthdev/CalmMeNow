@@ -260,10 +260,13 @@ class OptimizedAIService: ObservableObject {
       throw AIError.invalidResponse
     }
 
+    // Convert string steps to PlanStep objects
+    let planSteps = steps.map { PlanStep(type: .custom, text: $0) }
+
     return PanicPlan(
       title: title,
       description: "AI-generated panic plan",
-      steps: steps,
+      steps: planSteps,
       duration: duration,
       techniques: ["Breathing", "Grounding", "Mindfulness"],
       emergencyContact: nil,

@@ -290,7 +290,7 @@ struct PanicPlanDetailView: View {
                   .background(Color.blue)
                   .clipShape(Circle())
 
-                Text(step)
+                Text(step.text)
                   .font(.body)
 
                 Spacer()

@@ -425,19 +425,55 @@ struct AIPlanIntakeView: View {
   }
 
   private func createPlanFromResult(_ result: [String: Any]) -> PanicPlan {
-    let steps = parseStructuredPlan(result)
+    let planSteps = parseStructuredPlanSteps(result)
     let duration = extractDuration(from: result)
     let techniques = extractTechniques(from: result)
 
     return PanicPlan(
       title: "My Personalized Plan",
       description: "Created specifically for your needs",
-      steps: steps,
+      steps: planSteps,
       duration: duration,
       techniques: techniques,
       emergencyContact: nil,
       personalizedPhrase: personalizedPhrase.trimmingCharacters(in: .whitespacesAndNewlines)
     )
+  }
+
+  // Helper functions for parsing AI results into PlanStep objects
+  private func parseStructuredPlanSteps(_ result: [String: Any]) -> [PlanStep] {
+    guard let steps = result["steps"] as? [[String: Any]] else {
+      return defaultPlanSteps()
+    }
+
+    let parsed = steps.compactMap { step -> PlanStep? in
+      let type = (step["type"] as? String)?.lowercased() ?? ""
+      let text = step["text"] as? String ?? ""
+      let seconds = step["seconds"] as? Int
+
+      // Map AI types to our StepType enum
+      let stepType: StepType
+      switch type {
+      case "breathing":
+        stepType = .breathing
+      case "grounding":
+        stepType = .grounding
+      case "muscle_release":
+        stepType = .muscleRelease
+      case "affirmation":
+        stepType = .affirmation
+      case "mindfulness":
+        stepType = .mindfulness
+      case "cognitive_reframing":
+        stepType = .cognitiveReframing
+      default:
+        stepType = .custom
+      }
+
+      return PlanStep(type: stepType, text: text, seconds: seconds)
+    }
+
+    return parsed.isEmpty ? defaultPlanSteps() : parsed
   }
 
   // Helper functions (same as in PersonalizedPanicPlanView)
@@ -503,6 +539,12 @@ struct AIPlanIntakeView: View {
       }
     }
     return parsed.isEmpty ? defaultSteps() : parsed
+  }
+
+  private func defaultPlanSteps() -> [PlanStep] {
+    // Return 3 random evidence-based techniques for variety
+    let allSteps = StepLibrary.allSteps
+    return Array(allSteps.shuffled().prefix(3))
   }
 
   private func defaultSteps() -> [String] {

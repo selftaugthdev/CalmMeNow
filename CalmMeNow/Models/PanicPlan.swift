@@ -4,7 +4,7 @@ struct PanicPlan: Codable, Identifiable, Hashable {
   let id: UUID
   var title: String
   var description: String
-  var steps: [String]
+  var steps: [PlanStep]
   var duration: Int
   var techniques: [String]
   var emergencyContact: String?
@@ -16,23 +16,31 @@ struct PanicPlan: Codable, Identifiable, Hashable {
     self.title = dict["title"] as? String ?? "Personalized Calm Plan"
     self.description =
       dict["description"] as? String ?? "Your customized plan for managing overwhelming moments"
-    self.steps =
-      dict["steps"] as? [String] ?? [
-        "Take deep breaths", "Ground yourself", "Use your calming phrase",
+
+    // Convert string steps to PlanStep objects
+    if let stringSteps = dict["steps"] as? [String] {
+      self.steps = stringSteps.map { PlanStep(type: .custom, text: $0) }
+    } else {
+      self.steps = [
+        PlanStep(type: .breathing, text: "Take deep breaths"),
+        PlanStep(type: .grounding, text: "Ground yourself"),
+        PlanStep(type: .affirmation, text: "Use your calming phrase"),
       ]
+    }
+
     self.duration = dict["duration"] as? Int ?? 300
     self.techniques = dict["techniques"] as? [String] ?? ["Breathing", "Grounding", "Mindfulness"]
     self.emergencyContact = dict["emergencyContact"] as? String
     self.personalizedPhrase = dict["personalizedPhrase"] as? String ?? "This will pass; I'm safe."
     self.createdAt = Date()
   }
-  
+
   // Custom initializer for creating PanicPlan instances
   init(
     id: UUID = UUID(),
     title: String,
     description: String,
-    steps: [String],
+    steps: [PlanStep],
     duration: Int,
     techniques: [String],
     emergencyContact: String? = nil,
@@ -43,6 +51,29 @@ struct PanicPlan: Codable, Identifiable, Hashable {
     self.title = title
     self.description = description
     self.steps = steps
+    self.duration = duration
+    self.techniques = techniques
+    self.emergencyContact = emergencyContact
+    self.personalizedPhrase = personalizedPhrase
+    self.createdAt = createdAt
+  }
+
+  // Convenience initializer for backward compatibility with string steps
+  init(
+    id: UUID = UUID(),
+    title: String,
+    description: String,
+    stringSteps: [String],
+    duration: Int,
+    techniques: [String],
+    emergencyContact: String? = nil,
+    personalizedPhrase: String? = nil,
+    createdAt: Date = Date()
+  ) {
+    self.id = id
+    self.title = title
+    self.description = description
+    self.steps = stringSteps.map { PlanStep(type: .custom, text: $0) }
     self.duration = duration
     self.techniques = techniques
     self.emergencyContact = emergencyContact

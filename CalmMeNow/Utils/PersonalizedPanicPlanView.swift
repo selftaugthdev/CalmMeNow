@@ -313,41 +313,59 @@ struct PersonalizedPanicPlanView: View {
   }
 
   /// Parse structured plan from Firebase Functions response
-  private func parseStructuredPlan(_ result: [String: Any]) -> [String] {
+  private func parseStructuredPlan(_ result: [String: Any]) -> [PlanStep] {
     guard let raw = result["steps"] as? [[String: Any]] else {
-      return defaultSteps()
+      return defaultPlanSteps()
     }
 
-    let parsed = raw.compactMap { step -> String? in
+    let parsed = raw.compactMap { step -> PlanStep? in
       let type = (step["type"] as? String)?.lowercased() ?? ""
       switch type {
       case "breathing":
         if let pattern = step["pattern"] as? String, let seconds = step["seconds"] as? Int {
-          return "\(pattern.capitalized) breathing for \(seconds) seconds"
+          return PlanStep(
+            type: .breathing, text: "\(pattern.capitalized) breathing for \(seconds) seconds",
+            seconds: seconds)
         }
         if let pattern = step["pattern"] as? String {
-          return "\(pattern.capitalized) breathing"
+          return PlanStep(type: .breathing, text: "\(pattern.capitalized) breathing")
         }
-        return "Slow breathing: In 4 • Hold 4 • Out 4 • Hold 4"
+        return PlanStep(type: .breathing, text: "Slow breathing: In 4 • Hold 4 • Out 4 • Hold 4")
       case "grounding":
         if let method = step["method"] as? String, let seconds = step["seconds"] as? Int {
-          return "\(method.capitalized) grounding for \(seconds) seconds"
+          return PlanStep(
+            type: .grounding, text: "\(method.capitalized) grounding for \(seconds) seconds",
+            seconds: seconds)
         }
-        return "5-4-3-2-1 grounding"
+        return PlanStep(type: .grounding, text: "5-4-3-2-1 grounding")
       case "muscle_release":
         let area = (step["area"] as? String) ?? "shoulders"
         let seconds = (step["seconds"] as? Int) ?? 20
-        return "Release \(area) for \(seconds) seconds"
+        return PlanStep(
+          type: .muscleRelease, text: "Release \(area) for \(seconds) seconds", seconds: seconds)
       case "affirmation":
         let text = (step["text"] as? String) ?? "I am safe. This will pass."
-        return "Repeat: '\(text)'"
+        return PlanStep(type: .affirmation, text: "Repeat: '\(text)'")
       default:
         // Try a generic "text" field
-        if let text = step["text"] as? String { return text }
+        if let text = step["text"] as? String {
+          return PlanStep(type: .custom, text: text)
+        }
         return nil
       }
     }
-    return parsed.isEmpty ? defaultSteps() : parsed
+    return parsed.isEmpty ? defaultPlanSteps() : parsed
+  }
+
+  private func defaultPlanSteps() -> [PlanStep] {
+    return [
+      PlanStep(
+        type: .breathing, text: "Take 5 slow breaths (in 4 • hold 4 • out 4 • hold 4)", seconds: 60),
+      PlanStep(
+        type: .grounding, text: "5-4-3-2-1 grounding: 5 see • 4 touch • 3 hear • 2 smell • 1 taste",
+        seconds: 60),
+      PlanStep(type: .affirmation, text: "Repeat: 'I am safe. This will pass.'", seconds: 20),
+    ]
   }
 
   private func defaultSteps() -> [String] {
@@ -520,131 +538,7 @@ struct PlanCard: View {
 
 // MARK: - Plan Editor View
 
-struct PlanEditorView: View {
-  @Environment(\.presentationMode) var presentationMode
-  let plan: PanicPlan?
-  let onSave: (PanicPlan) -> Void
-
-  @State private var name: String = ""
-  @State private var description: String = ""
-  @State private var steps: [String] = [""]
-  @State private var duration: TimeInterval = 120
-
-  var body: some View {
-    NavigationView {
-      Form {
-        Section(header: Text("Plan Details")) {
-          TextField("Plan Name", text: $name)
-          TextField("Description", text: $description)
-        }
-
-        Section(header: Text("Steps")) {
-          Text("Add clear, actionable steps for your panic plan. Examples:")
-            .font(.caption)
-            .foregroundColor(.secondary)
-            .padding(.bottom, 8)
-
-          ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
-            VStack(alignment: .leading, spacing: 4) {
-              Text("Step \(index + 1)")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-              TextField(getStepPlaceholder(for: index), text: $steps[index])
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-            }
-
-            if steps.count > 1 {
-              HStack {
-                Spacer()
-                Button(action: {
-                  steps.remove(at: index)
-                }) {
-                  HStack {
-                    Image(systemName: "minus.circle.fill")
-                    Text("Remove Step")
-                  }
-                  .foregroundColor(.red)
-                }
-              }
-            }
-          }
-
-          Button("Add Step") {
-            steps.append("")
-          }
-          .foregroundColor(.blue)
-        }
-
-        Section(header: Text("Duration")) {
-          Picker("Duration", selection: $duration) {
-            Text("1 minute").tag(TimeInterval(60))
-            Text("2 minutes").tag(TimeInterval(120))
-            Text("3 minutes").tag(TimeInterval(180))
-            Text("5 minutes").tag(TimeInterval(300))
-          }
-        }
-      }
-      .navigationTitle(plan == nil ? "New Plan" : "Edit Plan")
-      .navigationBarTitleDisplayMode(.inline)
-      .navigationBarItems(
-        leading: Button("Cancel") {
-          presentationMode.wrappedValue.dismiss()
-        },
-        trailing: Button("Save") {
-          let newPlan = PanicPlan(
-            title: name,
-            description: description,
-            steps: steps.filter { !$0.isEmpty },
-            duration: Int(duration),
-            techniques: ["Custom"],
-            emergencyContact: nil,
-            personalizedPhrase: "I am safe and I can handle this"
-          )
-          onSave(newPlan)
-        }
-        .disabled(name.isEmpty || steps.filter { !$0.isEmpty }.isEmpty)
-      )
-      .onAppear {
-        if let plan = plan {
-          name = plan.title
-          description = plan.description
-          steps = plan.steps
-          // audioFile removed from PanicPlan struct
-          duration = TimeInterval(plan.duration)
-        } else {
-          // Set default values for new plans
-          name = "My Panic Plan"
-          description = "Personalized plan for managing panic attacks"
-          steps = [
-            "Take 5 deep breaths slowly",
-            "Name 5 things you can see around you",
-            "Repeat: 'I am safe and this will pass'",
-          ]
-        }
-      }
-    }
-  }
-
-  private func getStepPlaceholder(for index: Int) -> String {
-    let examples = [
-      "Take 5 deep breaths slowly",
-      "Name 5 things you can see around you",
-      "Repeat: 'I am safe and this will pass'",
-      "Focus on your breathing for 30 seconds",
-      "Call a trusted friend or family member",
-      "Use your calming phrase 3 times",
-      "Do a quick body scan and relax tense muscles",
-      "Listen to calming music or sounds",
-    ]
-
-    if index < examples.count {
-      return examples[index]
-    } else {
-      return "Add your personal calming technique"
-    }
-  }
-}
+// Note: PlanEditorView has been moved to Views/Components/PlanEditorView.swift
 
 // MARK: - Plan Execution View
 
@@ -726,23 +620,39 @@ struct PlanExecutionView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
-              Text(plan.steps[currentStepIndex])
-                .font(.title2)
-                .fontWeight(.medium)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .background(
-                  RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.blue.opacity(0.1))
-                )
-                .overlay(
-                  RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                )
+              VStack(spacing: 8) {
+                HStack {
+                  Image(systemName: plan.steps[currentStepIndex].type.icon)
+                    .foregroundColor(.blue)
+                  Text(plan.steps[currentStepIndex].type.displayName)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                  Spacer()
+                  if let seconds = plan.steps[currentStepIndex].seconds {
+                    Text("\(seconds)s")
+                      .font(.caption)
+                      .foregroundColor(.secondary)
+                  }
+                }
+
+                Text(plan.steps[currentStepIndex].text)
+                  .font(.title2)
+                  .fontWeight(.medium)
+                  .multilineTextAlignment(.center)
+              }
+              .padding(.horizontal, 20)
+              .padding(.vertical, 16)
+              .background(
+                RoundedRectangle(cornerRadius: 12)
+                  .fill(Color.blue.opacity(0.1))
+              )
+              .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                  .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+              )
 
               // Detailed explanation for the current step
-              if let explanation = getStepExplanation(for: plan.steps[currentStepIndex]) {
+              if let explanation = getStepExplanation(for: plan.steps[currentStepIndex].text) {
                 Text(explanation)
                   .font(.body)
                   .foregroundColor(.secondary)
@@ -896,15 +806,16 @@ struct PlanExecutionView: View {
     var message = "Step \(stepNumber) of \(totalSteps). "
 
     // Add the step instruction with natural pauses
-    if step.contains("breathing") || step.contains("breath") {
+    if step.type == .breathing {
       // For breathing exercises, speak more slowly and with pauses
-      message += "Now, let's focus on breathing. " + step.replacingOccurrences(of: "•", with: ", ")
+      message +=
+        "Now, let's focus on breathing. " + step.text.replacingOccurrences(of: "•", with: ", ")
     } else {
-      message += step
+      message += step.text
     }
 
     // Add detailed explanation if available, with a pause
-    if let explanation = getStepExplanation(for: step) {
+    if let explanation = getStepExplanation(for: step.text) {
       message += ". " + explanation
     }
 
@@ -915,7 +826,7 @@ struct PlanExecutionView: View {
 
     print("🎤 Speaking step guidance: \(message)")
     // Use a slower rate for breathing exercises
-    let rate: Float = step.contains("breathing") || step.contains("breath") ? 0.4 : 0.5
+    let rate: Float = step.type == .breathing ? 0.4 : 0.5
     speechService.speak(message, rate: rate)
   }
 
@@ -970,7 +881,7 @@ struct PlanExecutionView: View {
 
   private func getAppropriateSound(for plan: PanicPlan) -> String {
     // Check if any step mentions specific emotions or situations
-    let allSteps = plan.steps.joined(separator: " ").lowercased()
+    let allSteps = plan.steps.map { $0.text }.joined(separator: " ").lowercased()
 
     if allSteps.contains("angry") || allSteps.contains("anger") {
       return "mixkit-just-chill-angry"

@@ -23,10 +23,10 @@ struct EnhancedPanicPlanView: View {
       title: "My Emergency Plan",
       description: "Quick relief for panic attacks",
       steps: [
-        "Take 3 deep breaths",
-        "Ground yourself with 5-4-3-2-1",
-        "Listen to calming sounds",
-        "Call a trusted friend if needed",
+        PlanStep(type: .breathing, text: "Take 3 deep breaths", seconds: 30),
+        PlanStep(type: .grounding, text: "Ground yourself with 5-4-3-2-1", seconds: 60),
+        PlanStep(type: .mindfulness, text: "Listen to calming sounds", seconds: 30),
+        PlanStep(type: .affirmation, text: "Call a trusted friend if needed", seconds: 20),
       ],
       duration: 120,
       techniques: ["Breathing", "Grounding", "Social Support"],
@@ -430,11 +430,15 @@ struct EnhancedPanicPlanView: View {
 
   // MARK: - Helper Methods
 
-  private func parseStructuredPlan(_ result: [String: Any]) -> [String] {
+  private func parseStructuredPlan(_ result: [String: Any]) -> [PlanStep] {
     if let steps = result["steps"] as? [String] {
-      return steps
+      return steps.map { PlanStep(type: .custom, text: $0) }
     }
-    return ["Take deep breaths", "Ground yourself", "Use your calming phrase"]
+    return [
+      PlanStep(type: .breathing, text: "Take deep breaths"),
+      PlanStep(type: .grounding, text: "Ground yourself"),
+      PlanStep(type: .affirmation, text: "Use your calming phrase"),
+    ]
   }
 
   private func extractDuration(from result: [String: Any]) -> Int {
@@ -562,7 +566,7 @@ struct PanicPlanEditorView: View {
 
   @State private var title = ""
   @State private var description = ""
-  @State private var steps: [String] = [""]
+  @State private var steps: [PlanStep] = [PlanStep(type: .custom, text: "")]
   @State private var duration = 120
   @State private var techniques: [String] = []
   @State private var personalizedPhrase = "I am safe and I can handle this"
@@ -578,12 +582,12 @@ struct PanicPlanEditorView: View {
 
         Section(header: Text("Steps")) {
           ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
-            TextField("Step \(index + 1)", text: $steps[index])
+            TextField("Step \(index + 1)", text: $steps[index].text)
           }
           .onDelete(perform: deleteStep)
 
           Button("Add Step") {
-            steps.append("")
+            steps.append(PlanStep(type: .custom, text: ""))
           }
         }
 
@@ -600,7 +604,7 @@ struct PanicPlanEditorView: View {
           let newPlan = PanicPlan(
             title: title.isEmpty ? "My Plan" : title,
             description: description.isEmpty ? "Personalized panic plan" : description,
-            steps: steps.filter { !$0.isEmpty },
+            steps: steps.filter { !$0.text.isEmpty },
             duration: duration,
             techniques: ["Custom"],
             personalizedPhrase: personalizedPhrase
@@ -608,13 +612,14 @@ struct PanicPlanEditorView: View {
           onSave(newPlan)
           presentationMode.wrappedValue.dismiss()
         }
-        .disabled(title.isEmpty || steps.allSatisfy { $0.isEmpty })
+        .disabled(title.isEmpty || steps.allSatisfy { $0.text.isEmpty })
       )
       .onAppear {
         if let existingPlan = plan {
           title = existingPlan.title
           description = existingPlan.description
-          steps = existingPlan.steps.isEmpty ? [""] : existingPlan.steps
+          steps =
+            existingPlan.steps.isEmpty ? [PlanStep(type: .custom, text: "")] : existingPlan.steps
           duration = existingPlan.duration
           personalizedPhrase = existingPlan.personalizedPhrase ?? "I am safe and I can handle this"
         }
@@ -656,7 +661,7 @@ struct PanicPlanExecutionView: View {
               .font(.headline)
               .foregroundColor(Color(.secondaryLabel))
 
-            Text(plan.steps[currentStepIndex])
+            Text(plan.steps[currentStepIndex].text)
               .font(.title3)
               .fontWeight(.medium)
               .multilineTextAlignment(.center)
