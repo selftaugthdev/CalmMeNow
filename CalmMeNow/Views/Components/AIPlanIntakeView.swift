@@ -429,7 +429,7 @@ struct AIPlanIntakeView: View {
     let duration = extractDuration(from: result)
     let techniques = extractTechniques(from: result)
 
-    return PanicPlan(
+    let plan = PanicPlan(
       title: "My Personalized Plan",
       description: "Created specifically for your needs",
       steps: planSteps,
@@ -438,11 +438,18 @@ struct AIPlanIntakeView: View {
       emergencyContact: nil,
       personalizedPhrase: personalizedPhrase.trimmingCharacters(in: .whitespacesAndNewlines)
     )
+
+    print(
+      "🔍 Created plan: \(plan.title), duration: \(plan.duration), steps: \(plan.steps.map { "\($0.type.rawValue): \($0.text)" })"
+    )
+    return plan
   }
 
   // Helper functions for parsing AI results into PlanStep objects
   private func parseStructuredPlanSteps(_ result: [String: Any]) -> [PlanStep] {
+    print("🔍 Parsing AI result: \(result)")
     guard let steps = result["steps"] as? [[String: Any]] else {
+      print("⚠️ No steps found in AI result, using default steps")
       return defaultPlanSteps()
     }
 
@@ -544,7 +551,9 @@ struct AIPlanIntakeView: View {
   private func defaultPlanSteps() -> [PlanStep] {
     // Return 3 random evidence-based techniques for variety
     let allSteps = StepLibrary.allSteps
-    return Array(allSteps.shuffled().prefix(3))
+    let defaultSteps = Array(allSteps.shuffled().prefix(3))
+    print("🔍 Default plan steps: \(defaultSteps.map { "\($0.type.rawValue): \($0.text)" })")
+    return defaultSteps
   }
 
   private func defaultSteps() -> [String] {
@@ -568,11 +577,18 @@ struct AIPlanIntakeView: View {
 
   private func extractDuration(from result: [String: Any]) -> Int {
     if let total = (result["total_seconds"] as? Int), total > 0 {
-      return min(max(total, 60), 300)
+      let duration = min(max(total, 60), 300)
+      print("🔍 Extracted duration from total_seconds: \(duration)")
+      return duration
     }
-    guard let steps = result["steps"] as? [[String: Any]] else { return 120 }
+    guard let steps = result["steps"] as? [[String: Any]] else {
+      print("🔍 No steps found, using default duration: 120")
+      return 120
+    }
     let sum = steps.compactMap { $0["seconds"] as? Int }.reduce(0, +)
-    return min(max(sum, 60), 300)
+    let duration = min(max(sum, 60), 300)
+    print("🔍 Extracted duration from step sum: \(duration)")
+    return duration
   }
 
   private func extractTechniques(from result: [String: Any]) -> [String] {
