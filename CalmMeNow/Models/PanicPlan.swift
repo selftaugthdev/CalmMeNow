@@ -96,11 +96,29 @@ struct DailyCheckInResponse: Codable, Identifiable {
   let message: String
   let recommendations: [String]
 
+  // Enhanced coach features
+  let coachLine: String?
+  let protocolType: String?
+  let quickResetSteps: [String]?
+  let processItSteps: [String]?
+  let reframeChips: [String]?
+  let microInsight: String?
+  let ifThenPlan: String?
+
   init(from dict: [String: Any]) {
     self.severity = dict["severity"] as? Int ?? 1
     self.exercise = dict["exercise"] as? String
     self.resources = dict["resources"] as? [String]
     self.message = dict["message"] as? String ?? "Thank you for checking in"
     self.recommendations = dict["recommendations"] as? [String] ?? []
+
+    // Enhanced features
+    self.coachLine = dict["coachLine"] as? String
+    self.protocolType = dict["protocolType"] as? String
+    self.quickResetSteps = dict["quickResetSteps"] as? [String]
+    self.processItSteps = dict["processItSteps"] as? [String]
+    self.reframeChips = dict["reframeChips"] as? [String]
+    self.microInsight = dict["microInsight"] as? String
+    self.ifThenPlan = dict["ifThenPlan"] as? String
   }
 }

@@ -207,7 +207,7 @@ IMPORTANT: If user provides a personalizedPhrase, use it exactly. Otherwise, cre
   }
 );
 
-// ---- Callable: Daily Check-in (classifier -> micro-exercise)
+// ---- Callable: Daily Check-in (enhanced coach system)
 export const dailyCheckIn = onCall(
   { region: "europe-west1", secrets: [OPENAI_API_KEY] },
   async (req) => {
@@ -248,7 +248,53 @@ Classify {mood,tags,note} for mental-distress triage. Output STRICT JSON:
         return classification;
       }
 
-      // 2) Generate one micro-exercise
+      // 2) Enhanced coach system - detect protocol and generate coach response
+      const coachSystem = `
+You are a supportive, CBT-informed coach. Analyze the check-in data and generate a comprehensive response.
+
+Input: {mood: number, tags: string[], note: string}
+
+Output STRICT JSON with these fields:
+{
+  "protocolType": "quickBreath|pmr|grounding|behavioral|reframe|compassion",
+  "coachLine": "One supportive sentence (≤20 words) following empathic→normalize→action pattern",
+  "quickResetSteps": ["Step 1", "Step 2", "Step 3"] (60-90s breathing/calming),
+  "processItSteps": ["Label feeling", "Choose reframe", "Pick action"] (2-3 min CBT flow),
+  "reframeChips": ["Reframe option 1", "Reframe option 2", "Reframe option 3"],
+  "microInsight": "One line insight about their pattern or choice",
+  "ifThenPlan": "If-then statement for future similar situations"
+}
+
+PROTOCOL DETECTION RULES:
+- Anger/irritation + event (traffic, line) → quickBreath
+- Anxiety + rumination → grounding  
+- Overwhelm + work → quickBreath
+- Low mood + fatigue → behavioral
+- Social stress → compassion
+- Default: mood ≤ 3 → behavioral, else → quickBreath
+
+COACH LINE EXAMPLES:
+- "That was frustrating. Let's settle your body first, then we'll decide what's worth your energy."
+- "Being cut off can spike anyone's stress. Quick 60-second reset, then we'll reframe it."
+- "I hear the anger. First, calm the nervous system—then we'll choose a response."
+
+REFRAME CHIPS EXAMPLES:
+- Anger: ["I'm safe now.", "This isn't worth renting space in my head.", "I'll use this to practice calm focus."]
+- Overwhelm: ["I can handle one thing at a time.", "This feeling will pass.", "I'm doing my best right now."]
+- Anxiety: ["I'm safe in this moment.", "This is just my brain trying to protect me.", "I've handled difficult situations before."]
+
+Keep tone validating, agency-supporting, non-blaming. No medical advice.
+`.trim();
+
+      const coachResponse = await callOpenAI(
+        [
+          { role: "system", content: coachSystem },
+          { role: "user", content: JSON.stringify(checkin) },
+        ],
+        { model: "gpt-4o-mini", response_format: "json_object", temperature: 0.4 }
+      );
+
+      // 3) Generate micro-exercise for backward compatibility
       const exerciseSystem = `
 Generate ONE 30–90s micro-exercise as STRICT JSON:
 { "title": string, "duration_sec": number, "steps": [string], "prompt"?: string }.
@@ -263,7 +309,11 @@ Match to mood/tags. Keep it practical, non-clinical, no medical advice. JSON onl
         { model: "gpt-4o-mini", response_format: "json_object", temperature: 0.3 }
       );
 
-      return { ...classification, exercise };
+      return { 
+        ...classification, 
+        ...coachResponse,
+        exercise: exercise?.title || "Quick Calm Down Breath"
+      };
     } catch (e: any) {
       throw new HttpsError("internal", "dailyCheckIn failed", String(e?.message ?? e));
     }

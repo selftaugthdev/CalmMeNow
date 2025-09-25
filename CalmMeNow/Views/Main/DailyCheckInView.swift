@@ -183,6 +183,15 @@ struct CheckInResponseView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var activeExercise: Exercise?
   @State private var isLaunchingExercise = false
+  @State private var selectedPath: CoachPath = .quickReset
+  @State private var selectedReframe: String?
+  @State private var showProcessItFlow = false
+  @State private var currentProcessStep = 0
+
+  enum CoachPath {
+    case quickReset
+    case processIt
+  }
 
   var body: some View {
     NavigationView {
@@ -211,62 +220,147 @@ struct CheckInResponseView: View {
           }
           .padding(.top)
 
-          // Severity Indicator
-          HStack {
-            Image(systemName: "gauge")
-              .foregroundColor(.blue)
-
-            Text(
-              "Current Level: \(checkIn.severity == 1 ? "Low" : checkIn.severity == 2 ? "Medium" : "High")"
-            )
-            .font(.subheadline)
-
-            Spacer()
-          }
-          .padding()
-          .background(Color.gray.opacity(0.1))
-          .cornerRadius(12)
-
-          // Recommendations
-          if !checkIn.recommendations.isEmpty {
-            VStack(alignment: .leading, spacing: 16) {
-              Text("Recommendations")
+          // Coach Line
+          if let coachLine = checkIn.coachLine {
+            VStack(spacing: 12) {
+              Text(coachLine)
                 .font(.headline)
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.center)
+                .padding()
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(12)
 
-              ForEach(Array(checkIn.recommendations.enumerated()), id: \.offset) {
-                index, recommendation in
-                HStack(alignment: .top, spacing: 12) {
-                  Text("\(index + 1)")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(width: 25, height: 25)
-                    .background(Color.blue)
-                    .clipShape(Circle())
+              // Two Path Selection
+              HStack(spacing: 12) {
+                Button(action: {
+                  selectedPath = .quickReset
+                  showProcessItFlow = false
+                }) {
+                  VStack(spacing: 4) {
+                    Image(systemName: "wind")
+                      .font(.title2)
+                    Text("Quick Reset")
+                      .font(.caption)
+                      .fontWeight(.medium)
+                    Text("60-90s")
+                      .font(.caption2)
+                      .foregroundColor(.secondary)
+                  }
+                  .foregroundColor(selectedPath == .quickReset ? .white : .blue)
+                  .frame(maxWidth: .infinity)
+                  .padding()
+                  .background(selectedPath == .quickReset ? Color.blue : Color.blue.opacity(0.1))
+                  .cornerRadius(12)
+                }
 
-                  Text(recommendation)
-                    .font(.body)
-
-                  Spacer()
+                Button(action: {
+                  selectedPath = .processIt
+                  showProcessItFlow = true
+                  currentProcessStep = 0
+                }) {
+                  VStack(spacing: 4) {
+                    Image(systemName: "brain.head.profile")
+                      .font(.title2)
+                    Text("Process It")
+                      .font(.caption)
+                      .fontWeight(.medium)
+                    Text("2-3 min")
+                      .font(.caption2)
+                      .foregroundColor(.secondary)
+                  }
+                  .foregroundColor(selectedPath == .processIt ? .white : .blue)
+                  .frame(maxWidth: .infinity)
+                  .padding()
+                  .background(selectedPath == .processIt ? Color.blue : Color.blue.opacity(0.1))
+                  .cornerRadius(12)
                 }
               }
             }
           }
 
-          // Exercise or Resources
-          if let exercise = checkIn.exercise {
-            VStack(alignment: .leading, spacing: 12) {
-              Text("Suggested Exercise")
-                .font(.headline)
-
-              Text(exercise)
-                .font(.body)
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(12)
-            }
+          // Quick Reset Flow
+          if selectedPath == .quickReset, let steps = checkIn.quickResetSteps {
+            QuickResetView(steps: steps, onStartExercise: startQuickResetExercise)
           }
 
+          // Process It Flow
+          if selectedPath == .processIt && showProcessItFlow {
+            ProcessItFlowView(
+              steps: checkIn.processItSteps ?? [],
+              reframeChips: checkIn.reframeChips ?? [],
+              selectedReframe: $selectedReframe,
+              currentStep: $currentProcessStep
+            )
+          }
+
+          // Micro Insight
+          if let insight = checkIn.microInsight {
+            VStack(alignment: .leading, spacing: 8) {
+              HStack {
+                Image(systemName: "lightbulb.fill")
+                  .foregroundColor(.yellow)
+                Text("Insight")
+                  .font(.headline)
+                Spacer()
+              }
+
+              Text(insight)
+                .font(.body)
+                .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color.yellow.opacity(0.1))
+            .cornerRadius(12)
+          }
+
+          // If-Then Plan
+          if let ifThenPlan = checkIn.ifThenPlan {
+            VStack(alignment: .leading, spacing: 8) {
+              HStack {
+                Image(systemName: "arrow.clockwise")
+                  .foregroundColor(.green)
+                Text("Save as Plan")
+                  .font(.headline)
+                Spacer()
+              }
+
+              Text(ifThenPlan)
+                .font(.body)
+                .foregroundColor(.secondary)
+
+              Button("Save Plan") {
+                // TODO: Save to user's plans
+                print("Saving plan: \(ifThenPlan)")
+              }
+              .font(.caption)
+              .foregroundColor(.green)
+              .padding(.top, 4)
+            }
+            .padding()
+            .background(Color.green.opacity(0.1))
+            .cornerRadius(12)
+          }
+
+          // Severity Indicator (for high severity cases)
+          if checkIn.severity >= 2 {
+            HStack {
+              Image(systemName: "gauge")
+                .foregroundColor(.orange)
+
+              Text(
+                "Current Level: \(checkIn.severity == 2 ? "Medium" : "High")"
+              )
+              .font(.subheadline)
+
+              Spacer()
+            }
+            .padding()
+            .background(Color.orange.opacity(0.1))
+            .cornerRadius(12)
+          }
+
+          // Resources (for high severity)
           if let resources = checkIn.resources, !resources.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
               Text("Helpful Resources")
@@ -289,59 +383,22 @@ struct CheckInResponseView: View {
             }
           }
 
-          // Action Buttons
-          VStack(spacing: 12) {
-            if let exercise = checkIn.exercise {
-              Button(action: {
-                guard !isLaunchingExercise && activeExercise == nil else { return }
-                isLaunchingExercise = true
-
-                print("Start Exercise tapped")  // Debug logging
-
-                // Create Exercise model from string and set as active
-                activeExercise = Exercise(
-                  id: UUID(),
-                  title: exercise,
-                  duration: 90,  // Default duration
-                  steps: [exercise],  // Use the full text as a single step for now
-                  prompt: nil
-                )
-
-                // Reset debounce after 1 second
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                  isLaunchingExercise = false
-                }
-              }) {
-                HStack {
-                  Image(systemName: "play.fill")
-                  Text(isLaunchingExercise ? "Starting..." : "Start Exercise")
-                }
-                .font(.headline)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(isLaunchingExercise ? Color.gray : Color.blue)
-                .cornerRadius(12)
-              }
-              .disabled(isLaunchingExercise)
-            }
-
-            Button(action: {
-              dismiss()
-            }) {
-              Text("Continue")
-                .font(.headline)
-                .foregroundColor(.blue)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(12)
-            }
+          // Continue Button
+          Button(action: {
+            dismiss()
+          }) {
+            Text("Continue")
+              .font(.headline)
+              .foregroundColor(.blue)
+              .frame(maxWidth: .infinity)
+              .padding()
+              .background(Color.blue.opacity(0.1))
+              .cornerRadius(12)
           }
         }
         .padding()
       }
-      .navigationTitle("Check-in Response")
+      .navigationTitle("Coach Response")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -359,6 +416,258 @@ struct CheckInResponseView: View {
           GenericExerciseView(exercise: exercise)
         }
       }
+    }
+  }
+
+  private func startQuickResetExercise() {
+    guard !isLaunchingExercise && activeExercise == nil else { return }
+    isLaunchingExercise = true
+
+    // Create Exercise model for quick reset
+    activeExercise = Exercise(
+      id: UUID(),
+      title: "Quick Reset Breathing",
+      duration: 90,
+      steps: checkIn.quickResetSteps ?? ["Take slow, deep breaths"],
+      prompt: nil
+    )
+
+    // Reset debounce after 1 second
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+      isLaunchingExercise = false
+    }
+  }
+}
+
+// MARK: - Quick Reset View
+struct QuickResetView: View {
+  let steps: [String]
+  let onStartExercise: () -> Void
+  @State private var currentStep = 0
+  @State private var isRunning = false
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      HStack {
+        Image(systemName: "wind")
+          .foregroundColor(.blue)
+        Text("Quick Reset Steps")
+          .font(.headline)
+        Spacer()
+        Text("\(currentStep + 1)/\(steps.count)")
+          .font(.caption)
+          .foregroundColor(.secondary)
+      }
+
+      if isRunning {
+        VStack(alignment: .leading, spacing: 8) {
+          ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+            HStack(alignment: .top, spacing: 12) {
+              Circle()
+                .fill(index <= currentStep ? Color.blue : Color.gray.opacity(0.3))
+                .frame(width: 20, height: 20)
+                .overlay(
+                  Text("\(index + 1)")
+                    .font(.caption)
+                    .foregroundColor(index <= currentStep ? .white : .gray)
+                )
+
+              Text(step)
+                .font(.body)
+                .foregroundColor(index <= currentStep ? .primary : .secondary)
+
+              Spacer()
+            }
+          }
+        }
+        .padding()
+        .background(Color.blue.opacity(0.05))
+        .cornerRadius(12)
+      } else {
+        Button(action: {
+          isRunning = true
+          startExercise()
+        }) {
+          HStack {
+            Image(systemName: "play.fill")
+            Text("Start Quick Reset")
+          }
+          .font(.headline)
+          .foregroundColor(.white)
+          .frame(maxWidth: .infinity)
+          .padding()
+          .background(Color.blue)
+          .cornerRadius(12)
+        }
+      }
+    }
+  }
+
+  private func startExercise() {
+    onStartExercise()
+
+    // Auto-advance through steps
+    for i in 0..<steps.count {
+      DispatchQueue.main.asyncAfter(deadline: .now() + Double(i * 15)) {
+        currentStep = i
+      }
+    }
+  }
+}
+
+// MARK: - Process It Flow View
+struct ProcessItFlowView: View {
+  let steps: [String]
+  let reframeChips: [String]
+  @Binding var selectedReframe: String?
+  @Binding var currentStep: Int
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      HStack {
+        Image(systemName: "brain.head.profile")
+          .foregroundColor(.purple)
+        Text("Process It Flow")
+          .font(.headline)
+        Spacer()
+        Text("\(currentStep + 1)/\(steps.count)")
+          .font(.caption)
+          .foregroundColor(.secondary)
+      }
+
+      VStack(alignment: .leading, spacing: 16) {
+        // Step 1: Label the feeling
+        if currentStep >= 0 {
+          VStack(alignment: .leading, spacing: 8) {
+            HStack {
+              Circle()
+                .fill(Color.purple)
+                .frame(width: 20, height: 20)
+                .overlay(
+                  Text("1")
+                    .font(.caption)
+                    .foregroundColor(.white)
+                )
+              Text("Label the feeling")
+                .font(.headline)
+            }
+
+            Text("What's the main emotion you're feeling right now?")
+              .font(.body)
+              .foregroundColor(.secondary)
+
+            if currentStep == 0 {
+              Button("I'm feeling...") {
+                currentStep = 1
+              }
+              .font(.headline)
+              .foregroundColor(.white)
+              .frame(maxWidth: .infinity)
+              .padding()
+              .background(Color.purple)
+              .cornerRadius(12)
+            }
+          }
+        }
+
+        // Step 2: Choose a reframe
+        if currentStep >= 1 {
+          VStack(alignment: .leading, spacing: 8) {
+            HStack {
+              Circle()
+                .fill(Color.purple)
+                .frame(width: 20, height: 20)
+                .overlay(
+                  Text("2")
+                    .font(.caption)
+                    .foregroundColor(.white)
+                )
+              Text("Choose a reframe")
+                .font(.headline)
+            }
+
+            Text("Select a helpful perspective:")
+              .font(.body)
+              .foregroundColor(.secondary)
+
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 1), spacing: 8) {
+              ForEach(reframeChips, id: \.self) { reframe in
+                Button(action: {
+                  selectedReframe = reframe
+                  currentStep = 2
+                }) {
+                  Text(reframe)
+                    .font(.body)
+                    .foregroundColor(selectedReframe == reframe ? .white : .purple)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(
+                      selectedReframe == reframe ? Color.purple : Color.purple.opacity(0.1)
+                    )
+                    .cornerRadius(12)
+                }
+              }
+            }
+          }
+        }
+
+        // Step 3: Pick an action
+        if currentStep >= 2 {
+          VStack(alignment: .leading, spacing: 8) {
+            HStack {
+              Circle()
+                .fill(Color.purple)
+                .frame(width: 20, height: 20)
+                .overlay(
+                  Text("3")
+                    .font(.caption)
+                    .foregroundColor(.white)
+                )
+              Text("Pick an action")
+                .font(.headline)
+            }
+
+            Text("Choose one small step you can take right now:")
+              .font(.body)
+              .foregroundColor(.secondary)
+
+            VStack(spacing: 8) {
+              Button("Take 3 deep breaths") {
+                // Complete the flow
+              }
+              .font(.body)
+              .foregroundColor(.white)
+              .frame(maxWidth: .infinity)
+              .padding()
+              .background(Color.purple)
+              .cornerRadius(12)
+
+              Button("Go for a short walk") {
+                // Complete the flow
+              }
+              .font(.body)
+              .foregroundColor(.white)
+              .frame(maxWidth: .infinity)
+              .padding()
+              .background(Color.purple)
+              .cornerRadius(12)
+
+              Button("Let it go for now") {
+                // Complete the flow
+              }
+              .font(.body)
+              .foregroundColor(.white)
+              .frame(maxWidth: .infinity)
+              .padding()
+              .background(Color.purple)
+              .cornerRadius(12)
+            }
+          }
+        }
+      }
+      .padding()
+      .background(Color.purple.opacity(0.05))
+      .cornerRadius(12)
     }
   }
 }
