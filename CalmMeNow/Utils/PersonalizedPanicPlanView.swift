@@ -771,19 +771,29 @@ struct PlanExecutionView: View {
       if timeRemaining > 0 {
         timeRemaining -= 1
 
-        // Progress to next step based on actual step durations
+        // Progress to next step based on actual step durations or equal distribution
         let elapsedTime = TimeInterval(plan.duration) - timeRemaining
-        var accumulatedTime: TimeInterval = 0
         var nextStepIndex = 0
 
-        for (index, step) in plan.steps.enumerated() {
-          let stepDuration = TimeInterval(step.seconds ?? 30)  // Default to 30 seconds if not specified
-          if elapsedTime >= accumulatedTime && elapsedTime < accumulatedTime + stepDuration {
-            nextStepIndex = index
-            break
+        // Check if all steps have proper durations
+        let hasProperDurations = plan.steps.allSatisfy { $0.seconds != nil && $0.seconds! > 0 }
+
+        if hasProperDurations {
+          // Use individual step durations
+          var accumulatedTime: TimeInterval = 0
+          for (index, step) in plan.steps.enumerated() {
+            let stepDuration = TimeInterval(step.seconds!)
+            if elapsedTime >= accumulatedTime && elapsedTime < accumulatedTime + stepDuration {
+              nextStepIndex = index
+              break
+            }
+            accumulatedTime += stepDuration
+            nextStepIndex = index + 1
           }
-          accumulatedTime += stepDuration
-          nextStepIndex = index + 1
+        } else {
+          // Distribute total duration equally across steps
+          let stepDuration = TimeInterval(plan.duration) / TimeInterval(plan.steps.count)
+          nextStepIndex = min(Int(elapsedTime / stepDuration), plan.steps.count - 1)
         }
 
         // Ensure we don't go beyond the last step
