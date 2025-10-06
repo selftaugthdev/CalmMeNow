@@ -1,8 +1,12 @@
 import Foundation
 
-struct PositiveQuote: Codable, Hashable {
+struct PositiveQuote: Identifiable, Codable, Hashable {
+  let id: String
   let text: String
   let reflection: String
+  let tags: [String]?
+  let tone: String?
+  let lang: String?
 }
 
 final class PositiveQuotesService {
@@ -20,12 +24,20 @@ final class PositiveQuotesService {
     } else {
       quotes = [
         PositiveQuote(
+          id: "fallback-1",
           text: "You are stronger than you think.",
-          reflection: "Breathe into your power, one gentle moment at a time."
+          reflection: "Breathe into your power, one gentle moment at a time.",
+          tags: ["strength", "reassurance", "anxious"],
+          tone: "soothing",
+          lang: "en"
         ),
         PositiveQuote(
+          id: "fallback-2",
           text: "Every breath is a fresh start.",
-          reflection: "Inhale calm, exhale what you no longer need."
+          reflection: "Inhale calm, exhale what you no longer need.",
+          tags: ["calm", "anxious"],
+          tone: "soothing",
+          lang: "en"
         ),
       ]
     }
@@ -34,8 +46,12 @@ final class PositiveQuotesService {
   func randomQuote() -> PositiveQuote {
     guard let quote = quotes.randomElement() else {
       return PositiveQuote(
+        id: "fallback-3",
         text: "You are enough, exactly as you are.",
-        reflection: "Let this be a soft place to land."
+        reflection: "Let this be a soft place to land.",
+        tags: ["reassurance"],
+        tone: "soothing",
+        lang: "en"
       )
     }
     return quote
