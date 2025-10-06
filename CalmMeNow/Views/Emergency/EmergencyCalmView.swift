@@ -14,12 +14,12 @@ struct EmergencyCalmView: View {
 
   var body: some View {
     ZStack {
-      // Emergency calming background
+      // Emergency calming background (richer blue gradient for higher contrast)
       LinearGradient(
         gradient: Gradient(colors: [
-          Color(red: 0.9, green: 0.95, blue: 1.0),
-          Color(red: 0.85, green: 0.9, blue: 0.95),
-          Color(red: 0.8, green: 0.85, blue: 0.9),
+          Color(hex: "#BDE3FB"),  // light sky
+          Color(hex: "#6A92C8"),  // medium blue
+          Color(hex: "#0E2D6C"),  // deep navy
         ]),
         startPoint: .top,
         endPoint: .bottom

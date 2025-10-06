@@ -28,6 +28,7 @@ struct ContentView: View {
   @State private var showingDailyCoach = false
   @State private var showingEnhancedPanicPlan = false
   @State private var showingAIDebug = false
+  @State private var showingPositiveQuotes = false
 
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
@@ -167,7 +168,7 @@ struct ContentView: View {
               .padding(.bottom, 50)  // More breathing room before cards
               .foregroundColor(.black.opacity(0.7))
 
-            // Core Differentiators - 4 cards in 2x2 grid
+            // Core Differentiators - 4 cards in 2x2 grid + Positive Quotes
             VStack(spacing: 20) {  // Increased spacing between rows
               // Top row - 2 cards
               HStack(spacing: 20) {  // Increased spacing between cards
@@ -280,6 +281,20 @@ struct ContentView: View {
                   }
                 )
               }
+
+              // Positive Quotes Card - full width
+              EmotionCard(
+                emoji: "✨",
+                emotion: "Positive Boost",
+                subtext: "Uplifting quotes to brighten your moment",
+                isSelected: selectedButton == "positive_quotes",
+                onTap: {
+                  HapticManager.shared.emotionButtonTap()
+                  selectedEmotion = "positive_quotes"
+                  selectedEmoji = "✨"
+                  showingPositiveQuotes = true
+                }
+              )
             }
             .padding(.horizontal, 40)  // Increased horizontal padding for breathing room
             .padding(.bottom, 40)  // Breathing room before achievement card
@@ -366,6 +381,9 @@ struct ContentView: View {
     }
     .sheet(isPresented: $showingPaywall) {
       PaywallKitView()
+    }
+    .sheet(isPresented: $showingPositiveQuotes) {
+      PositiveQuotesView()
     }
     .fullScreenCover(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
       SubscriptionSuccessView()
