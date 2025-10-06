@@ -153,7 +153,7 @@ struct PositiveQuotesView: View {
         store.load()
         isFavorite = PositiveQuotesService.shared.isFavorite(quote)
       }
-      .onChange(of: quote) { _ in
+      .onChange(of: quote) {
         isFavorite = PositiveQuotesService.shared.isFavorite(quote)
       }
       .sheet(isPresented: $showingMyBoosts) {

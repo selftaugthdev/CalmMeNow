@@ -16,6 +16,18 @@ struct MyBoostsView: View {
               .foregroundColor(.secondary)
           }
           .padding(.vertical, 12)
+        } else {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("💡 Swipe left on any quote to remove it")
+              .font(.caption)
+              .foregroundColor(.secondary)
+              .padding(.horizontal, 16)
+              .padding(.vertical, 8)
+              .background(Color.blue.opacity(0.1))
+              .cornerRadius(8)
+          }
+          .padding(.horizontal, 16)
+          .padding(.top, 8)
         }
 
         ForEach(favorites, id: \.id) { q in
@@ -37,7 +49,7 @@ struct MyBoostsView: View {
         }
       }
       .listStyle(.insetGrouped)
-      .navigationTitle("My Boosts")
+      .navigationTitle("Saved Quotes")
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
           Button("Done") { presentationMode.wrappedValue.dismiss() }
