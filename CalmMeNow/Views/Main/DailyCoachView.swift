@@ -31,6 +31,16 @@ struct DailyCoachView: View {
   @State private var checkInResponse: DailyCheckInResponse?
   @State private var isLoadingResponse = false
   @State private var responseError: String?
+  @State private var loadingMessageIndex = 0
+  @State private var loadingProgress: Double = 0.0
+  
+  private let loadingMessages = [
+    "Analyzing your mood...",
+    "Understanding your needs...",
+    "Crafting personalized support...",
+    "Almost ready with your plan...",
+    "Finalizing your guidance..."
+  ]
 
   var body: some View {
     NavigationView {
@@ -170,30 +180,58 @@ struct DailyCoachView: View {
               }
               .padding(.horizontal, 20)
 
-              // Check-in Button
-              Button(action: runCheckIn) {
-                HStack(spacing: 12) {
-                  if isLoadingResponse {
-                    ProgressView()
-                      .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                      .scaleEffect(0.8)
-                  } else {
-                    Text("💙")
-                      .font(.title2)
+              // Enhanced Check-in Button with Loading Animation
+              VStack(spacing: 12) {
+                Button(action: runCheckIn) {
+                  HStack(spacing: 12) {
+                    if isLoadingResponse {
+                      // Pulsing heart animation
+                      Text("💙")
+                        .font(.title2)
+                        .scaleEffect(1.0 + 0.2 * sin(Date().timeIntervalSince1970 * 3))
+                        .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: isLoadingResponse)
+                    } else {
+                      Text("💙")
+                        .font(.title2)
+                    }
+                    Text(isLoadingResponse ? loadingMessages[loadingMessageIndex] : "Get Support")
+                      .font(.headline)
+                      .fontWeight(.semibold)
                   }
-                  Text(isLoadingResponse ? "Processing..." : "Get Support")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                  .foregroundColor(.white)
+                  .frame(maxWidth: .infinity)
+                  .padding(.vertical, 16)
+                  .background(
+                    RoundedRectangle(cornerRadius: 25)
+                      .fill(isLoadingResponse ? Color.blue.opacity(0.8) : Color.blue)
+                      .overlay(
+                        // Progress bar overlay
+                        RoundedRectangle(cornerRadius: 25)
+                          .fill(Color.white.opacity(0.3))
+                          .scaleEffect(x: loadingProgress, y: 1, anchor: .leading)
+                          .animation(.linear(duration: 0.1), value: loadingProgress)
+                      )
+                  )
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                  RoundedRectangle(cornerRadius: 25)
-                    .fill(Color.blue)
-                )
+                .disabled(isLoadingResponse)
+                .scaleEffect(isLoadingResponse ? 0.98 : 1.0)
+                .animation(.easeInOut(duration: 0.1), value: isLoadingResponse)
+                
+                // Loading progress indicator
+                if isLoadingResponse {
+                  VStack(spacing: 8) {
+                    ProgressView(value: loadingProgress, total: 1.0)
+                      .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                      .scaleEffect(y: 2)
+                    
+                    Text("Creating your personalized support plan...")
+                      .font(.caption)
+                      .foregroundColor(.secondary)
+                      .multilineTextAlignment(.center)
+                  }
+                  .padding(.horizontal, 20)
+                }
               }
-              .disabled(isLoadingResponse)
               .padding(.horizontal, 20)
             }
             .padding(20)
@@ -419,6 +457,11 @@ struct DailyCoachView: View {
     isLoadingResponse = true
     responseError = nil
     checkInResponse = nil
+    loadingMessageIndex = 0
+    loadingProgress = 0.0
+
+    // Start loading animation timer
+    startLoadingAnimation()
 
     Task {
       do {
@@ -433,7 +476,18 @@ struct DailyCoachView: View {
           ]
         ]
 
+        // Simulate progress updates
+        await updateProgress(0.2)
+        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        
+        await updateProgress(0.4)
+        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        
+        await updateProgress(0.6)
         let result = try await callable.call(payload)
+        
+        await updateProgress(0.8)
+        try await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
 
         // Log shape once, super handy:
         printJSON(result.data, prefix: "🧩 CheckIn raw response")
@@ -446,6 +500,9 @@ struct DailyCoachView: View {
         let dict = (outer["data"] as? [String: Any]) ?? outer
         let parsed = DailyCheckInResponse(from: dict)
 
+        await updateProgress(1.0)
+        try await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+
         await MainActor.run {
           self.checkInResponse = parsed
           self.isLoadingResponse = false
@@ -456,6 +513,26 @@ struct DailyCoachView: View {
           self.isLoadingResponse = false
         }
       }
+    }
+  }
+  
+  private func startLoadingAnimation() {
+    Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { timer in
+      guard isLoadingResponse else {
+        timer.invalidate()
+        return
+      }
+      
+      withAnimation(.easeInOut(duration: 0.5)) {
+        loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.count
+      }
+    }
+  }
+  
+  @MainActor
+  private func updateProgress(_ progress: Double) {
+    withAnimation(.linear(duration: 0.3)) {
+      loadingProgress = progress
     }
   }
 
@@ -866,6 +943,7 @@ struct FlowResult {
 // MARK: - Enhanced Coach Card Component
 struct EnhancedCoachCard: View {
   let response: DailyCheckInResponse
+  @State private var activeExercise: Exercise?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -911,7 +989,15 @@ struct EnhancedCoachCard: View {
         }
 
         Button {
-          // start exercise flow
+          // Create exercise from the quick reset steps
+          let exercise = Exercise(
+            id: UUID(),
+            title: response.exercise ?? "Quick Reset",
+            duration: 90, // 60-90 seconds as shown in UI
+            steps: quick,
+            prompt: "A quick reset exercise from your daily check-in"
+          )
+          activeExercise = exercise
         } label: {
           Label("Start Exercise", systemImage: "play.fill")
         }
@@ -948,6 +1034,15 @@ struct EnhancedCoachCard: View {
       }
       if let plan = response.ifThenPlan {
         Text("If-Then: \(plan)").font(.footnote)
+      }
+    }
+    .sheet(item: $activeExercise) { exercise in
+      if exercise.isBreathingExercise, let plan = exercise.breathingPlan {
+        BreathingExerciseView(plan: plan)
+      } else if exercise.isBreathingExercise {
+        BreathingExerciseView()
+      } else {
+        GenericExerciseView(exercise: exercise)
       }
     }
   }
