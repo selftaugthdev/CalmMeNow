@@ -22,10 +22,15 @@ final class Billing {
 @main
 struct CalmMeNowApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+  @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
   var body: some Scene {
     WindowGroup {
-      MainTabView()
+      if hasCompletedOnboarding {
+        MainTabView()
+      } else {
+        OnboardingView()
+      }
     }
     .modelContainer(for: [JournalEntry.self])
   }

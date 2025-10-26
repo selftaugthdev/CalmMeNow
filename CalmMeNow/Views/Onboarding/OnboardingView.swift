@@ -35,7 +35,7 @@ struct OnboardingView: View {
         bullets: [
           "Emergency Calm → for sudden panic (Always Free)",
           "Emotion Tools → manage anxiety, anger, sadness, frustration (Always Free)",
-          "Guided breathing, soothing sounds, and a calming mascot (Premium Unlock)",
+          "Guided breathing and soothing sounds (Premium Unlock)",
         ],
         showsToggles: false,
         showsWatchPrefs: false
@@ -44,6 +44,7 @@ struct OnboardingView: View {
         title: "One minute to feel calmer",
         body: "Here's all you do:",
         bullets: [
+          "Tap the big orange Calm Me Now button whenever panic spikes — it's your instant relief button and it's free forever.",
           "Choose how you feel → pick intensity",
           "Follow \"Inhale • Hold • Exhale\" pacing",
           "Add calming sounds or haptics if you like",
@@ -149,14 +150,29 @@ struct OnboardingView: View {
 
       if page.showsToggles {
         VStack(alignment: .leading, spacing: 16) {
-          Toggle("Play calming sounds (Premium)", isOn: $prefSounds)
-            .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#FF6B9D")))
+          Text("Choose a couple of calming defaults. You can tweak them anytime in Settings.")
+            .font(.subheadline)
+            .foregroundColor(.black.opacity(0.7))
 
-          Toggle("Gentle haptics for breath cues (Always Free)", isOn: $prefHaptics)
-            .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#FF6B9D")))
+          VStack(alignment: .leading, spacing: 12) {
+            preferenceToggle(
+              title: "Soothing soundscapes",
+              subtitle: "Keeps gentle ambiance playing while you breathe.",
+              isOn: $prefSounds
+            )
 
-          Toggle("Personalized plans & 24/7 Support and Guidance (Premium)", isOn: $prefVoice)
-            .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#FF6B9D")))
+            preferenceToggle(
+              title: "Gentle haptic cues",
+              subtitle: "Light taps guide your inhale, hold, and exhale cadence.",
+              isOn: $prefHaptics
+            )
+
+            preferenceToggle(
+              title: "Soft voice coaching",
+              subtitle: "Hear calm prompts if you like being talked through each step.",
+              isOn: $prefVoice
+            )
+          }
         }
         .padding(.top, 16)
         .padding(.horizontal, 4)
@@ -211,6 +227,36 @@ struct OnboardingView: View {
     }
     .padding(.vertical, 20)
   }
+}
+
+@ViewBuilder
+private func preferenceToggle(
+  title: String,
+  subtitle: String,
+  isOn: Binding<Bool>
+) -> some View {
+  Toggle(isOn: isOn) {
+    VStack(alignment: .leading, spacing: 4) {
+      Text(title)
+        .fontWeight(.semibold)
+        .foregroundColor(.black)
+
+      Text(subtitle)
+        .font(.caption)
+        .foregroundColor(.black.opacity(0.65))
+        .fixedSize(horizontal: false, vertical: true)
+    }
+  }
+  .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#FF6B9D")))
+  .padding()
+  .background(
+    RoundedRectangle(cornerRadius: 16)
+      .fill(Color.white.opacity(0.9))
+  )
+  .overlay(
+    RoundedRectangle(cornerRadius: 16)
+      .stroke(Color.black.opacity(0.05), lineWidth: 1)
+  )
 }
 
 #Preview {
