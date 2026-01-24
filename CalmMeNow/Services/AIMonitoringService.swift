@@ -38,9 +38,9 @@ class AIMonitoringService: ObservableObject {
   @Published var isOverQuota = false
 
   private var usageHistory: [TokenUsage] = []
-  private let maxRequestsPerHour = 100
-  private let maxTokensPerHour = 10000
-  private let maxCostPerHour = 5.0
+  private let maxRequestsPerWeek = 100
+  private let maxTokensPerWeek = 10000
+  private let maxCostPerWeek = 5.0
 
   // Token costs per 1K tokens (as of 2024)
   private let tokenCosts: [String: (input: Double, output: Double)] = [
@@ -98,19 +98,19 @@ class AIMonitoringService: ObservableObject {
   // MARK: - Quota Management
 
   func canMakeRequest(feature: String, model: String) -> Bool {
-    let recentUsage = getRecentUsage(within: 3600)  // Last hour
+    let recentUsage = getRecentUsage(within: 604800)  // Last week
 
-    if recentUsage.count >= maxRequestsPerHour {
+    if recentUsage.count >= maxRequestsPerWeek {
       return false
     }
 
     let recentTokens = recentUsage.reduce(0) { $0 + $1.totalTokens }
-    if recentTokens >= maxTokensPerHour {
+    if recentTokens >= maxTokensPerWeek {
       return false
     }
 
     let recentCost = recentUsage.reduce(0.0) { $0 + $1.cost }
-    if recentCost >= maxCostPerHour {
+    if recentCost >= maxCostPerWeek {
       return false
     }
 
@@ -118,13 +118,13 @@ class AIMonitoringService: ObservableObject {
   }
 
   func getRemainingQuota() -> (requests: Int, tokens: Int, cost: Double) {
-    let recentUsage = getRecentUsage(within: 3600)
+    let recentUsage = getRecentUsage(within: 604800)
 
-    let remainingRequests = max(0, maxRequestsPerHour - recentUsage.count)
+    let remainingRequests = max(0, maxRequestsPerWeek - recentUsage.count)
     let usedTokens = recentUsage.reduce(0) { $0 + $1.totalTokens }
-    let remainingTokens = max(0, maxTokensPerHour - usedTokens)
+    let remainingTokens = max(0, maxTokensPerWeek - usedTokens)
     let usedCost = recentUsage.reduce(0.0) { $0 + $1.cost }
-    let remainingCost = max(0.0, maxCostPerHour - usedCost)
+    let remainingCost = max(0.0, maxCostPerWeek - usedCost)
 
     return (remainingRequests, remainingTokens, remainingCost)
   }
@@ -215,11 +215,11 @@ class AIMonitoringService: ObservableObject {
   }
 
   private func checkQuotaLimits() {
-    let recentUsage = getRecentUsage(within: 3600)
+    let recentUsage = getRecentUsage(within: 604800)
     isOverQuota =
-      recentUsage.count >= maxRequestsPerHour
-      || recentUsage.reduce(0) { $0 + $1.totalTokens } >= maxTokensPerHour
-      || recentUsage.reduce(0.0) { $0 + $1.cost } >= maxCostPerHour
+      recentUsage.count >= maxRequestsPerWeek
+      || recentUsage.reduce(0) { $0 + $1.totalTokens } >= maxTokensPerWeek
+      || recentUsage.reduce(0.0) { $0 + $1.cost } >= maxCostPerWeek
   }
 
   private func loadUsageHistory() {

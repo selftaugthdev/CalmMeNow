@@ -43,7 +43,7 @@ struct UserQuota {
   let userId: String
   let requestsPerHour: Int
   let tokensPerHour: Int
-  let costPerHour: Double
+  let costPerWeek: Double
   var currentUsage: QuotaUsage
 }
 
@@ -383,7 +383,7 @@ class ServerLayerService: ObservableObject {
 
     return quota.currentUsage.requests < quota.requestsPerHour
       && quota.currentUsage.tokens < quota.tokensPerHour
-      && quota.currentUsage.cost < quota.costPerHour
+      && quota.currentUsage.cost < quota.costPerWeek
   }
 
   private func createDefaultQuota(for userId: String) -> UserQuota {
@@ -391,12 +391,12 @@ class ServerLayerService: ObservableObject {
       userId: userId,
       requestsPerHour: 50,
       tokensPerHour: 5000,
-      costPerHour: 2.0,
+      costPerWeek: 2.0, // update to costPerWeek
       currentUsage: QuotaUsage(
         requests: 0,
         tokens: 0,
         cost: 0.0,
-        resetTime: Date().addingTimeInterval(3600)
+        resetTime: Date().addingTimeInterval(604800)
       )
     )
   }
@@ -442,3 +442,4 @@ class ServerLayerService: ObservableObject {
 // MARK: - User Quota Extensions
 extension UserQuota: Codable {}
 extension QuotaUsage: Codable {}
+

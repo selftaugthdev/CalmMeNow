@@ -170,121 +170,9 @@ struct ContentView: View {
               .padding(.bottom, 50)  // More breathing room before cards
               .foregroundColor(.black.opacity(0.7))
 
-            // Core Differentiators - 4 cards in 2x2 grid + Positive Quotes
+            // Core Differentiators - Reordered with free features first
             VStack(spacing: 20) {  // Increased spacing between rows
-              // Top row - 2 cards
-              HStack(spacing: 20) {  // Increased spacing between cards
-                // Games Card
-                EmotionCard(
-                  emoji: "🎮",
-                  emotion: "Games",
-                  subtext: "Play calming mini-games to distract and relax",
-                  isSelected: selectedButton == "games",
-                  onTap: {
-                    HapticManager.shared.emotionButtonTap()
-                    selectedEmotion = "games"
-                    selectedEmoji = "🎮"
-
-                    // Track feature selection
-                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "games")
-
-                    // Show game selection menu
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                      showingGameSelection = true
-                    }
-                  }
-                )
-
-                // Personalized Panic Plan Card (AI Feature - Requires Subscription)
-                EmotionCard(
-                  emoji: "🧩",
-                  emotion: "Panic Plan",
-                  subtext: "Your personalized emergency response plan",
-                  isSelected: selectedButton == "panic_plan",
-                  onTap: {
-                    HapticManager.shared.emotionButtonTap()
-                    selectedEmotion = "panic_plan"
-                    selectedEmoji = "🧩"
-
-                    // Track feature selection
-                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "panic_plan")
-
-                    // Check paywall access for AI feature
-                    Task {
-                      let hasAccess = await paywallManager.requestAIAccess()
-                      if hasAccess {
-                        // Navigate to personalized plan
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                          showingPersonalizedPlan = true
-                        }
-                      }
-                      // If no access, paywall will be shown automatically
-                    }
-                  }
-                )
-              }
-
-              // Bottom row - 2 cards
-              HStack(spacing: 20) {  // Increased spacing between cards
-                // Daily Check-in Coach Card (AI Feature - Requires Subscription)
-                EmotionCard(
-                  emoji: "📅",
-                  emotion: "Daily Coach",
-                  subtext: "Daily check-ins and progress tracking",
-                  isSelected: selectedButton == "daily_coach",
-                  onTap: {
-                    HapticManager.shared.emotionButtonTap()
-                    selectedEmotion = "daily_coach"
-                    selectedEmoji = "📅"
-
-                    // Track feature selection
-                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "daily_coach")
-
-                    // Check paywall access for AI feature
-                    Task {
-                      let hasAccess = await paywallManager.requestAIAccess()
-                      if hasAccess {
-                        // Navigate to daily coach
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                          showingDailyCoach = true
-                        }
-                      }
-                      // If no access, paywall will be shown automatically
-                    }
-                  }
-                )
-
-                // Enhanced Panic Plan Card (AI Feature - Requires Subscription)
-                EmotionCard(
-                  emoji: "🧠",
-                  emotion: "Smart Plan",
-                  subtext: "Personalized panic plan with insights",
-                  isSelected: selectedButton == "enhanced_panic_plan",
-                  onTap: {
-                    HapticManager.shared.emotionButtonTap()
-                    selectedEmotion = "enhanced_panic_plan"
-                    selectedEmoji = "🧠"
-
-                    // Track feature selection
-                    FirebaseAnalyticsService.shared.trackEmotionSelected(
-                      emotion: "enhanced_panic_plan")
-
-                    // Check paywall access for AI feature
-                    Task {
-                      let hasAccess = await paywallManager.requestAIAccess()
-                      if hasAccess {
-                        // Navigate to enhanced panic plan
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                          showingEnhancedPanicPlan = true
-                        }
-                      }
-                      // If no access, paywall will be shown automatically
-                    }
-                  }
-                )
-              }
-
-              // Third row - Grounding and Body Relax
+              // Top row - Free features: Grounding and Body Relax
               HStack(spacing: 20) {
                 // Grounding Exercise Card (FREE)
                 EmotionCard(
@@ -320,6 +208,124 @@ struct ContentView: View {
 
                     showingPMRExercise = true
                   }
+                )
+              }
+
+              // Second row - Premium features: Games and Daily Coach (Games moved here)
+              HStack(spacing: 20) {  // Increased spacing between cards
+                // Games Card (moved from third row)
+                EmotionCard(
+                  emoji: "🎮",
+                  emotion: "Games",
+                  subtext: "Play calming mini-games to distract and relax",
+                  isSelected: selectedButton == "games",
+                  onTap: {
+                    HapticManager.shared.emotionButtonTap()
+                    selectedEmotion = "games"
+                    selectedEmoji = "🎮"
+
+                    // Track feature selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "games")
+
+                    // Show game selection menu
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                      showingGameSelection = true
+                    }
+                  }
+                )
+
+                // Daily Check-in Coach Card (AI Feature - Requires Subscription)
+                EmotionCard(
+                  emoji: "📅",
+                  emotion: "Daily Coach",
+                  subtext: "Daily check-ins and progress tracking",
+                  isSelected: selectedButton == "daily_coach",
+                  onTap: {
+                    HapticManager.shared.emotionButtonTap()
+                    selectedEmotion = "daily_coach"
+                    selectedEmoji = "📅"
+
+                    // Track feature selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "daily_coach")
+
+                    // Check paywall access for AI feature
+                    Task {
+                      let hasAccess = await paywallManager.requestAIAccess()
+                      if hasAccess {
+                        // Navigate to daily coach
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                          showingDailyCoach = true
+                        }
+                      }
+                      // If no access, paywall will be shown automatically
+                    }
+                  },
+                  isPremium: true,
+                  hasAccess: paywallManager.hasAIAccess
+                )
+              }
+
+              // Third row - Panic Plan and Smart Plan (Panic Plan moved here)
+              HStack(spacing: 20) {  // Increased spacing between cards
+                // Personalized Panic Plan Card (AI Feature - Requires Subscription) (moved from second row)
+                EmotionCard(
+                  emoji: "🧩",
+                  emotion: "Panic Plan",
+                  subtext: "Your personalized emergency response plan",
+                  isSelected: selectedButton == "panic_plan",
+                  onTap: {
+                    HapticManager.shared.emotionButtonTap()
+                    selectedEmotion = "panic_plan"
+                    selectedEmoji = "🧩"
+
+                    // Track feature selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "panic_plan")
+
+                    // Check paywall access for AI feature
+                    Task {
+                      let hasAccess = await paywallManager.requestAIAccess()
+                      if hasAccess {
+                        // Navigate to personalized plan
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                          showingPersonalizedPlan = true
+                        }
+                      }
+                      // If no access, paywall will be shown automatically
+                    }
+                  },
+                  isPremium: true,
+                  hasAccess: paywallManager.hasAIAccess
+                )
+
+                // Enhanced Panic Plan Card (AI Feature - Requires Subscription)
+                EmotionCard(
+                  emoji: "🧠",
+                  emotion: "Smart Plan",
+                  subtext: "Personalized panic plan with insights",
+                  isSelected: selectedButton == "enhanced_panic_plan",
+                  onTap: {
+                    HapticManager.shared.emotionButtonTap()
+                    selectedEmotion = "enhanced_panic_plan"
+                    selectedEmoji = "🧠"
+
+                    // Track feature selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(
+                      emotion: "enhanced_panic_plan")
+
+                    // Check paywall access for AI feature
+                    Task {
+                      let hasAccess = await paywallManager.requestAIAccess()
+                      if hasAccess {
+                        // Navigate to enhanced panic plan
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                          showingEnhancedPanicPlan = true
+                        }
+                      }
+                      // If no access, paywall will be shown automatically
+                    }
+                  },
+                  isPremium: true,
+                  hasAccess: paywallManager.hasAIAccess
                 )
               }
 
@@ -457,6 +463,8 @@ struct EmotionCard: View {
   let subtext: String
   let isSelected: Bool
   let onTap: () -> Void
+  var isPremium: Bool = false
+  var hasAccess: Bool = true
 
   var body: some View {
     Button(action: onTap) {
@@ -465,17 +473,18 @@ struct EmotionCard: View {
         Text(emoji)
           .font(.system(size: 40))  // Larger emoji
           .padding(.top, 20)
+          .opacity(hasAccess ? 1.0 : 0.5)
 
         // Emotion name
         Text(emotion)
           .font(.title2)
           .fontWeight(.semibold)
-          .foregroundColor(.black)
+          .foregroundColor(hasAccess ? .black : .gray)
 
         // Tiny subtext
         Text(subtext)
           .font(.caption)
-          .foregroundColor(.black.opacity(0.6))
+          .foregroundColor(hasAccess ? .black.opacity(0.6) : .gray.opacity(0.5))
           .multilineTextAlignment(.center)
           .padding(.horizontal, 16)
           .padding(.bottom, 20)
@@ -483,8 +492,9 @@ struct EmotionCard: View {
       .frame(maxWidth: .infinity, minHeight: 140)  // Taller cards for better proportions
       .background(
         RoundedRectangle(cornerRadius: 20)
-          .fill(Color.white)
-          .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+          .fill(hasAccess ? Color.white : Color.gray.opacity(0.3))
+          .shadow(
+            color: hasAccess ? .black.opacity(0.1) : .black.opacity(0.05), radius: 8, x: 0, y: 4)
       )
       .scaleEffect(isSelected ? 0.98 : 1.0)
       .animation(.easeInOut(duration: 0.1), value: isSelected)

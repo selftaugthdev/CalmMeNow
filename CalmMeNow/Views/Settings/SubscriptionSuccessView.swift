@@ -58,7 +58,7 @@ struct SubscriptionSuccessView: View {
             .multilineTextAlignment(.center)
             .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
 
-          Text("You now have access to all AI-powered features:")
+          Text("You now have access to all personalized features:")
             .font(.title3)
             .foregroundColor(.white)
             .multilineTextAlignment(.center)

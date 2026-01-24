@@ -8,7 +8,7 @@ struct PaywallKitView: View {
 
   // PaywallKit configuration
   private let paywallConfig = PaywallConfig(
-    title: "Unlock AI-Powered Calm",
+    title: "Unlock Personalized Calm",
     subtitle: "Get personalized support when you need it most",
     yearlyBadgeText: "SAVE 90%",
     weeklyTrialLabel: "7-Day Free Trial",

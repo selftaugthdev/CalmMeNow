@@ -67,7 +67,7 @@ struct PaywallView: View {
       Text("🧠")
         .font(.system(size: 80))
 
-      Text("Unlock AI-Powered Calm")
+      Text("Unlock Personalized Calm")
         .font(.largeTitle)
         .fontWeight(.bold)
         .foregroundColor(.black)
@@ -86,25 +86,25 @@ struct PaywallView: View {
       FeatureRow(
         icon: "🎯",
         title: "Personalized Panic Plans",
-        description: "AI-generated strategies tailored to your triggers and preferences"
+        description: "Custom strategies tailored to your triggers and preferences"
       )
 
       FeatureRow(
         icon: "📊",
         title: "Smart Daily Check-ins",
-        description: "Get intelligent insights and recommendations based on your mood"
+        description: "Get insights and recommendations based on your mood patterns"
       )
 
       FeatureRow(
-        icon: "🤖",
-        title: "AI Emergency Companion",
-        description: "24/7 AI support for crisis moments with personalized guidance"
+        icon: "💜",
+        title: "Emergency Companion",
+        description: "24/7 support for crisis moments with personalized guidance"
       )
 
       FeatureRow(
         icon: "🫁",
         title: "Enhanced Breathing",
-        description: "AI-optimized breathing patterns for maximum effectiveness"
+        description: "Optimized breathing patterns for maximum effectiveness"
       )
     }
   }
