@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct ContentView: View {
+  @AppStorage("hasShownFirstLaunchOverlay") private var hasShownFirstLaunchOverlay = false
+  @State private var showFirstLaunchOverlay = false
+
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
   @StateObject private var paywallManager = PaywallManager.shared
@@ -31,6 +34,7 @@ struct ContentView: View {
   @State private var showingPositiveQuotes = false
   @State private var showingGroundingExercise = false
   @State private var showingPMRExercise = false
+  @State private var showingCrisisResources = false
 
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
@@ -342,6 +346,24 @@ struct ContentView: View {
                   showingPositiveQuotes = true
                 }
               )
+
+              // Crisis Resources Card - full width (FREE)
+              EmotionCard(
+                emoji: "📞",
+                emotion: "Crisis Help",
+                subtext: "Local crisis hotlines & resources",
+                isSelected: selectedButton == "crisis_resources",
+                onTap: {
+                  HapticManager.shared.emotionButtonTap()
+                  selectedEmotion = "crisis_resources"
+                  selectedEmoji = "📞"
+
+                  // Track feature selection
+                  FirebaseAnalyticsService.shared.trackCrisisResourcesViewed()
+
+                  showingCrisisResources = true
+                }
+              )
             }
             .padding(.horizontal, 40)  // Increased horizontal padding for breathing room
             .padding(.bottom, 40)  // Breathing room before achievement card
@@ -368,6 +390,13 @@ struct ContentView: View {
           }
         }
       }
+      .overlay(
+        Group {
+          if showFirstLaunchOverlay {
+            FirstLaunchOverlay(isVisible: $showFirstLaunchOverlay)
+          }
+        }, alignment: .top
+      )
       .navigationBarHidden(true)
       .sheet(isPresented: $showingIntensitySelection) {
         IntensitySelectionView(
@@ -438,6 +467,9 @@ struct ContentView: View {
     .sheet(isPresented: $showingPMRExercise) {
       PMRExerciseView()
     }
+    .sheet(isPresented: $showingCrisisResources) {
+      CrisisResourcesView()
+    }
     .fullScreenCover(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
       SubscriptionSuccessView()
         .onDisappear {
@@ -446,6 +478,12 @@ struct ContentView: View {
     }
     .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
       showingPaywall = shouldShow
+    }
+    .onAppear {
+      if !hasShownFirstLaunchOverlay {
+        showFirstLaunchOverlay = true
+        hasShownFirstLaunchOverlay = true
+      }
     }
   }
 
