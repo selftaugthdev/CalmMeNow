@@ -29,6 +29,8 @@ struct ContentView: View {
   @State private var showingEnhancedPanicPlan = false
   @State private var showingAIDebug = false
   @State private var showingPositiveQuotes = false
+  @State private var showingGroundingExercise = false
+  @State private var showingPMRExercise = false
 
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
@@ -282,6 +284,45 @@ struct ContentView: View {
                 )
               }
 
+              // Third row - Grounding and Body Relax
+              HStack(spacing: 20) {
+                // Grounding Exercise Card (FREE)
+                EmotionCard(
+                  emoji: "🖐️",
+                  emotion: "Grounding",
+                  subtext: "5-4-3-2-1 sensory technique",
+                  isSelected: selectedButton == "grounding",
+                  onTap: {
+                    HapticManager.shared.emotionButtonTap()
+                    selectedEmotion = "grounding"
+                    selectedEmoji = "🖐️"
+
+                    // Track feature selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "grounding")
+
+                    showingGroundingExercise = true
+                  }
+                )
+
+                // Progressive Muscle Relaxation Card (FREE)
+                EmotionCard(
+                  emoji: "💪",
+                  emotion: "Body Relax",
+                  subtext: "Progressive muscle relaxation",
+                  isSelected: selectedButton == "pmr",
+                  onTap: {
+                    HapticManager.shared.emotionButtonTap()
+                    selectedEmotion = "pmr"
+                    selectedEmoji = "💪"
+
+                    // Track feature selection
+                    FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "pmr")
+
+                    showingPMRExercise = true
+                  }
+                )
+              }
+
               // Positive Quotes Card - full width
               EmotionCard(
                 emoji: "✨",
@@ -384,6 +425,12 @@ struct ContentView: View {
     }
     .sheet(isPresented: $showingPositiveQuotes) {
       PositiveQuotesView()
+    }
+    .sheet(isPresented: $showingGroundingExercise) {
+      GroundingExerciseView()
+    }
+    .sheet(isPresented: $showingPMRExercise) {
+      PMRExerciseView()
     }
     .fullScreenCover(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
       SubscriptionSuccessView()

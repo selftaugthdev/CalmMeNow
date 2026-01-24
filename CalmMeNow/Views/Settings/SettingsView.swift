@@ -19,6 +19,10 @@ struct SettingsView: View {
   @StateObject private var paywallManager = PaywallManager.shared
   @StateObject private var revenueCatService = RevenueCatService.shared
   @State private var showingPaywall = false
+  @State private var showingCrisisResources = false
+  @State private var showingTrustedContact = false
+  @State private var showingPatternAnalytics = false
+  @State private var showingSleepRoutine = false
 
   var body: some View {
     NavigationView {
@@ -149,6 +153,30 @@ struct SettingsView: View {
                 }
               }
 
+              // Crisis Resources Section
+              SettingsSection(title: "Support") {
+                VStack(spacing: 16) {
+                  SettingsActionRow(
+                    icon: "phone.fill",
+                    iconColor: .red,
+                    title: "Crisis Resources",
+                    description: "Emergency hotlines and mental health support",
+                    action: {
+                      showingCrisisResources = true
+                    }
+                  )
+                }
+                .padding()
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.9))
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                )
+              }
+
               // AI Settings
               SettingsSection(title: "🤖 AI Assistant") {
                 VStack(spacing: 16) {
@@ -224,6 +252,48 @@ struct SettingsView: View {
                     title: "Progress Tracking",
                     description: "Track your calming journey and mood improvements",
                     isPremium: true
+                  )
+
+                  Divider()
+                    .background(Color.black.opacity(0.1))
+
+                  // Trusted Contact
+                  SettingsActionRow(
+                    icon: "person.crop.circle.badge.checkmark",
+                    iconColor: .blue,
+                    title: "Trusted Contact",
+                    description: "Set up a support contact for difficult moments",
+                    action: {
+                      showingTrustedContact = true
+                    }
+                  )
+
+                  Divider()
+                    .background(Color.black.opacity(0.1))
+
+                  // Pattern Insights
+                  SettingsActionRow(
+                    icon: "chart.bar.doc.horizontal",
+                    iconColor: .purple,
+                    title: "Pattern Insights",
+                    description: "Discover patterns in your mental health journey",
+                    action: {
+                      showingPatternAnalytics = true
+                    }
+                  )
+
+                  Divider()
+                    .background(Color.black.opacity(0.1))
+
+                  // Sleep Routine
+                  SettingsActionRow(
+                    icon: "moon.stars.fill",
+                    iconColor: .indigo,
+                    title: "Sleep Routine",
+                    description: "Wind-down routine for better sleep",
+                    action: {
+                      showingSleepRoutine = true
+                    }
                   )
 
                   Divider()
@@ -396,6 +466,18 @@ struct SettingsView: View {
       .navigationBarHidden(true)
       .sheet(isPresented: $showingPaywall) {
         PaywallKitView()
+      }
+      .sheet(isPresented: $showingCrisisResources) {
+        CrisisResourcesView()
+      }
+      .sheet(isPresented: $showingTrustedContact) {
+        TrustedContactView()
+      }
+      .sheet(isPresented: $showingPatternAnalytics) {
+        PatternAnalyticsView()
+      }
+      .sheet(isPresented: $showingSleepRoutine) {
+        SleepRoutineView()
       }
     }
   }

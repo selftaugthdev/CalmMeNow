@@ -8,7 +8,7 @@ struct EmergencyCalmView: View {
   @State private var isAnimating = false
   @State private var timeRemaining: Int = 60
   @State private var showCompletionOptions = false
-  @State private var showSuccessView = false
+  @State private var showPostRecovery = false
   @State private var showAdditionalHelp = false
   @State private var sessionId: String = ""
 
@@ -127,7 +127,7 @@ struct EmergencyCalmView: View {
                 progressTracker.recordReliefOutcome(.betterNow)
                 // Track successful completion
                 AnalyticsLogger.shared.emergencyCalmComplete(sessionId: sessionId, completed: true)
-                showSuccessView = true
+                showPostRecovery = true
               }
               .foregroundColor(.white)
               .padding(.vertical, 12)
@@ -163,8 +163,8 @@ struct EmergencyCalmView: View {
     .onDisappear {
       audioManager.stopSoundImmediately()
     }
-    .sheet(isPresented: $showSuccessView) {
-      SuccessView(onReturnToHome: {
+    .sheet(isPresented: $showPostRecovery) {
+      PostPanicRecoveryView(onReturnToHome: {
         presentationMode.wrappedValue.dismiss()
       })
     }

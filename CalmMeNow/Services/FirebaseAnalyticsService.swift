@@ -193,6 +193,144 @@ class FirebaseAnalyticsService {
     print("📊 Analytics: Breathing exercise accessed")
   }
 
+  // MARK: - New Feature Tracking
+
+  /// Track when user starts 5-4-3-2-1 grounding exercise
+  func trackGroundingExerciseStarted() {
+    Analytics.logEvent(
+      "grounding_exercise_started",
+      parameters: [
+        "timestamp": Date().timeIntervalSince1970
+      ])
+
+    print("📊 Analytics: Grounding exercise started")
+  }
+
+  /// Track when user completes grounding exercise
+  func trackGroundingExerciseCompleted() {
+    Analytics.logEvent(
+      "grounding_exercise_completed",
+      parameters: [
+        "timestamp": Date().timeIntervalSince1970
+      ])
+
+    print("📊 Analytics: Grounding exercise completed")
+  }
+
+  /// Track when user starts PMR exercise
+  func trackPMRExerciseStarted() {
+    Analytics.logEvent(
+      "pmr_exercise_started",
+      parameters: [
+        "timestamp": Date().timeIntervalSince1970
+      ])
+
+    print("📊 Analytics: PMR exercise started")
+  }
+
+  /// Track when user completes PMR exercise
+  func trackPMRExerciseCompleted() {
+    Analytics.logEvent(
+      "pmr_exercise_completed",
+      parameters: [
+        "timestamp": Date().timeIntervalSince1970
+      ])
+
+    print("📊 Analytics: PMR exercise completed")
+  }
+
+  /// Track when user views crisis resources
+  func trackCrisisResourcesViewed() {
+    Analytics.logEvent(
+      "crisis_resources_viewed",
+      parameters: [
+        "timestamp": Date().timeIntervalSince1970
+      ])
+
+    print("📊 Analytics: Crisis resources viewed")
+  }
+
+  /// Track when user calls crisis hotline
+  func trackCrisisHotlineCalled(country: String) {
+    Analytics.logEvent(
+      "crisis_hotline_called",
+      parameters: [
+        "country": country,
+        "timestamp": Date().timeIntervalSince1970,
+      ])
+
+    print("📊 Analytics: Crisis hotline called from \(country)")
+  }
+
+  /// Track post-panic recovery view shown
+  func trackPostRecoveryShown() {
+    Analytics.logEvent(
+      "post_recovery_shown",
+      parameters: [
+        "timestamp": Date().timeIntervalSince1970
+      ])
+
+    print("📊 Analytics: Post-panic recovery view shown")
+  }
+
+  // MARK: - Premium Feature Tracking
+
+  /// Track when user accesses trusted contact feature
+  func trackTrustedContactAccessed() {
+    Analytics.logEvent(
+      "trusted_contact_accessed",
+      parameters: [
+        "timestamp": Date().timeIntervalSince1970
+      ])
+
+    print("📊 Analytics: Trusted contact accessed")
+  }
+
+  /// Track when user sends message to trusted contact
+  func trackTrustedContactMessageSent() {
+    Analytics.logEvent(
+      "trusted_contact_message_sent",
+      parameters: [
+        "timestamp": Date().timeIntervalSince1970
+      ])
+
+    print("📊 Analytics: Trusted contact message sent")
+  }
+
+  /// Track when user views pattern analytics
+  func trackPatternAnalyticsViewed(insightsCount: Int) {
+    Analytics.logEvent(
+      "pattern_analytics_viewed",
+      parameters: [
+        "insights_count": insightsCount,
+        "timestamp": Date().timeIntervalSince1970,
+      ])
+
+    print("📊 Analytics: Pattern analytics viewed with \(insightsCount) insights")
+  }
+
+  /// Track when user starts sleep routine
+  func trackSleepRoutineStarted() {
+    Analytics.logEvent(
+      "sleep_routine_started",
+      parameters: [
+        "timestamp": Date().timeIntervalSince1970
+      ])
+
+    print("📊 Analytics: Sleep routine started")
+  }
+
+  /// Track when user completes sleep routine
+  func trackSleepRoutineCompleted() {
+    Analytics.logEvent(
+      "sleep_routine_completed",
+      parameters: [
+        "timestamp": Date().timeIntervalSince1970
+      ])
+
+    print("📊 Analytics: Sleep routine completed")
+  }
+
   // MARK: - User Properties
 
   /// Set user properties for better analytics

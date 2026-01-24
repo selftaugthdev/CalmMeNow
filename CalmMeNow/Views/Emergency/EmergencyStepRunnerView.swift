@@ -400,7 +400,7 @@ struct EmergencyStepRunnerView: View {
       }
     }
     .sheet(isPresented: $showingGrounding) {
-      GroundingExerciseView()
+      SimpleGroundingExerciseView()
     }
     .sheet(isPresented: $showingCallHelp) {
       CallHelpView()
@@ -515,9 +515,9 @@ struct EmergencyCompletionView: View {
   }
 }
 
-// MARK: - Grounding Exercise View
+// MARK: - Simple Grounding Exercise View (for emergency step runner)
 
-struct GroundingExerciseView: View {
+struct SimpleGroundingExerciseView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var speechService = SpeechService()
   private let hapticManager = HapticManager.shared
