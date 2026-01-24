@@ -1,13 +1,75 @@
 import SwiftUI
 import WatchConnectivity
 
+// User's primary reason for using the app
+enum UserPrimaryGoal: String, CaseIterable {
+  case panicAttacks = "panic_attacks"
+  case generalAnxiety = "general_anxiety"
+  case dailyStress = "daily_stress"
+  case exploring = "exploring"
+
+  var displayText: String {
+    switch self {
+    case .panicAttacks: return "I experience panic attacks"
+    case .generalAnxiety: return "I have general anxiety"
+    case .dailyStress: return "I want to manage daily stress"
+    case .exploring: return "Just exploring"
+    }
+  }
+
+  var emoji: String {
+    switch self {
+    case .panicAttacks: return "🚨"
+    case .generalAnxiety: return "😰"
+    case .dailyStress: return "😮‍💨"
+    case .exploring: return "🔍"
+    }
+  }
+}
+
+// Common trigger categories
+enum UserTrigger: String, CaseIterable {
+  case workSchool = "work_school"
+  case socialSituations = "social_situations"
+  case healthWorries = "health_worries"
+  case sleepDifficulties = "sleep_difficulties"
+  case generalOverwhelm = "general_overwhelm"
+
+  var displayText: String {
+    switch self {
+    case .workSchool: return "Work or school stress"
+    case .socialSituations: return "Social situations"
+    case .healthWorries: return "Health worries"
+    case .sleepDifficulties: return "Sleep difficulties"
+    case .generalOverwhelm: return "General overwhelm"
+    }
+  }
+
+  var emoji: String {
+    switch self {
+    case .workSchool: return "💼"
+    case .socialSituations: return "👥"
+    case .healthWorries: return "🏥"
+    case .sleepDifficulties: return "😴"
+    case .generalOverwhelm: return "🌊"
+    }
+  }
+}
+
+enum OnboardingPageType {
+  case welcome
+  case primaryGoal
+  case triggers
+  case howToUse
+  case preferences
+}
+
 struct OnboardingPage: Identifiable {
   let id = UUID()
+  let type: OnboardingPageType
   let title: String
   let body: String
   let bullets: [String]
-  let showsToggles: Bool
-  let showsWatchPrefs: Bool
 }
 
 struct OnboardingView: View {
@@ -15,63 +77,57 @@ struct OnboardingView: View {
   @AppStorage("prefSounds") var prefSounds = true
   @AppStorage("prefHaptics") var prefHaptics = true
   @AppStorage("prefVoice") var prefVoice = false
+  @AppStorage("userPrimaryGoal") var userPrimaryGoal: String = ""
+  @AppStorage("userTriggers") var userTriggers: String = ""  // Comma-separated
   // 0: Ask every time, 1: Continue, 2: Stop
   @AppStorage("watchEndBehavior") var watchEndBehavior = 1
 
   @State private var index = 0
-  private var watchSupported: Bool {
-    #if os(iOS)
-      return WCSession.isSupported()
-    #else
-      return false
-    #endif
-  }
+  @State private var selectedGoal: UserPrimaryGoal?
+  @State private var selectedTriggers: Set<UserTrigger> = []
+  @State private var showingCrisisResources = false
 
   private var pages: [OnboardingPage] {
     [
       .init(
+        type: .welcome,
         title: "Welcome to CalmMeNow",
-        body: "Tools to help you steady your body and mind when stress hits.",
+        body: "Tools to steady your body and mind when stress hits.",
         bullets: [
-          "Emergency Calm → for sudden panic (Always Free)",
-          "Emotion Tools → manage anxiety, anger, sadness, frustration (Always Free)",
-          "Guided breathing and soothing sounds (Premium Unlock)",
-        ],
-        showsToggles: false,
-        showsWatchPrefs: false
+          "Emergency Calm for sudden panic (Free)",
+          "Grounding & relaxation exercises (Free)",
+          "Personalized plans & insights (Premium)",
+        ]
       ),
       .init(
+        type: .primaryGoal,
+        title: "What brings you here?",
+        body: "This helps us personalize your experience.",
+        bullets: []
+      ),
+      .init(
+        type: .triggers,
+        title: "Any of these feel familiar?",
+        body: "Select all that apply, or skip if you're not sure.",
+        bullets: []
+      ),
+      .init(
+        type: .howToUse,
         title: "One minute to feel calmer",
         body: "Here's all you do:",
         bullets: [
-          "Tap the big orange Calm Me Now button whenever panic spikes — it's your instant relief button and it's free forever.",
-          "Choose how you feel → pick intensity",
-          "Follow \"Inhale • Hold • Exhale\" pacing",
-          "Add calming sounds or haptics if you like",
-        ],
-        showsToggles: false,
-        showsWatchPrefs: false
+          "Tap the big red button whenever panic spikes",
+          "Or choose a grounding exercise from the cards",
+          "Follow the guided breathing and prompts",
+        ]
       ),
       .init(
+        type: .preferences,
         title: "Make it yours",
-        body: "Pick your defaults. You can change them anytime in Settings.",
-        bullets: [],
-        showsToggles: true,
-        showsWatchPrefs: false
+        body: "Pick your defaults. Change them anytime in Settings.",
+        bullets: []
       ),
-      // Commented out for MVP launch without Apple Watch
-      // .init(
-      //   title: "Apple Watch companion",
-      //   body: "Start a calm session from your wrist with gentle haptics and the breathing cat.",
-      //   bullets: [
-      //     "Quick Calm Now button",
-      //     "Breath pacing with haptics",
-      //     "Choose what happens to iPhone audio when you end a session",
-      //   ],
-      //   showsToggles: false,
-      //   showsWatchPrefs: true
-      // ),
-    ].filter { !$0.showsWatchPrefs || watchSupported }
+    ]
   }
 
   var body: some View {
@@ -79,8 +135,8 @@ struct OnboardingView: View {
       // Background gradient
       LinearGradient(
         gradient: Gradient(colors: [
-          Color(hex: "#A0C4FF"),  // Teal
-          Color(hex: "#98D8C8"),  // Soft Mint
+          Color(hex: "#A0C4FF"),
+          Color(hex: "#98D8C8"),
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -96,20 +152,67 @@ struct OnboardingView: View {
           }
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
-        .padding(.bottom, 20)  // Add space above page dots
+        .padding(.bottom, 20)
 
-        Button(index == pages.count - 1 ? "Start Calming" : "Continue") {
-          if index < pages.count - 1 {
-            withAnimation { index += 1 }
-          } else {
-            done = true
+        // Navigation buttons
+        HStack(spacing: 16) {
+          // Skip button for optional pages
+          if pages[index].type == .triggers {
+            Button("Skip") {
+              withAnimation { index += 1 }
+            }
+            .foregroundColor(.black.opacity(0.6))
+            .padding(.horizontal, 20)
           }
+
+          Button(buttonText) {
+            handleContinue()
+          }
+          .buttonStyle(.borderedProminent)
+          .controlSize(.large)
+          .disabled(!canContinue)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
         .padding(.horizontal, 20)
-        .padding(.bottom, 40)  // Increase bottom padding
+        .padding(.bottom, 40)
       }
+    }
+    .sheet(isPresented: $showingCrisisResources) {
+      CrisisResourcesView()
+    }
+  }
+
+  private var buttonText: String {
+    if index == pages.count - 1 {
+      return "Start Calming"
+    } else if pages[index].type == .primaryGoal && selectedGoal == nil {
+      return "Select one to continue"
+    } else {
+      return "Continue"
+    }
+  }
+
+  private var canContinue: Bool {
+    let currentPage = pages[index]
+    switch currentPage.type {
+    case .primaryGoal:
+      return selectedGoal != nil
+    default:
+      return true
+    }
+  }
+
+  private func handleContinue() {
+    // Save data before moving to next page
+    if pages[index].type == .primaryGoal, let goal = selectedGoal {
+      userPrimaryGoal = goal.rawValue
+    } else if pages[index].type == .triggers {
+      userTriggers = selectedTriggers.map { $0.rawValue }.joined(separator: ",")
+    }
+
+    if index < pages.count - 1 {
+      withAnimation { index += 1 }
+    } else {
+      done = true
     }
   }
 
@@ -130,12 +233,13 @@ struct OnboardingView: View {
           .lineLimit(nil)
       }
 
+      // Standard bullet points
       if !page.bullets.isEmpty {
         VStack(alignment: .leading, spacing: 12) {
           ForEach(page.bullets, id: \.self) { bullet in
             HStack(alignment: .top, spacing: 12) {
               Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(Color(hex: "#FF6B9D"))  // Pink color for better visibility
+                .foregroundColor(Color(hex: "#FF6B9D"))
                 .font(.title3)
 
               Text(bullet)
@@ -148,55 +252,66 @@ struct OnboardingView: View {
         .padding(.top, 8)
       }
 
-      if page.showsToggles {
-        VStack(alignment: .leading, spacing: 16) {
-          Text("Choose a couple of calming defaults. You can tweak them anytime in Settings.")
-            .font(.subheadline)
-            .foregroundColor(.black.opacity(0.7))
-
-          VStack(alignment: .leading, spacing: 12) {
-            preferenceToggle(
-              title: "Soothing soundscapes",
-              subtitle: "Keeps gentle ambiance playing while you breathe.",
-              isOn: $prefSounds
-            )
-
-            preferenceToggle(
-              title: "Gentle haptic cues",
-              subtitle: "Light taps guide your inhale, hold, and exhale cadence.",
-              isOn: $prefHaptics
-            )
-
-            preferenceToggle(
-              title: "Soft voice coaching",
-              subtitle: "Hear calm prompts if you like being talked through each step.",
-              isOn: $prefVoice
-            )
+      // Primary Goal Selection
+      if page.type == .primaryGoal {
+        VStack(spacing: 12) {
+          ForEach(UserPrimaryGoal.allCases, id: \.self) { goal in
+            GoalOptionButton(
+              goal: goal,
+              isSelected: selectedGoal == goal
+            ) {
+              withAnimation(.easeInOut(duration: 0.2)) {
+                selectedGoal = goal
+              }
+            }
           }
         }
-        .padding(.top, 16)
-        .padding(.horizontal, 4)
+        .padding(.top, 8)
       }
 
-      if page.showsWatchPrefs {
-        VStack(alignment: .leading, spacing: 16) {
-          Text("When ending a Watch session")
-            .font(.headline)
-            .foregroundColor(.black)
-
-          Picker("", selection: $watchEndBehavior) {
-            Text("Continue audio").tag(1)
-            Text("Stop audio").tag(2)
-            Text("Ask every time").tag(0)
+      // Triggers Selection
+      if page.type == .triggers {
+        VStack(spacing: 12) {
+          ForEach(UserTrigger.allCases, id: \.self) { trigger in
+            TriggerOptionButton(
+              trigger: trigger,
+              isSelected: selectedTriggers.contains(trigger)
+            ) {
+              withAnimation(.easeInOut(duration: 0.2)) {
+                if selectedTriggers.contains(trigger) {
+                  selectedTriggers.remove(trigger)
+                } else {
+                  selectedTriggers.insert(trigger)
+                }
+              }
+            }
           }
-          .pickerStyle(.segmented)
-          .accentColor(Color(hex: "#FF6B9D"))  // Pink accent color
-
-          Text("You can change this later in Settings.")
-            .font(.footnote)
-            .foregroundColor(.black.opacity(0.6))
         }
-        .padding(.top, 16)
+        .padding(.top, 8)
+      }
+
+      // Preferences Toggles
+      if page.type == .preferences {
+        VStack(alignment: .leading, spacing: 12) {
+          preferenceToggle(
+            title: "Soothing soundscapes",
+            subtitle: "Gentle ambiance while you breathe.",
+            isOn: $prefSounds
+          )
+
+          preferenceToggle(
+            title: "Gentle haptic cues",
+            subtitle: "Light taps guide your breathing cadence.",
+            isOn: $prefHaptics
+          )
+
+          preferenceToggle(
+            title: "Soft voice coaching",
+            subtitle: "Calm prompts to talk you through each step.",
+            isOn: $prefVoice
+          )
+        }
+        .padding(.top, 8)
       }
 
       Spacer()
@@ -208,24 +323,100 @@ struct OnboardingView: View {
           .foregroundColor(.black.opacity(0.6))
           .multilineTextAlignment(.center)
 
-        if index == 0 {
-          Button("Safety & Resources") {
-            // TODO: Add safety resources view
+        if page.type == .welcome {
+          Button("Safety & Crisis Resources") {
+            showingCrisisResources = true
           }
           .font(.footnote)
-          .foregroundColor(Color(hex: "#FF6B9D"))  // Pink color for better visibility
+          .foregroundColor(Color(hex: "#FF6B9D"))
         }
 
-        if index == 1 {
+        if page.type == .howToUse {
           Text("If you're ever in danger, call your local emergency services.")
             .font(.footnote)
             .foregroundColor(.black.opacity(0.6))
             .multilineTextAlignment(.center)
         }
       }
-      .padding(.bottom, 20)  // Add padding to prevent overlap with page dots
+      .padding(.bottom, 20)
     }
     .padding(.vertical, 20)
+  }
+}
+
+// MARK: - Goal Option Button
+struct GoalOptionButton: View {
+  let goal: UserPrimaryGoal
+  let isSelected: Bool
+  let action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      HStack(spacing: 16) {
+        Text(goal.emoji)
+          .font(.title2)
+
+        Text(goal.displayText)
+          .font(.body)
+          .fontWeight(isSelected ? .semibold : .regular)
+          .foregroundColor(.black)
+
+        Spacer()
+
+        if isSelected {
+          Image(systemName: "checkmark.circle.fill")
+            .foregroundColor(Color(hex: "#FF6B9D"))
+            .font(.title2)
+        }
+      }
+      .padding()
+      .background(
+        RoundedRectangle(cornerRadius: 16)
+          .fill(isSelected ? Color.white : Color.white.opacity(0.7))
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 16)
+          .stroke(isSelected ? Color(hex: "#FF6B9D") : Color.clear, lineWidth: 2)
+      )
+    }
+    .buttonStyle(PlainButtonStyle())
+  }
+}
+
+// MARK: - Trigger Option Button
+struct TriggerOptionButton: View {
+  let trigger: UserTrigger
+  let isSelected: Bool
+  let action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      HStack(spacing: 16) {
+        Text(trigger.emoji)
+          .font(.title2)
+
+        Text(trigger.displayText)
+          .font(.body)
+          .fontWeight(isSelected ? .semibold : .regular)
+          .foregroundColor(.black)
+
+        Spacer()
+
+        Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+          .foregroundColor(isSelected ? Color(hex: "#FF6B9D") : .black.opacity(0.3))
+          .font(.title2)
+      }
+      .padding()
+      .background(
+        RoundedRectangle(cornerRadius: 16)
+          .fill(isSelected ? Color.white : Color.white.opacity(0.7))
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 16)
+          .stroke(isSelected ? Color(hex: "#FF6B9D") : Color.clear, lineWidth: 2)
+      )
+    }
+    .buttonStyle(PlainButtonStyle())
   }
 }
 

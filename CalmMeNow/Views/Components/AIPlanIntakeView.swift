@@ -7,6 +7,7 @@ struct AIPlanIntakeView: View {
 
   @Environment(\.modelContext) private var modelContext
   @Query private var journalEntries: [JournalEntry]
+  @AppStorage("userTriggers") private var userTriggersFromOnboarding: String = ""
 
   // Form state
   @State private var selectedTriggers: Set<String> = []
@@ -355,7 +356,29 @@ struct AIPlanIntakeView: View {
     // Only analyze if user hasn't made any selections yet
     guard selectedTriggers.isEmpty && selectedSymptoms.isEmpty else { return }
 
-    // Get recent journal entries (last 30 days)
+    // First, check if user selected triggers during onboarding
+    if !userTriggersFromOnboarding.isEmpty {
+      let onboardingTriggers = userTriggersFromOnboarding.split(separator: ",").map { String($0) }
+      // Map onboarding trigger keys to our trigger list
+      let triggerMapping: [String: String] = [
+        "work_school": "Work meetings",
+        "social_situations": "Social situations",
+        "health_worries": "Health concerns",
+        "sleep_difficulties": "Being alone",  // Related
+        "general_overwhelm": "Uncertainty",
+      ]
+      for key in onboardingTriggers {
+        if let mappedTrigger = triggerMapping[key], triggers.contains(mappedTrigger) {
+          selectedTriggers.insert(mappedTrigger)
+        }
+      }
+      if !selectedTriggers.isEmpty {
+        journalInsightMessage =
+          "✨ We pre-selected triggers based on your onboarding answers."
+      }
+    }
+
+    // Then, also check journal entries for additional patterns
     let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
     let recentEntries = journalEntries.filter { $0.timestamp >= thirtyDaysAgo }
 
@@ -377,10 +400,15 @@ struct AIPlanIntakeView: View {
       }
     }
 
-    // If we found journal data, show a helpful message
-    if !selectedTriggers.isEmpty {
-      journalInsightMessage =
-        "✨ We found some patterns in your recent journal entries and pre-selected common triggers for you."
+    // Update message if we found journal data too
+    if !recentEntries.isEmpty && factorCounts.values.contains(where: { $0 > 0 }) {
+      if journalInsightMessage.isEmpty {
+        journalInsightMessage =
+          "✨ We found patterns in your journal entries and pre-selected common triggers."
+      } else {
+        journalInsightMessage =
+          "✨ We pre-selected triggers from your onboarding and journal patterns."
+      }
     }
   }
 
