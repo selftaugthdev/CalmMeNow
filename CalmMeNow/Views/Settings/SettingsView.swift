@@ -219,16 +219,16 @@ struct SettingsView: View {
                 )
               }
 
-              // Premium Features Section
-              SettingsSection(title: "Premium Features") {
+              // Premium Features Section (or just Features in free launch mode)
+              SettingsSection(title: PaywallManager.freeLaunchMode ? "Features" : "Premium Features") {
                 VStack(spacing: 16) {
-                  // Premium Feature Row
+                  // Feature Row
                   SettingsFeatureRow(
                     icon: "infinity",
                     iconColor: .orange,
                     title: "Unlimited AI Sessions",
                     description: "Generate unlimited personalized calming plans",
-                    isPremium: true
+                    isPremium: !PaywallManager.freeLaunchMode
                   )
 
                   Divider()
@@ -240,7 +240,7 @@ struct SettingsView: View {
                     title: "Advanced Personalization",
                     description:
                       "Personalized features learn from your preferences and mood patterns",
-                    isPremium: true
+                    isPremium: !PaywallManager.freeLaunchMode
                   )
 
                   Divider()
@@ -251,7 +251,7 @@ struct SettingsView: View {
                     iconColor: .yellow,
                     title: "Progress Tracking",
                     description: "Track your calming journey and mood improvements",
-                    isPremium: true
+                    isPremium: !PaywallManager.freeLaunchMode
                   )
 
                   Divider()
@@ -339,8 +339,8 @@ struct SettingsView: View {
                       .background(Color.black.opacity(0.1))
                   }
 
-                  // Upgrade Button - Only show if user is NOT subscribed
-                  if !revenueCatService.isSubscribed {
+                  // Upgrade Button - Only show if user is NOT subscribed and not in free launch mode
+                  if !revenueCatService.isSubscribed && !PaywallManager.freeLaunchMode {
                     SettingsActionRow(
                       icon: "crown.fill",
                       iconColor: .yellow,

@@ -7,16 +7,26 @@ import SwiftUI
 final class PaywallManager: ObservableObject {
   static let shared = PaywallManager()
 
+  // MARK: - Launch Configuration
+  /// Set to true to make all features free (no paywall)
+  /// TODO: Set back to false when ready to monetize
+  static let freeLaunchMode = true
+
   // MARK: - Published Properties
   @Published var shouldShowPaywall = false
   @Published var isCheckingAccess = false
-  @Published var hasAIAccess: Bool = false
+  @Published var hasAIAccess: Bool = PaywallManager.freeLaunchMode
 
   // MARK: - Private Properties
   private let revenueCatService = RevenueCatService.shared
   private let aiService = AiService.shared
 
   private init() {
+    // Skip paywall setup in free launch mode
+    guard !PaywallManager.freeLaunchMode else {
+      hasAIAccess = true
+      return
+    }
     // Listen for subscription changes
     setupSubscriptionListener()
   }
@@ -46,6 +56,11 @@ final class PaywallManager: ObservableObject {
   /// Check if user can access AI features
   /// Returns true if user has subscription, false if paywall should be shown
   func checkAIAccess() async -> Bool {
+    // Free launch mode - all features unlocked
+    if PaywallManager.freeLaunchMode {
+      return true
+    }
+
     await MainActor.run {
       isCheckingAccess = true
     }
@@ -80,6 +95,10 @@ final class PaywallManager: ObservableObject {
   /// Attempt to access AI feature
   /// Shows paywall if user doesn't have subscription
   func requestAIAccess() async -> Bool {
+    // Free launch mode - all features unlocked
+    if PaywallManager.freeLaunchMode {
+      return true
+    }
     return await checkAIAccess()
   }
 
@@ -97,6 +116,11 @@ final class PaywallManager: ObservableObject {
 
   /// Check access before calling AI features
   func withAIAccess<T>(_ operation: () async throws -> T) async throws -> T? {
+    // Free launch mode - always allow
+    if PaywallManager.freeLaunchMode {
+      return try await operation()
+    }
+
     let hasAccess = await checkAIAccess()
 
     if hasAccess {
@@ -109,6 +133,11 @@ final class PaywallManager: ObservableObject {
 
   /// Guard AI features with paywall - convenience method
   func guardAIOrPaywall(present: @escaping () -> Void, paywall: @escaping () -> Void) {
+    // Free launch mode - always present
+    if PaywallManager.freeLaunchMode {
+      present()
+      return
+    }
     revenueCatService.guardAIOrPaywall(present: present, paywall: paywall)
   }
 
