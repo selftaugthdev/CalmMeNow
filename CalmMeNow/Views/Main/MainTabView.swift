@@ -2,6 +2,9 @@ import SwiftData
 import SwiftUI
 
 struct MainTabView: View {
+  @EnvironmentObject var deepLinkManager: DeepLinkManager
+  @State private var showingEmergencyCalm = false
+
   var body: some View {
     TabView {
       // Home Tab
@@ -27,6 +30,15 @@ struct MainTabView: View {
     }
     .accentColor(Color(hex: "#A0C4FF"))
     .preferredColorScheme(.light)  // Force light mode for tab bar
+    .fullScreenCover(isPresented: $showingEmergencyCalm) {
+      EmergencyCalmView()
+    }
+    .onReceive(deepLinkManager.$shouldShowEmergencyCalm) { shouldShow in
+      if shouldShow {
+        showingEmergencyCalm = true
+        deepLinkManager.resetEmergencyCalm()
+      }
+    }
   }
 }
 

@@ -23,16 +23,49 @@ final class Billing {
 struct CalmMeNowApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
   @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+  @StateObject private var deepLinkManager = DeepLinkManager.shared
 
   var body: some Scene {
     WindowGroup {
-      if hasCompletedOnboarding {
-        MainTabView()
-      } else {
-        OnboardingView()
+      Group {
+        if hasCompletedOnboarding {
+          MainTabView()
+            .environmentObject(deepLinkManager)
+        } else {
+          OnboardingView()
+        }
+      }
+      .onOpenURL { url in
+        deepLinkManager.handleDeepLink(url)
       }
     }
     .modelContainer(for: [JournalEntry.self])
+  }
+}
+
+// MARK: - Deep Link Manager
+/// Handles deep links from widgets and other sources
+class DeepLinkManager: ObservableObject {
+  static let shared = DeepLinkManager()
+
+  @Published var shouldShowEmergencyCalm = false
+
+  func handleDeepLink(_ url: URL) {
+    guard url.scheme == "calmmenow" else { return }
+
+    switch url.host {
+    case "emergency":
+      // Trigger emergency calm view
+      DispatchQueue.main.async {
+        self.shouldShowEmergencyCalm = true
+      }
+    default:
+      break
+    }
+  }
+
+  func resetEmergencyCalm() {
+    shouldShowEmergencyCalm = false
   }
 }
 
