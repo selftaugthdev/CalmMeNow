@@ -220,7 +220,7 @@ struct SettingsView: View {
               }
 
               // Premium Features Section (or just Features in free launch mode)
-              SettingsSection(title: PaywallManager.freeLaunchMode ? "Features" : "Premium Features") {
+              SettingsSection(title: PaywallManager.hasFreeAccess ? "Features" : "Premium Features") {
                 VStack(spacing: 16) {
                   // Feature Row
                   SettingsFeatureRow(
@@ -228,7 +228,7 @@ struct SettingsView: View {
                     iconColor: .orange,
                     title: "Unlimited AI Sessions",
                     description: "Generate unlimited personalized calming plans",
-                    isPremium: !PaywallManager.freeLaunchMode
+                    isPremium: !PaywallManager.hasFreeAccess
                   )
 
                   Divider()
@@ -240,7 +240,7 @@ struct SettingsView: View {
                     title: "Advanced Personalization",
                     description:
                       "Personalized features learn from your preferences and mood patterns",
-                    isPremium: !PaywallManager.freeLaunchMode
+                    isPremium: !PaywallManager.hasFreeAccess
                   )
 
                   Divider()
@@ -251,7 +251,7 @@ struct SettingsView: View {
                     iconColor: .yellow,
                     title: "Progress Tracking",
                     description: "Track your calming journey and mood improvements",
-                    isPremium: !PaywallManager.freeLaunchMode
+                    isPremium: !PaywallManager.hasFreeAccess
                   )
 
                   Divider()
@@ -340,7 +340,7 @@ struct SettingsView: View {
                   }
 
                   // Upgrade Button - Only show if user is NOT subscribed and not in free launch mode
-                  if !revenueCatService.isSubscribed && !PaywallManager.freeLaunchMode {
+                  if !revenueCatService.isSubscribed && !PaywallManager.hasFreeAccess {
                     SettingsActionRow(
                       icon: "crown.fill",
                       iconColor: .yellow,

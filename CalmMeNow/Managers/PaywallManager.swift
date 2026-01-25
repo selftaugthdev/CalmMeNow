@@ -12,18 +12,42 @@ final class PaywallManager: ObservableObject {
   /// TODO: Set back to false when ready to monetize
   static let freeLaunchMode = true
 
+  /// Cutoff date for grandfathering early adopters (set this when you disable freeLaunchMode)
+  /// Users who installed before this date get permanent free access
+  /// Format: timeIntervalSince1970 (use Date().timeIntervalSince1970 to get current timestamp)
+  static let grandfatherCutoffDate: Double = 0  // 0 = not set yet, set when disabling free mode
+
+  /// Check if current user is grandfathered (installed during free period)
+  static var isGrandfatheredUser: Bool {
+    let installDate = UserDefaults.standard.double(forKey: "originalInstallDate")
+    // If no cutoff set, no one is grandfathered yet (still in free mode)
+    guard grandfatherCutoffDate > 0 else { return false }
+    // If install date is before cutoff, user is grandfathered
+    return installDate > 0 && installDate < grandfatherCutoffDate
+  }
+
+  /// User has free access if: free launch mode OR grandfathered OR subscribed
+  static var hasFreeAccess: Bool {
+    return freeLaunchMode || isGrandfatheredUser
+  }
+
   // MARK: - Published Properties
   @Published var shouldShowPaywall = false
   @Published var isCheckingAccess = false
-  @Published var hasAIAccess: Bool = PaywallManager.freeLaunchMode
+  @Published var hasAIAccess: Bool = PaywallManager.hasFreeAccess
 
   // MARK: - Private Properties
   private let revenueCatService = RevenueCatService.shared
   private let aiService = AiService.shared
 
   private init() {
-    // Skip paywall setup in free launch mode
-    guard !PaywallManager.freeLaunchMode else {
+    // Record install date on first launch (for grandfathering)
+    if UserDefaults.standard.double(forKey: "originalInstallDate") == 0 {
+      UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "originalInstallDate")
+    }
+
+    // Skip paywall setup if user has free access (free mode or grandfathered)
+    guard !PaywallManager.hasFreeAccess else {
       hasAIAccess = true
       return
     }
@@ -56,8 +80,8 @@ final class PaywallManager: ObservableObject {
   /// Check if user can access AI features
   /// Returns true if user has subscription, false if paywall should be shown
   func checkAIAccess() async -> Bool {
-    // Free launch mode - all features unlocked
-    if PaywallManager.freeLaunchMode {
+    // Free access (free launch mode or grandfathered user)
+    if PaywallManager.hasFreeAccess {
       return true
     }
 
@@ -95,8 +119,8 @@ final class PaywallManager: ObservableObject {
   /// Attempt to access AI feature
   /// Shows paywall if user doesn't have subscription
   func requestAIAccess() async -> Bool {
-    // Free launch mode - all features unlocked
-    if PaywallManager.freeLaunchMode {
+    // Free access (free launch mode or grandfathered user)
+    if PaywallManager.hasFreeAccess {
       return true
     }
     return await checkAIAccess()
@@ -116,8 +140,8 @@ final class PaywallManager: ObservableObject {
 
   /// Check access before calling AI features
   func withAIAccess<T>(_ operation: () async throws -> T) async throws -> T? {
-    // Free launch mode - always allow
-    if PaywallManager.freeLaunchMode {
+    // Free access (free launch mode or grandfathered user)
+    if PaywallManager.hasFreeAccess {
       return try await operation()
     }
 
@@ -133,8 +157,8 @@ final class PaywallManager: ObservableObject {
 
   /// Guard AI features with paywall - convenience method
   func guardAIOrPaywall(present: @escaping () -> Void, paywall: @escaping () -> Void) {
-    // Free launch mode - always present
-    if PaywallManager.freeLaunchMode {
+    // Free access (free launch mode or grandfathered user)
+    if PaywallManager.hasFreeAccess {
       present()
       return
     }
