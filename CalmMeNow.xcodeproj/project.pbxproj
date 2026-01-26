@@ -10,6 +10,9 @@
 		31C3D1EA2E6A14E500125405 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 31C3D1E92E6A14E500125405 /* RevenueCat */; };
 		31C3D1EC2E6A14E500125405 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 31C3D1EB2E6A14E500125405 /* RevenueCatUI */; };
 		E423FD772E6C4A4B00962AE9 /* StoreKitConfiguration1.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E423FD762E6C4A4B00962AE9 /* StoreKitConfiguration1.storekit */; };
+		E46E82D42F26442E00C7F540 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E46E82D32F26442E00C7F540 /* WidgetKit.framework */; };
+		E46E82D62F26442E00C7F540 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E46E82D52F26442E00C7F540 /* SwiftUI.framework */; };
+		E46E82E12F26443000C7F540 /* CalmMeNowWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E46E82D22F26442E00C7F540 /* CalmMeNowWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E476FB662E6AC8A40030EDE7 /* PaywallKit in Frameworks */ = {isa = PBXBuildFile; productRef = E476FB652E6AC8A40030EDE7 /* PaywallKit */; };
 		E495B4632E68301400BBA349 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = E495B4622E68301400BBA349 /* FirebaseAppCheck */; };
 		E495B4652E68301400BBA349 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = E495B4642E68301400BBA349 /* FirebaseAuth */; };
@@ -21,6 +24,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		E46E82DF2F26443000C7F540 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E4DB97A72DDBAD3C0084C498 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E46E82D12F26442E00C7F540;
+			remoteInfo = CalmMeNowWidgetExtension;
+		};
 		E4DB97BD2DDBAD3E0084C498 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E4DB97A72DDBAD3C0084C498 /* Project object */;
@@ -48,12 +58,26 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E46E82E22F26443000C7F540 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E46E82E12F26443000C7F540 /* CalmMeNowWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		E4057D232E5C7E4A0013E917 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS11.5.sdk/System/Library/Frameworks/WatchConnectivity.framework; sourceTree = DEVELOPER_DIR; };
 		E4057D252E5C7E740013E917 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 		E423FD762E6C4A4B00962AE9 /* StoreKitConfiguration1.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreKitConfiguration1.storekit; sourceTree = "<group>"; };
+		E46E82D22F26442E00C7F540 /* CalmMeNowWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CalmMeNowWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E46E82D32F26442E00C7F540 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		E46E82D52F26442E00C7F540 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		E4DB97AF2DDBAD3C0084C498 /* CalmMeNow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CalmMeNow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4DB97BC2DDBAD3E0084C498 /* CalmMeNowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalmMeNowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4DB97C62DDBAD3E0084C498 /* CalmMeNowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalmMeNowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -61,9 +85,17 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E46E82E62F26443100C7F540 /* Exceptions for "CalmMeNowWidget" folder in "CalmMeNowWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E46E82D12F26442E00C7F540 /* CalmMeNowWidgetExtension */;
+		};
 		E4DB97E22DDBAE870084C498 /* Exceptions for "CalmMeNow" folder in "CalmMeNow" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Info.plist,
 				Resources/CalmPrompts.json,
 			);
 			target = E4DB97AE2DDBAD3C0084C498 /* CalmMeNow */;
@@ -74,6 +106,14 @@
 		E4057CED2E5C6C0B0013E917 /* CalmMeNowWatch Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "CalmMeNowWatch Watch App";
+			sourceTree = "<group>";
+		};
+		E46E82D72F26442E00C7F540 /* CalmMeNowWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E46E82E62F26443100C7F540 /* Exceptions for "CalmMeNowWidget" folder in "CalmMeNowWidgetExtension" target */,
+			);
+			path = CalmMeNowWidget;
 			sourceTree = "<group>";
 		};
 		E4DB97B12DDBAD3C0084C498 /* CalmMeNow */ = {
@@ -97,6 +137,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		E46E82CF2F26442E00C7F540 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E46E82D62F26442E00C7F540 /* SwiftUI.framework in Frameworks */,
+				E46E82D42F26442E00C7F540 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E4DB97AC2DDBAD3C0084C498 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -135,6 +184,8 @@
 			children = (
 				E4057D252E5C7E740013E917 /* WatchConnectivity.framework */,
 				E4057D232E5C7E4A0013E917 /* WatchConnectivity.framework */,
+				E46E82D32F26442E00C7F540 /* WidgetKit.framework */,
+				E46E82D52F26442E00C7F540 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -148,6 +199,7 @@
 				E4DB97BF2DDBAD3E0084C498 /* CalmMeNowTests */,
 				E4DB97C92DDBAD3E0084C498 /* CalmMeNowUITests */,
 				E4057CED2E5C6C0B0013E917 /* CalmMeNowWatch Watch App */,
+				E46E82D72F26442E00C7F540 /* CalmMeNowWidget */,
 				E4057D222E5C7E4A0013E917 /* Frameworks */,
 				E4DB97B02DDBAD3C0084C498 /* Products */,
 			);
@@ -159,6 +211,7 @@
 				E4DB97AF2DDBAD3C0084C498 /* CalmMeNow.app */,
 				E4DB97BC2DDBAD3E0084C498 /* CalmMeNowTests.xctest */,
 				E4DB97C62DDBAD3E0084C498 /* CalmMeNowUITests.xctest */,
+				E46E82D22F26442E00C7F540 /* CalmMeNowWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -166,6 +219,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		E46E82D12F26442E00C7F540 /* CalmMeNowWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E46E82E52F26443000C7F540 /* Build configuration list for PBXNativeTarget "CalmMeNowWidgetExtension" */;
+			buildPhases = (
+				E46E82CE2F26442E00C7F540 /* Sources */,
+				E46E82CF2F26442E00C7F540 /* Frameworks */,
+				E46E82D02F26442E00C7F540 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E46E82D72F26442E00C7F540 /* CalmMeNowWidget */,
+			);
+			name = CalmMeNowWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = CalmMeNowWidgetExtension;
+			productReference = E46E82D22F26442E00C7F540 /* CalmMeNowWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		E4DB97AE2DDBAD3C0084C498 /* CalmMeNow */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E4DB97D02DDBAD3E0084C498 /* Build configuration list for PBXNativeTarget "CalmMeNow" */;
@@ -174,10 +249,12 @@
 				E4DB97AC2DDBAD3C0084C498 /* Frameworks */,
 				E4DB97AD2DDBAD3C0084C498 /* Resources */,
 				E4057CF72E5C6C0C0013E917 /* Embed Watch Content */,
+				E46E82E22F26443000C7F540 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E46E82E02F26443000C7F540 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				E4DB97B12DDBAD3C0084C498 /* CalmMeNow */,
@@ -251,9 +328,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1640;
+				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 1630;
 				TargetAttributes = {
+					E46E82D12F26442E00C7F540 = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					E4DB97AE2DDBAD3C0084C498 = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -290,11 +370,19 @@
 				E4DB97AE2DDBAD3C0084C498 /* CalmMeNow */,
 				E4DB97BB2DDBAD3E0084C498 /* CalmMeNowTests */,
 				E4DB97C52DDBAD3E0084C498 /* CalmMeNowUITests */,
+				E46E82D12F26442E00C7F540 /* CalmMeNowWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		E46E82D02F26442E00C7F540 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E4DB97AD2DDBAD3C0084C498 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -321,6 +409,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		E46E82CE2F26442E00C7F540 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E4DB97AB2DDBAD3C0084C498 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -345,6 +440,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		E46E82E02F26443000C7F540 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E46E82D12F26442E00C7F540 /* CalmMeNowWidgetExtension */;
+			targetProxy = E46E82DF2F26443000C7F540 /* PBXContainerItemProxy */;
+		};
 		E4DB97BE2DDBAD3E0084C498 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = E4DB97AE2DDBAD3C0084C498 /* CalmMeNow */;
@@ -358,6 +458,68 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		E46E82E32F26443000C7F540 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3KGZBP5SVJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CalmMeNowWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CalmMeNowWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thierrydb.CalmMeNow.CalmMeNowWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E46E82E42F26443000C7F540 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3KGZBP5SVJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CalmMeNowWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CalmMeNowWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thierrydb.CalmMeNow.CalmMeNowWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		E4DB97CE2DDBAD3E0084C498 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -483,10 +645,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 3KGZBP5SVJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CalmMeNow/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Relaxing Calm";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "CalmMeNow uses Face ID to securely protect your private journal entries and personal data.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -514,10 +677,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 3KGZBP5SVJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CalmMeNow/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Relaxing Calm";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "CalmMeNow uses Face ID to securely protect your private journal entries and personal data.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -610,6 +774,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		E46E82E52F26443000C7F540 /* Build configuration list for PBXNativeTarget "CalmMeNowWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E46E82E32F26443000C7F540 /* Debug */,
+				E46E82E42F26443000C7F540 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		E4DB97AA2DDBAD3C0084C498 /* Build configuration list for PBXProject "CalmMeNow" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
