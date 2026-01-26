@@ -3,6 +3,7 @@ import SwiftUI
 struct DailyCheckInView: View {
   @StateObject private var viewModel = AIServiceViewModel()
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
   @State private var mood: Int = 3
   @State private var selectedTags: [String] = []
@@ -26,141 +27,145 @@ struct DailyCheckInView: View {
   var body: some View {
     NavigationView {
       ScrollView {
-        VStack(spacing: 24) {
-          // Header
-          VStack(spacing: 8) {
-            Image(systemName: "heart.text.square")
-              .font(.system(size: 50))
-              .foregroundColor(.blue)
+        VStack {
+          VStack(spacing: 24) {
+            // Header
+            VStack(spacing: 8) {
+              Image(systemName: "heart.text.square")
+                .font(.system(size: 50))
+                .foregroundColor(.blue)
 
-            Text("Daily Check-in")
-              .font(.title2)
-              .fontWeight(.bold)
+              Text("Daily Check-in")
+                .font(.title2)
+                .fontWeight(.bold)
 
-            Text("How are you feeling today?")
-              .font(.subheadline)
-              .foregroundColor(.secondary)
-          }
-          .padding(.top)
+              Text("How are you feeling today?")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            }
+            .padding(.top)
 
-          // Mood Selection
-          VStack(alignment: .leading, spacing: 16) {
-            Text("Current Mood")
-              .font(.headline)
+            // Mood Selection
+            VStack(alignment: .leading, spacing: 16) {
+              Text("Current Mood")
+                .font(.headline)
 
-            HStack(spacing: 20) {
-              ForEach(1...5, id: \.self) { moodLevel in
-                VStack(spacing: 8) {
-                  Button(action: {
-                    mood = moodLevel
-                  }) {
-                    Image(systemName: moodLevel <= mood ? "heart.fill" : "heart")
-                      .font(.system(size: 30))
-                      .foregroundColor(moodLevel <= mood ? .red : .gray)
+              HStack(spacing: 20) {
+                ForEach(1...5, id: \.self) { moodLevel in
+                  VStack(spacing: 8) {
+                    Button(action: {
+                      mood = moodLevel
+                    }) {
+                      Image(systemName: moodLevel <= mood ? "heart.fill" : "heart")
+                        .font(.system(size: 30))
+                        .foregroundColor(moodLevel <= mood ? .red : .gray)
+                    }
+
+                    Text("\(moodLevel)")
+                      .font(.caption)
+                      .foregroundColor(.secondary)
                   }
-
-                  Text("\(moodLevel)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
                 }
               }
-            }
-            .frame(maxWidth: .infinity)
-
-            Text(moodDescriptions[mood] ?? "Neutral")
-              .font(.subheadline)
-              .foregroundColor(.blue)
               .frame(maxWidth: .infinity)
-          }
 
-          // Tags Selection
-          VStack(alignment: .leading, spacing: 16) {
-            Text("What's affecting you today?")
-              .font(.headline)
+              Text(moodDescriptions[mood] ?? "Neutral")
+                .font(.subheadline)
+                .foregroundColor(.blue)
+                .frame(maxWidth: .infinity)
+            }
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
-              ForEach(commonTags, id: \.self) { tag in
-                Button(action: {
-                  if selectedTags.contains(tag) {
-                    selectedTags.removeAll { $0 == tag }
-                  } else {
-                    selectedTags.append(tag)
+            // Tags Selection
+            VStack(alignment: .leading, spacing: 16) {
+              Text("What's affecting you today?")
+                .font(.headline)
+
+              LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+                ForEach(commonTags, id: \.self) { tag in
+                  Button(action: {
+                    if selectedTags.contains(tag) {
+                      selectedTags.removeAll { $0 == tag }
+                    } else {
+                      selectedTags.append(tag)
+                    }
+                  }) {
+                    Text(tag.replacingOccurrences(of: "-", with: " ").capitalized)
+                      .font(.caption)
+                      .padding(.horizontal, 8)
+                      .padding(.vertical, 6)
+                      .background(selectedTags.contains(tag) ? Color.blue : Color.gray.opacity(0.2))
+                      .foregroundColor(selectedTags.contains(tag) ? .white : .primary)
+                      .cornerRadius(16)
                   }
-                }) {
-                  Text(tag.replacingOccurrences(of: "-", with: " ").capitalized)
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .background(selectedTags.contains(tag) ? Color.blue : Color.gray.opacity(0.2))
-                    .foregroundColor(selectedTags.contains(tag) ? .white : .primary)
-                    .cornerRadius(16)
                 }
+              }
+
+              HStack {
+                TextField("Add custom tag", text: $newTag)
+                  .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                Button("Add") {
+                  if !newTag.isEmpty {
+                    let formattedTag = newTag.lowercased().replacingOccurrences(of: " ", with: "-")
+                    selectedTags.append(formattedTag)
+                    newTag = ""
+                  }
+                }
+                .disabled(newTag.isEmpty)
               }
             }
 
-            HStack {
-              TextField("Add custom tag", text: $newTag)
+            // Note Section
+            VStack(alignment: .leading, spacing: 12) {
+              Text("Additional Notes (Optional)")
+                .font(.headline)
+
+              TextField("How are you feeling? Any specific concerns?", text: $note, axis: .vertical)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .lineLimit(3...6)
+            }
 
-              Button("Add") {
-                if !newTag.isEmpty {
-                  let formattedTag = newTag.lowercased().replacingOccurrences(of: " ", with: "-")
-                  selectedTags.append(formattedTag)
-                  newTag = ""
+            // Submit Button
+            Button(action: {
+              Task {
+                await viewModel.submitDailyCheckIn(
+                  mood: mood,
+                  tags: selectedTags,
+                  note: note
+                )
+              }
+            }) {
+              HStack {
+                if viewModel.isLoading {
+                  ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(0.8)
+                } else {
+                  Image(systemName: "paperplane.fill")
                 }
-              }
-              .disabled(newTag.isEmpty)
-            }
-          }
 
-          // Note Section
-          VStack(alignment: .leading, spacing: 12) {
-            Text("Additional Notes (Optional)")
+                Text(viewModel.isLoading ? "Submitting..." : "Submit Check-in")
+              }
               .font(.headline)
-
-            TextField("How are you feeling? Any specific concerns?", text: $note, axis: .vertical)
-              .textFieldStyle(RoundedBorderTextFieldStyle())
-              .lineLimit(3...6)
-          }
-
-          // Submit Button
-          Button(action: {
-            Task {
-              await viewModel.submitDailyCheckIn(
-                mood: mood,
-                tags: selectedTags,
-                note: note
-              )
+              .foregroundColor(.white)
+              .frame(maxWidth: .infinity)
+              .padding()
+              .background(Color.blue)
+              .cornerRadius(12)
             }
-          }) {
-            HStack {
-              if viewModel.isLoading {
-                ProgressView()
-                  .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                  .scaleEffect(0.8)
-              } else {
-                Image(systemName: "paperplane.fill")
-              }
+            .disabled(viewModel.isLoading)
 
-              Text(viewModel.isLoading ? "Submitting..." : "Submit Check-in")
+            if let errorMessage = viewModel.errorMessage {
+              Text(errorMessage)
+                .foregroundColor(.red)
+                .font(.caption)
+                .multilineTextAlignment(.center)
             }
-            .font(.headline)
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.blue)
-            .cornerRadius(12)
-          }
-          .disabled(viewModel.isLoading)
-
-          if let errorMessage = viewModel.errorMessage {
-            Text(errorMessage)
-              .foregroundColor(.red)
-              .font(.caption)
-              .multilineTextAlignment(.center)
           }
         }
+        .frame(maxWidth: horizontalSizeClass == .regular ? 700 : 500)
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
       }
       .navigationTitle("Daily Check-in")
       .navigationBarTitleDisplayMode(.inline)
@@ -181,6 +186,7 @@ struct DailyCheckInView: View {
 struct CheckInResponseView: View {
   let checkIn: DailyCheckInResponse
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var activeExercise: Exercise?
   @State private var isLaunchingExercise = false
   @State private var selectedPath: CoachPath = .quickReset
@@ -227,226 +233,230 @@ struct CheckInResponseView: View {
   var body: some View {
     NavigationView {
       ScrollView {
-        VStack(spacing: 24) {
-          // Debug info
-          VStack {
-            Text("DEBUG: Coach Line: \(coachLine)")
-              .font(.caption)
-              .foregroundColor(.red)
-            Text("DEBUG: Quick Reset Steps: \(quickResetSteps.count)")
-              .font(.caption)
-              .foregroundColor(.red)
-            Text("DEBUG: Reframe Chips: \(reframeChips.count)")
-              .font(.caption)
-              .foregroundColor(.red)
-          }
-          .padding()
-          .background(Color.red.opacity(0.1))
-          .cornerRadius(8)
-
-          // Header
-          VStack(spacing: 16) {
-            Image(
-              systemName: checkIn.severity >= 2
-                ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
-            )
-            .font(.system(size: 60))
-            .foregroundColor(checkIn.severity >= 2 ? .orange : .green)
-
-            Text(checkIn.message)
-              .font(.title2)
-              .fontWeight(.bold)
-              .multilineTextAlignment(.center)
-
-            if checkIn.severity >= 2 {
-              Text("We're here to help you through this")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            }
-          }
-          .padding(.top)
-
-          // Coach Line (with fallback)
-          VStack(spacing: 12) {
-            Text(coachLine)
-              .font(.headline)
-              .foregroundColor(.primary)
-              .multilineTextAlignment(.center)
-              .padding()
-              .background(Color.blue.opacity(0.1))
-              .cornerRadius(12)
-
-            // Two Path Selection
-            HStack(spacing: 12) {
-              Button(action: {
-                selectedPath = .quickReset
-                showProcessItFlow = false
-              }) {
-                VStack(spacing: 4) {
-                  Image(systemName: "wind")
-                    .font(.title2)
-                  Text("Quick Reset")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                  Text("60-90s")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                }
-                .foregroundColor(selectedPath == .quickReset ? .white : .blue)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(selectedPath == .quickReset ? Color.blue : Color.blue.opacity(0.1))
-                .cornerRadius(12)
-              }
-
-              Button(action: {
-                selectedPath = .processIt
-                showProcessItFlow = true
-                currentProcessStep = 0
-              }) {
-                VStack(spacing: 4) {
-                  Image(systemName: "brain.head.profile")
-                    .font(.title2)
-                  Text("Process It")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                  Text("2-3 min")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                }
-                .foregroundColor(selectedPath == .processIt ? .white : .blue)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(selectedPath == .processIt ? Color.blue : Color.blue.opacity(0.1))
-                .cornerRadius(12)
-              }
-            }
-          }
-
-          // Quick Reset Flow
-          if selectedPath == .quickReset {
-            QuickResetView(steps: quickResetSteps, onStartExercise: startQuickResetExercise)
-          }
-
-          // Process It Flow
-          if selectedPath == .processIt && showProcessItFlow {
-            ProcessItFlowView(
-              steps: processItSteps,
-              reframeChips: reframeChips,
-              selectedReframe: $selectedReframe,
-              currentStep: $currentProcessStep
-            )
-          }
-
-          // Micro Insight (with fallback)
-          VStack(alignment: .leading, spacing: 8) {
-            HStack {
-              Image(systemName: "lightbulb.fill")
-                .foregroundColor(.yellow)
-              Text("Insight")
-                .font(.headline)
-              Spacer()
-            }
-
-            Text(
-              checkIn.microInsight
-                ?? "Taking time to check in with yourself is a powerful act of self-care."
-            )
-            .font(.body)
-            .foregroundColor(.secondary)
-          }
-          .padding()
-          .background(Color.yellow.opacity(0.1))
-          .cornerRadius(12)
-
-          // If-Then Plan (with fallback)
-          VStack(alignment: .leading, spacing: 8) {
-            HStack {
-              Image(systemName: "arrow.clockwise")
-                .foregroundColor(.green)
-              Text("Save as Plan")
-                .font(.headline)
-              Spacer()
-            }
-
-            Text(
-              checkIn.ifThenPlan
-                ?? "If I feel overwhelmed, then I'll do 3 rounds of breathing and choose one small action."
-            )
-            .font(.body)
-            .foregroundColor(.secondary)
-
-            Button("Save Plan") {
-              // TODO: Save to user's plans
-              let plan =
-                checkIn.ifThenPlan
-                ?? "If I feel overwhelmed, then I'll do 3 rounds of breathing and choose one small action."
-              print("Saving plan: \(plan)")
-            }
-            .font(.caption)
-            .foregroundColor(.green)
-            .padding(.top, 4)
-          }
-          .padding()
-          .background(Color.green.opacity(0.1))
-          .cornerRadius(12)
-
-          // Severity Indicator (for high severity cases)
-          if checkIn.severity >= 2 {
-            HStack {
-              Image(systemName: "gauge")
-                .foregroundColor(.orange)
-
-              Text(
-                "Current Level: \(checkIn.severity == 2 ? "Medium" : "High")"
-              )
-              .font(.subheadline)
-
-              Spacer()
+        VStack {
+          VStack(spacing: 24) {
+            // Debug info
+            VStack {
+              Text("DEBUG: Coach Line: \(coachLine)")
+                .font(.caption)
+                .foregroundColor(.red)
+              Text("DEBUG: Quick Reset Steps: \(quickResetSteps.count)")
+                .font(.caption)
+                .foregroundColor(.red)
+              Text("DEBUG: Reframe Chips: \(reframeChips.count)")
+                .font(.caption)
+                .foregroundColor(.red)
             }
             .padding()
-            .background(Color.orange.opacity(0.1))
-            .cornerRadius(12)
-          }
+            .background(Color.red.opacity(0.1))
+            .cornerRadius(8)
 
-          // Resources (for high severity)
-          if let resources = checkIn.resources, !resources.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-              Text("Helpful Resources")
-                .font(.headline)
+            // Header
+            VStack(spacing: 16) {
+              Image(
+                systemName: checkIn.severity >= 2
+                  ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
+              )
+              .font(.system(size: 60))
+              .foregroundColor(checkIn.severity >= 2 ? .orange : .green)
 
-              ForEach(resources, id: \.self) { resource in
-                HStack {
-                  Image(systemName: "link")
-                    .foregroundColor(.blue)
+              Text(checkIn.message)
+                .font(.title2)
+                .fontWeight(.bold)
+                .multilineTextAlignment(.center)
 
-                  Text(resource)
-                    .font(.body)
-
-                  Spacer()
-                }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
+              if checkIn.severity >= 2 {
+                Text("We're here to help you through this")
+                  .font(.subheadline)
+                  .foregroundColor(.secondary)
+                  .multilineTextAlignment(.center)
               }
             }
-          }
+            .padding(.top)
 
-          // Continue Button
-          Button(action: {
-            dismiss()
-          }) {
-            Text("Continue")
-              .font(.headline)
-              .foregroundColor(.blue)
-              .frame(maxWidth: .infinity)
+            // Coach Line (with fallback)
+            VStack(spacing: 12) {
+              Text(coachLine)
+                .font(.headline)
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.center)
+                .padding()
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(12)
+
+              // Two Path Selection
+              HStack(spacing: 12) {
+                Button(action: {
+                  selectedPath = .quickReset
+                  showProcessItFlow = false
+                }) {
+                  VStack(spacing: 4) {
+                    Image(systemName: "wind")
+                      .font(.title2)
+                    Text("Quick Reset")
+                      .font(.caption)
+                      .fontWeight(.medium)
+                    Text("60-90s")
+                      .font(.caption2)
+                      .foregroundColor(.secondary)
+                  }
+                  .foregroundColor(selectedPath == .quickReset ? .white : .blue)
+                  .frame(maxWidth: .infinity)
+                  .padding()
+                  .background(selectedPath == .quickReset ? Color.blue : Color.blue.opacity(0.1))
+                  .cornerRadius(12)
+                }
+
+                Button(action: {
+                  selectedPath = .processIt
+                  showProcessItFlow = true
+                  currentProcessStep = 0
+                }) {
+                  VStack(spacing: 4) {
+                    Image(systemName: "brain.head.profile")
+                      .font(.title2)
+                    Text("Process It")
+                      .font(.caption)
+                      .fontWeight(.medium)
+                    Text("2-3 min")
+                      .font(.caption2)
+                      .foregroundColor(.secondary)
+                  }
+                  .foregroundColor(selectedPath == .processIt ? .white : .blue)
+                  .frame(maxWidth: .infinity)
+                  .padding()
+                  .background(selectedPath == .processIt ? Color.blue : Color.blue.opacity(0.1))
+                  .cornerRadius(12)
+                }
+              }
+            }
+
+            // Quick Reset Flow
+            if selectedPath == .quickReset {
+              QuickResetView(steps: quickResetSteps, onStartExercise: startQuickResetExercise)
+            }
+
+            // Process It Flow
+            if selectedPath == .processIt && showProcessItFlow {
+              ProcessItFlowView(
+                steps: processItSteps,
+                reframeChips: reframeChips,
+                selectedReframe: $selectedReframe,
+                currentStep: $currentProcessStep
+              )
+            }
+
+            // Micro Insight (with fallback)
+            VStack(alignment: .leading, spacing: 8) {
+              HStack {
+                Image(systemName: "lightbulb.fill")
+                  .foregroundColor(.yellow)
+                Text("Insight")
+                  .font(.headline)
+                Spacer()
+              }
+
+              Text(
+                checkIn.microInsight
+                  ?? "Taking time to check in with yourself is a powerful act of self-care."
+              )
+              .font(.body)
+              .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color.yellow.opacity(0.1))
+            .cornerRadius(12)
+
+            // If-Then Plan (with fallback)
+            VStack(alignment: .leading, spacing: 8) {
+              HStack {
+                Image(systemName: "arrow.clockwise")
+                  .foregroundColor(.green)
+                Text("Save as Plan")
+                  .font(.headline)
+                Spacer()
+              }
+
+              Text(
+                checkIn.ifThenPlan
+                  ?? "If I feel overwhelmed, then I'll do 3 rounds of breathing and choose one small action."
+              )
+              .font(.body)
+              .foregroundColor(.secondary)
+
+              Button("Save Plan") {
+                // TODO: Save to user's plans
+                let plan =
+                  checkIn.ifThenPlan
+                  ?? "If I feel overwhelmed, then I'll do 3 rounds of breathing and choose one small action."
+                print("Saving plan: \(plan)")
+              }
+              .font(.caption)
+              .foregroundColor(.green)
+              .padding(.top, 4)
+            }
+            .padding()
+            .background(Color.green.opacity(0.1))
+            .cornerRadius(12)
+
+            // Severity Indicator (for high severity cases)
+            if checkIn.severity >= 2 {
+              HStack {
+                Image(systemName: "gauge")
+                  .foregroundColor(.orange)
+
+                Text(
+                  "Current Level: \(checkIn.severity == 2 ? "Medium" : "High")"
+                )
+                .font(.subheadline)
+
+                Spacer()
+              }
               .padding()
-              .background(Color.blue.opacity(0.1))
+              .background(Color.orange.opacity(0.1))
               .cornerRadius(12)
+            }
+
+            // Resources (for high severity)
+            if let resources = checkIn.resources, !resources.isEmpty {
+              VStack(alignment: .leading, spacing: 12) {
+                Text("Helpful Resources")
+                  .font(.headline)
+
+                ForEach(resources, id: \.self) { resource in
+                  HStack {
+                    Image(systemName: "link")
+                      .foregroundColor(.blue)
+
+                    Text(resource)
+                      .font(.body)
+
+                    Spacer()
+                  }
+                  .padding()
+                  .background(Color.gray.opacity(0.1))
+                  .cornerRadius(12)
+                }
+              }
+            }
+
+            // Continue Button
+            Button(action: {
+              dismiss()
+            }) {
+              Text("Continue")
+                .font(.headline)
+                .foregroundColor(.blue)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(12)
+            }
           }
         }
+        .frame(maxWidth: horizontalSizeClass == .regular ? 700 : 500)
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
       }
       .navigationTitle("Coach Response")
       .navigationBarTitleDisplayMode(.inline)

@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
   @AppStorage("hasShownFirstLaunchOverlay") private var hasShownFirstLaunchOverlay = false
   @State private var showFirstLaunchOverlay = false
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
@@ -141,7 +142,7 @@ struct ContentView: View {
                 .foregroundColor(.black)
                 .multilineTextAlignment(.center)
             }
-            .padding(.horizontal, 30)
+            .padding(.horizontal, horizontalSizeClass == .regular ? 60 : 30)
             .padding(.top, 60)  // Add top padding to avoid Dynamic Island
             .padding(.bottom, 50)  // Breathing room after emergency button
 
@@ -365,12 +366,12 @@ struct ContentView: View {
                 }
               )
             }
-            .padding(.horizontal, 40)  // Increased horizontal padding for breathing room
+            .padding(.horizontal, horizontalSizeClass == .regular ? 80 : 40)  // Adaptive horizontal padding
             .padding(.bottom, 40)  // Breathing room before achievement card
 
             // Streak tracking and gamification
             StreakCardView(progressTracker: progressTracker)
-              .padding(.horizontal, 40)
+              .padding(.horizontal, horizontalSizeClass == .regular ? 80 : 40)
               .padding(.bottom, 60)  // Add bottom padding for scroll space
               .onLongPressGesture(minimumDuration: 3) {
                 // Debug: Reset streak data on long press
@@ -398,7 +399,9 @@ struct ContentView: View {
         }, alignment: .top
       )
       .navigationBarHidden(true)
-      .sheet(isPresented: $showingIntensitySelection) {
+    }
+    .navigationViewStyle(.stack)  // Force single-column layout on iPad
+    .sheet(isPresented: $showingIntensitySelection) {
         IntensitySelectionView(
           emotion: selectedEmotion,
           emoji: selectedEmoji,
@@ -453,8 +456,6 @@ struct ContentView: View {
           AIDebugView()
         }
       #endif
-
-    }
     .sheet(isPresented: $showingPaywall) {
       PaywallKitView()
     }

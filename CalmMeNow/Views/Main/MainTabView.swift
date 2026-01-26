@@ -202,6 +202,7 @@ struct JournalListView: View {
       }
       .navigationBarHidden(true)
     }
+    .navigationViewStyle(.stack)  // Force single-column layout on iPad
     .sheet(isPresented: $showingNewEntry) {
       NewJournalEntryView(
         onSave: { content, factors in

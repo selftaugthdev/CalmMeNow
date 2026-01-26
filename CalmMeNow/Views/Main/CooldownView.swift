@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CooldownView: View {
   let model: CooldownModel
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @StateObject private var audioManager = AudioManager.shared
   @StateObject private var progressTracker = ProgressTracker.shared
   @AppStorage("prefSounds") private var prefSounds = true
@@ -20,84 +21,89 @@ struct CooldownView: View {
         endPoint: .bottom
       )
       .ignoresSafeArea()
-
+      
       VStack {
-        Spacer()
+        VStack {
+          Spacer()
 
-        // Animation container
-        ZStack {
-          // Outer circle
-          Circle()
-            .stroke(Color.white.opacity(0.3), lineWidth: 2)
-            .frame(width: 300, height: 300)
+          // Animation container
+          ZStack {
+            // Outer circle
+            Circle()
+              .stroke(Color.white.opacity(0.3), lineWidth: 2)
+              .frame(width: 300, height: 300)
 
-          // Animation content
-          Group {
-            switch model.animationType {
-            case .breathing:
-              breathingAnimation
-            case .vibrating:
-              vibratingAnimation
-            case .pulsing:
-              pulsingAnimation
-            case .hugging:
-              huggingAnimation
+            // Animation content
+            Group {
+              switch model.animationType {
+              case .breathing:
+                breathingAnimation
+              case .vibrating:
+                vibratingAnimation
+              case .pulsing:
+                pulsingAnimation
+              case .hugging:
+                huggingAnimation
+              }
             }
           }
-        }
-        .onAppear {
-          isAnimating = true
-          if model.animationType == .vibrating {
-            startCalmingAnimation()
+          .onAppear {
+            isAnimating = true
+            if model.animationType == .vibrating {
+              startCalmingAnimation()
+            }
           }
-        }
 
-        // Calming text
-        if let text = model.optionalText {
-          Text(text)
-            .font(.title3)
-            .multilineTextAlignment(.center)
-            .foregroundColor(.black)
-            .padding(.horizontal, 40)
-            .padding(.top, 100)
-            .padding(.bottom, 20)
-            .fixedSize(horizontal: false, vertical: true)
-        }
+          // Calming text
+          if let text = model.optionalText {
+            Text(text)
+              .font(.title3)
+              .multilineTextAlignment(.center)
+              .foregroundColor(.black)
+              .padding(.horizontal, 40)
+              .padding(.top, 100)
+              .padding(.bottom, 20)
+              .fixedSize(horizontal: false, vertical: true)
+          }
 
-        Text(
-          prefSounds
-            ? "Click the button below for a soothing sound" : "Sounds are disabled in settings"
-        )
-        .font(.body)
-        .foregroundColor(.black.opacity(0.9))
-        .padding(.bottom, 40)
+          Text(
+            prefSounds
+              ? "Click the button below for a soothing sound" : "Sounds are disabled in settings"
+          )
+          .font(.body)
+          .foregroundColor(.black.opacity(0.9))
+          .padding(.bottom, 40)
 
-        if audioManager.isPlaying {
-          Text(timeString(from: audioManager.remainingTime))
-            .font(.title)
-            .foregroundColor(.black)
-            .padding(.bottom, 20)
-        }
-
-        Button(action: {
-          HapticManager.shared.audioControl()
           if audioManager.isPlaying {
-            audioManager.stopSound()
-          } else if prefSounds {
-            audioManager.playSound(model.soundFileName)
-            progressTracker.recordUsage()
+            Text(timeString(from: audioManager.remainingTime))
+              .font(.title)
+              .foregroundColor(.black)
+              .padding(.bottom, 20)
           }
-        }) {
-          Text(audioManager.isPlaying ? "⏹ Stop" : "▶️ Start")
-            .font(.title)
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
-            .foregroundColor(.white)
-            .cornerRadius(16)
+
+          Button(action: {
+            HapticManager.shared.audioControl()
+            if audioManager.isPlaying {
+              audioManager.stopSound()
+            } else if prefSounds {
+              audioManager.playSound(model.soundFileName)
+              progressTracker.recordUsage()
+            }
+          }) {
+            Text(audioManager.isPlaying ? "⏹ Stop" : "▶️ Start")
+              .font(.title)
+              .padding()
+              .frame(maxWidth: .infinity)
+              .background(audioManager.isPlaying ? Color.red.opacity(0.8) : Color.blue.opacity(0.8))
+              .foregroundColor(.white)
+              .cornerRadius(16)
+          }
+          .padding(.horizontal, 40)
+          .padding(.bottom, 40)
         }
-        .padding(.horizontal, 40)
-        .padding(.bottom, 40)
+        .frame(maxWidth: horizontalSizeClass == .regular ? 700 : 500)
+        .padding(.vertical)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
       }
     }
     .navigationBarTitleDisplayMode(.inline)
@@ -218,3 +224,4 @@ struct CooldownView: View {
     return String(format: "%02d:%02d", minutes, seconds)
   }
 }
+

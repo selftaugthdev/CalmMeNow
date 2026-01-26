@@ -46,6 +46,7 @@ enum SleepRoutinePhase: CaseIterable {
 
 struct SleepRoutineView: View {
   @Environment(\.presentationMode) var presentationMode
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @StateObject private var speechService = SpeechService()
   @StateObject private var paywallManager = PaywallManager.shared
   @AppStorage("prefVoice") private var voiceGuidanceEnabled = true
@@ -82,39 +83,44 @@ struct SleepRoutineView: View {
       // Stars effect
       StarsView()
 
-      VStack(spacing: 0) {
-        // Header
-        HStack {
-          Button(action: {
-            cleanup()
-            presentationMode.wrappedValue.dismiss()
-          }) {
-            Image(systemName: "xmark.circle.fill")
-              .font(.title2)
+      VStack {
+        VStack(spacing: 0) {
+          // Header
+          HStack {
+            Button(action: {
+              cleanup()
+              presentationMode.wrappedValue.dismiss()
+            }) {
+              Image(systemName: "xmark.circle.fill")
+                .font(.title2)
+                .foregroundColor(.white.opacity(0.6))
+            }
+
+            Spacer()
+
+            Text("Sleep Routine")
+              .font(.headline)
+              .foregroundColor(.white.opacity(0.8))
+
+            Spacer()
+
+            // Timer
+            Text(formatTime(phaseTimeRemaining))
+              .font(.headline)
               .foregroundColor(.white.opacity(0.6))
+              .frame(width: 60)
           }
+          .padding()
 
-          Spacer()
-
-          Text("Sleep Routine")
-            .font(.headline)
-            .foregroundColor(.white.opacity(0.8))
-
-          Spacer()
-
-          // Timer
-          Text(formatTime(phaseTimeRemaining))
-            .font(.headline)
-            .foregroundColor(.white.opacity(0.6))
-            .frame(width: 60)
+          if showCompletion {
+            completionView
+          } else {
+            routineContent
+          }
         }
-        .padding()
-
-        if showCompletion {
-          completionView
-        } else {
-          routineContent
-        }
+        .frame(maxWidth: horizontalSizeClass == .regular ? 700 : 500)
+        .padding(.vertical)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
       }
     }
     .onAppear {
