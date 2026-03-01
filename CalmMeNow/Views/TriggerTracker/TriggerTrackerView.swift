@@ -4,6 +4,7 @@ import SwiftUI
 struct TriggerTrackerView: View {
   @Environment(\.dismiss) private var dismiss
   @Query(sort: \TriggerEpisode.timestamp, order: .reverse) private var episodes: [TriggerEpisode]
+  @State private var showingReport = false
 
   var body: some View {
     ZStack {
@@ -30,6 +31,9 @@ struct TriggerTrackerView: View {
         }
       }
     }
+    .sheet(isPresented: $showingReport) {
+      PDFReportView()
+    }
   }
 
   // MARK: - Header
@@ -45,12 +49,21 @@ struct TriggerTrackerView: View {
           .foregroundColor(.white.opacity(0.6))
       }
       Spacer()
-      Button(action: { dismiss() }) {
-        Image(systemName: "xmark")
-          .font(.system(size: 14, weight: .semibold))
-          .foregroundColor(.white.opacity(0.7))
-          .padding(10)
-          .background(Circle().fill(Color.white.opacity(0.15)))
+      HStack(spacing: 10) {
+        Button(action: { showingReport = true }) {
+          Image(systemName: "square.and.arrow.up")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundColor(.white.opacity(0.7))
+            .padding(10)
+            .background(Circle().fill(Color.white.opacity(0.15)))
+        }
+        Button(action: { dismiss() }) {
+          Image(systemName: "xmark")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundColor(.white.opacity(0.7))
+            .padding(10)
+            .background(Circle().fill(Color.white.opacity(0.15)))
+        }
       }
     }
     .padding(.top, 56)
