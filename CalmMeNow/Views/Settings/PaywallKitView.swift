@@ -12,7 +12,7 @@ struct PaywallKitView: View {
     subtitle: "Tools that genuinely help you understand and manage your anxiety",
     yearlyBadgeText: "SAVE 90%",
     weeklyTrialLabel: "7-Day Free Trial",
-    weeklyNoTrialLabel: "Monthly Plan",
+    weeklyNoTrialLabel: "Weekly Plan",
     trialToggleDefault: true,
     termsURL: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"),
     privacyURL: URL(

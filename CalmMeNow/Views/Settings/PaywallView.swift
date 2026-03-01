@@ -6,6 +6,7 @@ struct PaywallView: View {
   @StateObject private var revenueCatService = RevenueCatService.shared
   @State private var showingError = false
   @State private var errorMessage = ""
+  @State private var selectedPackageID: String = ""
 
   var body: some View {
     NavigationStack {
@@ -45,6 +46,13 @@ struct PaywallView: View {
       }
       .onAppear {
         revenueCatService.fetchPackages()
+      }
+      .onChange(of: revenueCatService.currentOffering) { offering in
+        guard selectedPackageID.isEmpty else { return }
+        // Default to monthly when offering loads
+        if let id = offering?.monthly?.identifier {
+          selectedPackageID = id
+        }
       }
     }
   }
@@ -116,28 +124,36 @@ struct PaywallView: View {
   }
 
   private var pricingSection: some View {
-    VStack(spacing: 16) {
-      if let monthlyPackage = revenueCatService.currentOffering?.monthly {
-        VStack(spacing: 8) {
-          Text(monthlyPackage.storeProduct.localizedPriceString)
-            .font(.title)
-            .fontWeight(.bold)
-            .foregroundColor(Color(.label))
-
-          if let trialPeriod = monthlyPackage.storeProduct.introductoryDiscount {
-            Text("7-Day Free Trial")
-              .font(.subheadline)
-              .foregroundColor(.green)
-              .fontWeight(.semibold)
-          }
+    VStack(spacing: 12) {
+      if let offering = revenueCatService.currentOffering {
+        if let pkg = offering.weekly {
+          PricingOptionRow(
+            package: pkg,
+            label: "Weekly",
+            badge: nil,
+            isSelected: selectedPackageID == pkg.identifier,
+            onSelect: { selectedPackageID = pkg.identifier }
+          )
         }
-      } else {
-        Text("Just $4.99/month")
-          .font(.title)
-          .fontWeight(.bold)
-          .foregroundColor(Color(.label))
+        if let pkg = offering.monthly {
+          PricingOptionRow(
+            package: pkg,
+            label: "Monthly",
+            badge: pkg.storeProduct.introductoryDiscount != nil ? "7-Day Free Trial" : nil,
+            isSelected: selectedPackageID == pkg.identifier,
+            onSelect: { selectedPackageID = pkg.identifier }
+          )
+        }
+        if let pkg = offering.annual {
+          PricingOptionRow(
+            package: pkg,
+            label: "Yearly",
+            badge: "Best Value",
+            isSelected: selectedPackageID == pkg.identifier,
+            onSelect: { selectedPackageID = pkg.identifier }
+          )
+        }
       }
-
       Text("Cancel anytime • No commitment")
         .font(.subheadline)
         .foregroundColor(Color(.secondaryLabel))
@@ -219,11 +235,21 @@ struct PaywallView: View {
   }
 
   private func purchaseSubscription() {
+    guard let offering = revenueCatService.currentOffering,
+      let pkg = offering.availablePackages.first(where: { $0.identifier == selectedPackageID })
+        ?? offering.monthly
+    else { return }
+
     Task {
       do {
-        let success = try await revenueCatService.purchaseSubscription()
-        if success {
+        let result = try await Purchases.shared.purchase(package: pkg)
+        if result.customerInfo.entitlements.active[Billing.entitlement] != nil {
           dismiss()
+        } else if !result.userCancelled {
+          await MainActor.run {
+            errorMessage = "Purchase completed but entitlement not active"
+            showingError = true
+          }
         }
       } catch {
         await MainActor.run {
@@ -248,6 +274,57 @@ struct PaywallView: View {
         }
       }
     }
+  }
+}
+
+struct PricingOptionRow: View {
+  let package: Package
+  let label: String
+  let badge: String?
+  let isSelected: Bool
+  let onSelect: () -> Void
+
+  var body: some View {
+    Button(action: onSelect) {
+      HStack {
+        // Selection indicator
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+          .foregroundColor(isSelected ? .blue : .gray)
+          .font(.title3)
+
+        VStack(alignment: .leading, spacing: 2) {
+          Text(label)
+            .font(.headline)
+            .foregroundColor(.black)
+          Text(package.storeProduct.localizedPriceString)
+            .font(.subheadline)
+            .foregroundColor(.black.opacity(0.6))
+        }
+
+        Spacer()
+
+        if let badge = badge {
+          Text(badge)
+            .font(.caption)
+            .fontWeight(.bold)
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(badge == "Best Value" ? Color.green : Color.blue)
+            .cornerRadius(8)
+        }
+      }
+      .padding()
+      .background(
+        RoundedRectangle(cornerRadius: 12)
+          .fill(isSelected ? Color.blue.opacity(0.08) : Color(.systemBackground))
+          .overlay(
+            RoundedRectangle(cornerRadius: 12)
+              .stroke(isSelected ? Color.blue : Color.gray.opacity(0.3), lineWidth: 1.5)
+          )
+      )
+    }
+    .buttonStyle(PlainButtonStyle())
   }
 }
 
