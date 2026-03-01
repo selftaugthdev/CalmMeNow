@@ -39,7 +39,7 @@ struct CalmMeNowApp: App {
         deepLinkManager.handleDeepLink(url)
       }
     }
-    .modelContainer(for: [JournalEntry.self])
+    .modelContainer(for: [JournalEntry.self, TriggerEpisode.self])
   }
 }
 

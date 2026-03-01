@@ -36,6 +36,7 @@ struct ContentView: View {
   @State private var showingGrounding = false
   @State private var showingPMRExercise = false
   @State private var showingCrisisResources = false
+  @State private var showingTriggerTracker = false
 
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
@@ -348,6 +349,20 @@ struct ContentView: View {
                   showingCrisisResources = true
                 }
               )
+
+              // Trigger Tracker Card - full width (FREE)
+              EmotionCard(
+                emoji: "📊",
+                emotion: "Trigger Tracker",
+                subtext: "See what sets off your panic & spot patterns",
+                isSelected: selectedButton == "trigger_tracker",
+                onTap: {
+                  HapticManager.shared.emotionButtonTap()
+                  selectedEmotion = "trigger_tracker"
+                  selectedEmoji = "📊"
+                  showingTriggerTracker = true
+                }
+              )
             }
             .padding(.horizontal, horizontalSizeClass == .regular ? 80 : 40)
             .padding(.bottom, 40)
@@ -448,6 +463,9 @@ struct ContentView: View {
     }
     .sheet(isPresented: $showingCrisisResources) {
       CrisisResourcesView()
+    }
+    .sheet(isPresented: $showingTriggerTracker) {
+      TriggerTrackerView()
     }
     .fullScreenCover(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
       SubscriptionSuccessView()

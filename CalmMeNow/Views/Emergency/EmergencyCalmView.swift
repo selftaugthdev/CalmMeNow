@@ -10,6 +10,7 @@ struct EmergencyCalmView: View {
   @State private var showCompletionOptions = false
   @State private var showPostRecovery = false
   @State private var showAdditionalHelp = false
+  @State private var showTriggerLog = false
   @State private var sessionId: String = ""
 
   var body: some View {
@@ -127,7 +128,7 @@ struct EmergencyCalmView: View {
                 progressTracker.recordReliefOutcome(.betterNow)
                 // Track successful completion
                 AnalyticsLogger.shared.emergencyCalmComplete(sessionId: sessionId, completed: true)
-                showPostRecovery = true
+                showTriggerLog = true
               }
               .foregroundColor(.white)
               .padding(.vertical, 12)
@@ -162,6 +163,16 @@ struct EmergencyCalmView: View {
     }
     .onDisappear {
       audioManager.stopSoundImmediately()
+    }
+    .sheet(
+      isPresented: $showTriggerLog,
+      onDismiss: {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+          showPostRecovery = true
+        }
+      }
+    ) {
+      TriggerLogSheet(outcome: "better_now")
     }
     .sheet(isPresented: $showPostRecovery) {
       PostPanicRecoveryView(onReturnToHome: {
