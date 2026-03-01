@@ -135,8 +135,8 @@ struct OnboardingView: View {
       // Background gradient
       LinearGradient(
         gradient: Gradient(colors: [
-          Color(hex: "#A0C4FF"),
-          Color(hex: "#98D8C8"),
+          Color(hex: "#C9B8E8"),  // Soft Lavender
+          Color(hex: "#E8D5F5"),  // Pale Lilac
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
