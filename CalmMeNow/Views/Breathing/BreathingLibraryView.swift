@@ -14,13 +14,16 @@ struct BreathingLibraryView: View {
       ZStack {
         LinearGradient(
           gradient: Gradient(colors: [
-            Color.blue.opacity(0.05),
-            Color.mint.opacity(0.05),
+            Color(hex: "#C9B8E8"),  // Soft Lavender
+            Color(hex: "#E8D5F5"),  // Pale Lilac
           ]),
           startPoint: .topLeading,
           endPoint: .bottomTrailing
         )
         .ignoresSafeArea()
+
+        Color.white.opacity(0.1)
+          .ignoresSafeArea()
 
         ScrollView {
           VStack(spacing: 24) {
