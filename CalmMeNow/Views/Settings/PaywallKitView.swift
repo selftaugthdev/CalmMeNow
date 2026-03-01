@@ -9,7 +9,7 @@ struct PaywallKitView: View {
   // PaywallKit configuration
   private let paywallConfig = PaywallConfig(
     title: "Unlock Personalized Calm",
-    subtitle: "Get personalized support when you need it most",
+    subtitle: "Tools that genuinely help you understand and manage your anxiety",
     yearlyBadgeText: "SAVE 90%",
     weeklyTrialLabel: "7-Day Free Trial",
     weeklyNoTrialLabel: "Monthly Plan",
@@ -21,19 +21,19 @@ struct PaywallKitView: View {
     ),
     features: [
       PaywallConfig.Feature(
+        icon: "doc.richtext",
+        title: "Full Clinical PDF Report",
+        description: "Multi-page doctor's report with trigger charts, severity history & journal themes — shareable with your therapist"
+      ),
+      PaywallConfig.Feature(
         icon: "target",
         title: "Personalized Panic Plans",
-        description: "Personalized strategies tailored to your triggers and preferences"
+        description: "AI strategies tailored to your triggers, intensity patterns, and recovery history"
       ),
       PaywallConfig.Feature(
         icon: "brain.head.profile",
-        title: "Personalized Companion",
-        description: "24/7 emotional support and guidance when you need it most"
-      ),
-      PaywallConfig.Feature(
-        icon: "heart.fill",
-        title: "Unlimited Access",
-        description: "All premium features, breathing exercises, and emergency tools"
+        title: "AI Daily Check-in Coach",
+        description: "Daily mood coaching, pattern insights, and a 24/7 companion for crisis moments"
       ),
     ]
   )

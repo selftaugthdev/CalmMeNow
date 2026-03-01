@@ -84,27 +84,33 @@ struct PaywallView: View {
   private var featuresSection: some View {
     VStack(spacing: 20) {
       FeatureRow(
+        icon: "📄",
+        title: "Full Clinical PDF Report",
+        description: "Multi-page doctor's report with trigger charts, severity history, time-of-day patterns & journal themes — shareable directly with your therapist"
+      )
+
+      FeatureRow(
         icon: "🎯",
         title: "Personalized Panic Plans",
-        description: "Custom strategies tailored to your triggers and preferences"
+        description: "AI-powered strategies tailored to your specific triggers, intensity patterns, and recovery history"
       )
 
       FeatureRow(
         icon: "📊",
-        title: "Smart Daily Check-ins",
-        description: "Get insights and recommendations based on your mood patterns"
+        title: "Trigger Tracker Insights",
+        description: "Full episode log, weekly trend charts, outcome-per-trigger analysis, and custom trigger categories"
+      )
+
+      FeatureRow(
+        icon: "🧠",
+        title: "AI Daily Check-in Coach",
+        description: "Daily mood coaching with personalised recommendations and pattern insights powered by AI"
       )
 
       FeatureRow(
         icon: "💜",
-        title: "Emergency Companion",
-        description: "24/7 support for crisis moments with personalized guidance"
-      )
-
-      FeatureRow(
-        icon: "🫁",
-        title: "Enhanced Breathing",
-        description: "Optimized breathing patterns for maximum effectiveness"
+        title: "AI Emergency Companion",
+        description: "24/7 adaptive support for crisis moments with personalised guidance when you need it most"
       )
     }
   }

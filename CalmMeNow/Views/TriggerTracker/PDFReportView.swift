@@ -10,6 +10,7 @@ struct PDFReportView: View {
   @State private var isGenerating = false
   @State private var reportURL: URL?
   @State private var showShareSheet = false
+  @State private var showingPaywall = false
 
   private var isPremium: Bool { revenueCat.isSubscribed }
 
@@ -46,6 +47,9 @@ struct PDFReportView: View {
       if let url = reportURL {
         ShareSheet(url: url)
       }
+    }
+    .sheet(isPresented: $showingPaywall) {
+      PaywallKitView()
     }
   }
 
@@ -207,9 +211,16 @@ struct PDFReportView: View {
       .opacity(episodes.isEmpty ? 0.4 : 1)
 
       if !isPremium {
-        Text("Upgrade to Premium for the full multi-page clinical report")
-          .font(.caption)
-          .foregroundColor(.white.opacity(0.45))
+        Button(action: { showingPaywall = true }) {
+          HStack(spacing: 4) {
+            Image(systemName: "lock.open.fill")
+              .font(.caption)
+            Text("Upgrade to Premium for the full clinical report")
+              .font(.caption)
+              .underline()
+          }
+          .foregroundColor(Color(hex: "#D4882A"))
+        }
       }
     }
     .padding(.horizontal, 24)
