@@ -10,13 +10,15 @@ class TriggerEpisode {
   var triggerEmoji: String  // "💼"
   var note: String?
   var outcome: String       // "better_now" or "still_needed_help"
+  var severity: Int?        // 1–10 (SUDS-style)
 
   init(
     triggerKey: String,
     triggerLabel: String,
     triggerEmoji: String,
     note: String? = nil,
-    outcome: String
+    outcome: String,
+    severity: Int? = nil
   ) {
     self.id = UUID()
     self.timestamp = Date()
@@ -25,6 +27,7 @@ class TriggerEpisode {
     self.triggerEmoji = triggerEmoji
     self.note = note
     self.outcome = outcome
+    self.severity = severity
   }
 
   var isSuccess: Bool { outcome == "better_now" }

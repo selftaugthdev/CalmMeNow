@@ -232,11 +232,12 @@ final class PDFReportService {
     startPage: Int
   ) {
     let cols: [(String, CGFloat, CGFloat)] = [
-      ("Date & Time", M, 152),
-      ("Trigger",     M + 152, 126),
-      ("Time",        M + 278, 72),
-      ("Outcome",     M + 350, 90),
-      ("Note",        M + 440, CW - 240),
+      ("Date & Time", M,       142),
+      ("Trigger",     M + 142, 116),
+      ("Time",        M + 258,  58),
+      ("Sev.",        M + 316,  44),
+      ("Outcome",     M + 360,  76),
+      ("Note",        M + 436, CW - 252),
     ]
 
     func pageHeader(title: String) {
@@ -275,15 +276,18 @@ final class PDFReportService {
       let rowH: CGFloat = 22
       fill(CGRect(x: M, y: y, width: CW, height: rowH),
            color: i % 2 == 0 ? UIColor(white: 0.975, alpha: 1) : .white)
-      drawText(ep.formattedTime,      in: CGRect(x: M + 4,   y: y + 3, width: 144, height: 16), font: .systemFont(ofSize: 10), color: .darkGray)
-      drawText("\(ep.triggerEmoji) \(ep.triggerLabel)", in: CGRect(x: M + 156, y: y + 3, width: 118, height: 16), font: .systemFont(ofSize: 10), color: .black)
-      drawText(ep.timeOfDayLabel,     in: CGRect(x: M + 282, y: y + 3, width: 64,  height: 16), font: .systemFont(ofSize: 10), color: .darkGray)
+      drawText(ep.formattedTime, in: CGRect(x: M + 4, y: y + 3, width: 134, height: 16), font: .systemFont(ofSize: 10), color: .darkGray)
+      drawText("\(ep.triggerEmoji) \(ep.triggerLabel)", in: CGRect(x: M + 146, y: y + 3, width: 108, height: 16), font: .systemFont(ofSize: 10), color: .black)
+      drawText(ep.timeOfDayLabel, in: CGRect(x: M + 262, y: y + 3, width: 50, height: 16), font: .systemFont(ofSize: 10), color: .darkGray)
+      if let sev = ep.severity {
+        drawText("\(sev)/10", in: CGRect(x: M + 318, y: y + 3, width: 38, height: 16), font: .boldSystemFont(ofSize: 10), color: sev >= 7 ? UIColor(hex: "#C0514F") : sev >= 4 ? amber : teal)
+      }
       let outcomeCol = ep.isSuccess ? teal : amber
       drawText(ep.isSuccess ? "Better ✓" : "Needed help",
-               in: CGRect(x: M + 354, y: y + 3, width: 82, height: 16),
+               in: CGRect(x: M + 364, y: y + 3, width: 68, height: 16),
                font: .systemFont(ofSize: 10), color: outcomeCol)
       if let note = ep.note, !note.isEmpty {
-        drawText(note, in: CGRect(x: M + 444, y: y + 3, width: CW - 248, height: 16),
+        drawText(note, in: CGRect(x: M + 440, y: y + 3, width: CW - 256, height: 16),
                  font: .italicSystemFont(ofSize: 9), color: .darkGray)
       }
 
