@@ -49,18 +49,16 @@ struct ContentView: View {
   var body: some View {
     NavigationView {
       ZStack {
-        // Background gradient - Teal to Mint (stability + healing)
         LinearGradient(
           gradient: Gradient(colors: [
-            Color(hex: "#4A9B8C"),  // Deep Teal
-            Color(hex: "#98D8C8"),  // Soft Mint
+            Color(hex: "#C9B8E8"),  // Soft Lavender
+            Color(hex: "#E8D5F5"),  // Pale Lilac
           ]),
           startPoint: .topLeading,
           endPoint: .bottomTrailing
         )
         .ignoresSafeArea()
 
-        // Add a subtle overlay to soften the gradient
         Color.white.opacity(0.1)
           .ignoresSafeArea()
 
