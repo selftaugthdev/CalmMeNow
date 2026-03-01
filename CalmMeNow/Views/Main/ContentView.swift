@@ -33,7 +33,7 @@ struct ContentView: View {
   @State private var showingEnhancedPanicPlan = false
   @State private var showingAIDebug = false
   @State private var showingPositiveQuotes = false
-  @State private var showingGroundingExercise = false
+  @State private var showingGrounding = false
   @State private var showingPMRExercise = false
   @State private var showingCrisisResources = false
 
@@ -176,24 +176,23 @@ struct ContentView: View {
               .foregroundColor(.black.opacity(0.7))
 
             // Core Differentiators - Reordered with free features first
-            VStack(spacing: 20) {  // Increased spacing between rows
+            VStack(spacing: 20) {
               // Top row - Free features: Grounding and Body Relax
               HStack(spacing: 20) {
                 // Grounding Exercise Card (FREE)
                 EmotionCard(
-                  emoji: "🖐️",
+                  emoji: "🌱",
                   emotion: "Grounding",
                   subtext: "5-4-3-2-1 sensory technique",
                   isSelected: selectedButton == "grounding",
                   onTap: {
                     HapticManager.shared.emotionButtonTap()
                     selectedEmotion = "grounding"
-                    selectedEmoji = "🖐️"
+                    selectedEmoji = "🌱"
 
-                    // Track feature selection
                     FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "grounding")
 
-                    showingGroundingExercise = true
+                    showingGrounding = true
                   }
                 )
 
@@ -208,7 +207,6 @@ struct ContentView: View {
                     selectedEmotion = "pmr"
                     selectedEmoji = "💪"
 
-                    // Track feature selection
                     FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "pmr")
 
                     showingPMRExercise = true
@@ -216,9 +214,9 @@ struct ContentView: View {
                 )
               }
 
-              // Second row - Premium features: Games and Daily Coach (Games moved here)
-              HStack(spacing: 20) {  // Increased spacing between cards
-                // Games Card (moved from third row)
+              // Second row - Games and Daily Coach
+              HStack(spacing: 20) {
+                // Games Card
                 EmotionCard(
                   emoji: "🎮",
                   emotion: "Games",
@@ -229,10 +227,8 @@ struct ContentView: View {
                     selectedEmotion = "games"
                     selectedEmoji = "🎮"
 
-                    // Track feature selection
                     FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "games")
 
-                    // Show game selection menu
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                       showingGameSelection = true
                     }
@@ -250,19 +246,15 @@ struct ContentView: View {
                     selectedEmotion = "daily_coach"
                     selectedEmoji = "📅"
 
-                    // Track feature selection
                     FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "daily_coach")
 
-                    // Check paywall access for AI feature
                     Task {
                       let hasAccess = await paywallManager.requestAIAccess()
                       if hasAccess {
-                        // Navigate to daily coach
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                           showingDailyCoach = true
                         }
                       }
-                      // If no access, paywall will be shown automatically
                     }
                   },
                   isPremium: true,
@@ -270,9 +262,9 @@ struct ContentView: View {
                 )
               }
 
-              // Third row - Panic Plan and Smart Plan (Panic Plan moved here)
-              HStack(spacing: 20) {  // Increased spacing between cards
-                // Personalized Panic Plan Card (AI Feature - Requires Subscription) (moved from second row)
+              // Third row - Panic Plan and Smart Plan
+              HStack(spacing: 20) {
+                // Personalized Panic Plan Card (AI Feature - Requires Subscription)
                 EmotionCard(
                   emoji: "🧩",
                   emotion: "Panic Plan",
@@ -283,19 +275,15 @@ struct ContentView: View {
                     selectedEmotion = "panic_plan"
                     selectedEmoji = "🧩"
 
-                    // Track feature selection
                     FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "panic_plan")
 
-                    // Check paywall access for AI feature
                     Task {
                       let hasAccess = await paywallManager.requestAIAccess()
                       if hasAccess {
-                        // Navigate to personalized plan
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                           showingPersonalizedPlan = true
                         }
                       }
-                      // If no access, paywall will be shown automatically
                     }
                   },
                   isPremium: true,
@@ -313,20 +301,16 @@ struct ContentView: View {
                     selectedEmotion = "enhanced_panic_plan"
                     selectedEmoji = "🧠"
 
-                    // Track feature selection
                     FirebaseAnalyticsService.shared.trackEmotionSelected(
                       emotion: "enhanced_panic_plan")
 
-                    // Check paywall access for AI feature
                     Task {
                       let hasAccess = await paywallManager.requestAIAccess()
                       if hasAccess {
-                        // Navigate to enhanced panic plan
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                           showingEnhancedPanicPlan = true
                         }
                       }
-                      // If no access, paywall will be shown automatically
                     }
                   },
                   isPremium: true,
@@ -359,33 +343,29 @@ struct ContentView: View {
                   selectedEmotion = "crisis_resources"
                   selectedEmoji = "📞"
 
-                  // Track feature selection
                   FirebaseAnalyticsService.shared.trackCrisisResourcesViewed()
 
                   showingCrisisResources = true
                 }
               )
             }
-            .padding(.horizontal, horizontalSizeClass == .regular ? 80 : 40)  // Adaptive horizontal padding
-            .padding(.bottom, 40)  // Breathing room before achievement card
+            .padding(.horizontal, horizontalSizeClass == .regular ? 80 : 40)
+            .padding(.bottom, 40)
 
             // Streak tracking and gamification
             StreakCardView(progressTracker: progressTracker)
               .padding(.horizontal, horizontalSizeClass == .regular ? 80 : 40)
-              .padding(.bottom, 60)  // Add bottom padding for scroll space
+              .padding(.bottom, 60)
               .onLongPressGesture(minimumDuration: 3) {
-                // Debug: Reset streak data on long press
                 progressTracker.resetStreakData()
               }
               .onTapGesture(count: 2) {
-                // Debug: Add test usage for yesterday
                 let calendar = Calendar.current
                 if let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) {
                   progressTracker.addUsageForDate(yesterday)
                 }
               }
               .onTapGesture(count: 3) {
-                // Debug: Add test usage for 5 consecutive days
                 progressTracker.addUsageForConsecutiveDays(5)
               }
           }
@@ -400,70 +380,68 @@ struct ContentView: View {
       )
       .navigationBarHidden(true)
     }
-    .navigationViewStyle(.stack)  // Force single-column layout on iPad
+    .navigationViewStyle(.stack)
     .sheet(isPresented: $showingIntensitySelection) {
-        IntensitySelectionView(
-          emotion: selectedEmotion,
-          emoji: selectedEmoji,
-          isPresented: $showingIntensitySelection,
-          onIntensitySelected: { intensity in
-            selectedIntensity = intensity
-            // Force state synchronization with delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-              showingTailoredExperience = true
-            }
+      IntensitySelectionView(
+        emotion: selectedEmotion,
+        emoji: selectedEmoji,
+        isPresented: $showingIntensitySelection,
+        onIntensitySelected: { intensity in
+          selectedIntensity = intensity
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            showingTailoredExperience = true
           }
-        )
-      }
-      .sheet(isPresented: $showingTailoredExperience) {
-        TailoredExperienceView(
-          emotion: selectedEmotion,
-          intensity: selectedIntensity
-        )
-        .id("\(selectedEmotion)-\(selectedIntensity)")  // Force recreation when values change
-      }
-
-      .sheet(isPresented: $showingEmergencyCalm) {
-        EmergencyCalmView()
-      }
-      .sheet(isPresented: $showingBubbleGame) {
-        BubbleGameView()
-      }
-      .sheet(isPresented: $showingMemoryGame) {
-        MemoryGameView()
-      }
-      .sheet(isPresented: $showingColoringGame) {
-        ColoringPageWithTraceView()
-      }
-      .sheet(isPresented: $showingGameSelection) {
-        GameSelectionView(
-          showingBubbleGame: $showingBubbleGame,
-          showingMemoryGame: $showingMemoryGame,
-          showingColoringGame: $showingColoringGame
-        )
-      }
-      .sheet(isPresented: $showingPersonalizedPlan) {
-        PersonalizedPanicPlanView()
-      }
-      .sheet(isPresented: $showingDailyCoach) {
-        DailyCoachView()
-      }
-      .sheet(isPresented: $showingEnhancedPanicPlan) {
-        EnhancedPanicPlanView()
-      }
-      #if DEBUG
-        .sheet(isPresented: $showingAIDebug) {
-          AIDebugView()
         }
-      #endif
+      )
+    }
+    .sheet(isPresented: $showingTailoredExperience) {
+      TailoredExperienceView(
+        emotion: selectedEmotion,
+        intensity: selectedIntensity
+      )
+      .id("\(selectedEmotion)-\(selectedIntensity)")
+    }
+    .sheet(isPresented: $showingEmergencyCalm) {
+      EmergencyCalmView()
+    }
+    .sheet(isPresented: $showingBubbleGame) {
+      BubbleGameView()
+    }
+    .sheet(isPresented: $showingMemoryGame) {
+      MemoryGameView()
+    }
+    .sheet(isPresented: $showingColoringGame) {
+      ColoringPageWithTraceView()
+    }
+    .sheet(isPresented: $showingGameSelection) {
+      GameSelectionView(
+        showingBubbleGame: $showingBubbleGame,
+        showingMemoryGame: $showingMemoryGame,
+        showingColoringGame: $showingColoringGame
+      )
+    }
+    .sheet(isPresented: $showingPersonalizedPlan) {
+      PersonalizedPanicPlanView()
+    }
+    .sheet(isPresented: $showingDailyCoach) {
+      DailyCoachView()
+    }
+    .sheet(isPresented: $showingEnhancedPanicPlan) {
+      EnhancedPanicPlanView()
+    }
+    #if DEBUG
+      .sheet(isPresented: $showingAIDebug) {
+        AIDebugView()
+      }
+    #endif
     .sheet(isPresented: $showingPaywall) {
       PaywallKitView()
     }
     .sheet(isPresented: $showingPositiveQuotes) {
       PositiveQuotesView()
     }
-    .sheet(isPresented: $showingGroundingExercise) {
-      GroundingExerciseView()
+    .sheet(isPresented: $showingGrounding) {
+      SomaticGroundingView()
     }
     .sheet(isPresented: $showingPMRExercise) {
       PMRExerciseView()
@@ -510,7 +488,7 @@ struct EmotionCard: View {
       VStack(spacing: 12) {
         // Emoji on top
         Text(emoji)
-          .font(.system(size: 40))  // Larger emoji
+          .font(.system(size: 40))
           .padding(.top, 20)
           .opacity(hasAccess ? 1.0 : 0.5)
 
@@ -528,7 +506,7 @@ struct EmotionCard: View {
           .padding(.horizontal, 16)
           .padding(.bottom, 20)
       }
-      .frame(maxWidth: .infinity, minHeight: 140)  // Taller cards for better proportions
+      .frame(maxWidth: .infinity, minHeight: 140)
       .background(
         RoundedRectangle(cornerRadius: 20)
           .fill(hasAccess ? Color.white : Color.gray.opacity(0.3))

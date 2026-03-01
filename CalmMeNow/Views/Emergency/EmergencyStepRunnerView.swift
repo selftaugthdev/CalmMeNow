@@ -400,7 +400,7 @@ struct EmergencyStepRunnerView: View {
       }
     }
     .sheet(isPresented: $showingGrounding) {
-      SimpleGroundingExerciseView()
+      SomaticGroundingView()
     }
     .sheet(isPresented: $showingCallHelp) {
       CallHelpView()
