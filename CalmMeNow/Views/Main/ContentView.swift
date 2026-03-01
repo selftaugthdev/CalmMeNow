@@ -40,6 +40,7 @@ struct ContentView: View {
   @State private var showingNightProtocol = false
   @State private var showingSafeCard = false
   @State private var showingSafePersonSetup = false
+  @State private var showingBreathingLibrary = false
 
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
@@ -217,6 +218,19 @@ struct ContentView: View {
                   }
                 )
               }
+
+              // Breathing Programs Card - full width
+              EmotionCard(
+                emoji: "🫁",
+                emotion: "Breathing Programs",
+                subtext: "5 clinically-backed techniques + custom",
+                isSelected: selectedButton == "breathing_library",
+                onTap: {
+                  HapticManager.shared.softImpact()
+                  selectedButton = "breathing_library"
+                  showingBreathingLibrary = true
+                }
+              )
 
               // Second row - Games and Daily Coach
               HStack(spacing: 20) {
@@ -509,6 +523,9 @@ struct ContentView: View {
     }
     .sheet(isPresented: $showingSafePersonSetup) {
       TrustedContactView()
+    }
+    .sheet(isPresented: $showingBreathingLibrary) {
+      BreathingLibraryView()
     }
     .fullScreenCover(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
       SubscriptionSuccessView()
