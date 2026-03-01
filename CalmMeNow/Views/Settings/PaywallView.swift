@@ -1,3 +1,4 @@
+import RevenueCat
 import StoreKit
 import SwiftUI
 
