@@ -37,6 +37,9 @@ struct ContentView: View {
   @State private var showingPMRExercise = false
   @State private var showingCrisisResources = false
   @State private var showingTriggerTracker = false
+  @State private var showingNightProtocol = false
+  @State private var showingSafeCard = false
+  @State private var showingSafePersonSetup = false
 
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
@@ -363,6 +366,37 @@ struct ContentView: View {
                   showingTriggerTracker = true
                 }
               )
+
+              // Night Protocol Card - full width (FREE)
+              EmotionCard(
+                emoji: "🌙",
+                emotion: "Night Protocol",
+                subtext: "For nighttime panic, PTSD & insomnia",
+                isSelected: selectedButton == "night_protocol",
+                onTap: {
+                  HapticManager.shared.softImpact()
+                  selectedEmotion = "night_protocol"
+                  selectedEmoji = "🌙"
+                  showingNightProtocol = true
+                }
+              )
+
+              // Safe Person Card - full width (FREE)
+              EmotionCard(
+                emoji: "🆘",
+                emotion: "Safe Person Card",
+                subtext: "One tap to reach your safe network",
+                isSelected: selectedButton == "safe_person",
+                onTap: {
+                  HapticManager.shared.softImpact()
+                  selectedButton = "safe_person"
+                  if TrustedContactService.shared.hasContacts() {
+                    showingSafeCard = true
+                  } else {
+                    showingSafePersonSetup = true
+                  }
+                }
+              )
             }
             .padding(.horizontal, horizontalSizeClass == .regular ? 80 : 40)
             .padding(.bottom, 40)
@@ -466,6 +500,15 @@ struct ContentView: View {
     }
     .sheet(isPresented: $showingTriggerTracker) {
       TriggerTrackerView()
+    }
+    .sheet(isPresented: $showingNightProtocol) {
+      NightProtocolView()
+    }
+    .fullScreenCover(isPresented: $showingSafeCard) {
+      SafePersonCardView()
+    }
+    .sheet(isPresented: $showingSafePersonSetup) {
+      TrustedContactView()
     }
     .fullScreenCover(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
       SubscriptionSuccessView()

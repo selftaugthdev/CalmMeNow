@@ -2,7 +2,7 @@
 //  TrustedContactView.swift
 //  CalmMeNow
 //
-//  Setup and use trusted contact feature (Premium)
+//  Setup view for the Safe Person Card (free feature)
 //
 
 import SwiftUI
@@ -10,17 +10,14 @@ import SwiftUI
 struct TrustedContactView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var contactService = TrustedContactService.shared
-  @StateObject private var paywallManager = PaywallManager.shared
 
-  @State private var editedContact = TrustedContact()
-  @State private var isEditing = false
-  @State private var showingSaveSuccess = false
-  @State private var showingSendConfirmation = false
+  @State private var editingContact: TrustedContact? = nil
+  @State private var showingCrisisCard = false
+  @State private var bystanderExpanded = false
 
   var body: some View {
     NavigationView {
       ZStack {
-        // Background gradient
         LinearGradient(
           gradient: Gradient(colors: [
             Color(hex: "#A0C4FF"),
@@ -33,283 +30,313 @@ struct TrustedContactView: View {
 
         ScrollView {
           VStack(spacing: 24) {
-            // Header
-            VStack(spacing: 12) {
-              ZStack {
-                Circle()
-                  .fill(Color.blue.opacity(0.2))
-                  .frame(width: 80, height: 80)
-
-                Image(systemName: "person.crop.circle.badge.checkmark")
-                  .font(.system(size: 40))
-                  .foregroundColor(.blue)
-              }
-
-              Text("Trusted Contact")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-
-              Text("Set up a contact who can support you during difficult moments")
-                .font(.subheadline)
-                .foregroundColor(.primary.opacity(0.7))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-            }
-            .padding(.top, 20)
-
-            // Contact display or edit form
-            if contactService.hasValidContact() && !isEditing {
-              contactDisplayView
-            } else {
-              contactEditForm
-            }
-
+            header
+            contactList
+            addContactButton
+            bystanderSection
+            openCrisisCardButton
             Spacer(minLength: 40)
           }
         }
       }
       .navigationBarHidden(true)
-      .overlay(
-        // Close button
-        VStack {
-          HStack {
-            Spacer()
-            Button(action: {
-              presentationMode.wrappedValue.dismiss()
-            }) {
-              Image(systemName: "xmark.circle.fill")
-                .font(.title2)
-                .foregroundColor(.gray)
-                .padding()
-            }
+      .overlay(closeButton, alignment: .topTrailing)
+    }
+    .sheet(item: $editingContact) { contact in
+      ContactEditSheet(contact: contact) { saved in
+        contactService.addOrUpdate(saved)
+        editingContact = nil
+      } onCancel: {
+        editingContact = nil
+      }
+    }
+    .fullScreenCover(isPresented: $showingCrisisCard) {
+      SafePersonCardView()
+    }
+  }
+
+  // MARK: - Header
+
+  private var header: some View {
+    VStack(spacing: 12) {
+      ZStack {
+        Circle()
+          .fill(Color.blue.opacity(0.2))
+          .frame(width: 80, height: 80)
+
+        Image(systemName: "person.2.fill")
+          .font(.system(size: 36))
+          .foregroundColor(.blue)
+      }
+
+      Text("Safe Person Card")
+        .font(.largeTitle)
+        .fontWeight(.bold)
+        .foregroundColor(.primary)
+
+      Text("Add up to 3 trusted contacts to reach during difficult moments")
+        .font(.subheadline)
+        .foregroundColor(.primary.opacity(0.7))
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, 40)
+    }
+    .padding(.top, 60)
+  }
+
+  // MARK: - Contact List
+
+  private var contactList: some View {
+    VStack(spacing: 0) {
+      if contactService.contacts.isEmpty {
+        Text("No contacts added yet")
+          .font(.subheadline)
+          .foregroundColor(.primary.opacity(0.5))
+          .padding(.vertical, 20)
+          .frame(maxWidth: .infinity)
+          .background(
+            RoundedRectangle(cornerRadius: 16)
+              .fill(Color.white.opacity(0.9))
+          )
+      } else {
+        VStack(spacing: 0) {
+          ForEach(Array(contactService.contacts.enumerated()), id: \.element.id) {
+            index, contact in
+            contactRow(contact: contact, isLast: index == contactService.contacts.count - 1)
           }
-          Spacer()
         }
-      )
-      .alert("Message Sent", isPresented: $showingSaveSuccess) {
-        Button("OK", role: .cancel) {}
-      } message: {
-        Text("Your contact has been saved successfully.")
+        .background(
+          RoundedRectangle(cornerRadius: 16)
+            .fill(Color.white.opacity(0.9))
+        )
       }
-      .confirmationDialog(
-        "Contact \(editedContact.name)",
-        isPresented: $showingSendConfirmation,
-        titleVisibility: .visible
-      ) {
-        Button("Send Text Message") {
-          contactService.sendSMS()
+    }
+    .padding(.horizontal, 20)
+  }
+
+  private func contactRow(contact: TrustedContact, isLast: Bool) -> some View {
+    VStack(spacing: 0) {
+      HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 3) {
+          Text(contact.name)
+            .font(.headline)
+            .foregroundColor(.primary)
+
+          Text(contact.phoneNumber)
+            .font(.subheadline)
+            .foregroundColor(.primary.opacity(0.6))
         }
-        Button("Call") {
-          contactService.callContact()
+
+        Spacer()
+
+        // Edit
+        Button(action: {
+          HapticManager.shared.softImpact()
+          editingContact = contact
+        }) {
+          Image(systemName: "pencil.circle.fill")
+            .font(.title2)
+            .foregroundColor(.blue)
         }
-        Button("Cancel", role: .cancel) {}
+
+        // Delete
+        Button(action: {
+          HapticManager.shared.softImpact()
+          withAnimation {
+            contactService.removeContact(id: contact.id)
+          }
+        }) {
+          Image(systemName: "trash.circle.fill")
+            .font(.title2)
+            .foregroundColor(.red.opacity(0.7))
+        }
       }
-      .onAppear {
-        checkPremiumAccess()
+      .padding(.horizontal, 16)
+      .padding(.vertical, 14)
+
+      if !isLast {
+        Divider().padding(.horizontal, 16)
       }
     }
   }
 
-  // MARK: - Contact Display View
+  // MARK: - Add Contact Button
 
-  private var contactDisplayView: some View {
-    VStack(spacing: 20) {
-      // Contact Card
-      VStack(spacing: 16) {
-        HStack {
-          VStack(alignment: .leading, spacing: 4) {
-            Text(contactService.trustedContact?.name ?? "")
-              .font(.title2)
-              .fontWeight(.semibold)
-              .foregroundColor(.primary)
-
-            Text(contactService.trustedContact?.phoneNumber ?? "")
-              .font(.body)
-              .foregroundColor(.primary.opacity(0.7))
-          }
-
-          Spacer()
-
-          Button(action: {
-            if let contact = contactService.trustedContact {
-              editedContact = contact
-            }
-            isEditing = true
-          }) {
-            Image(systemName: "pencil.circle.fill")
-              .font(.title2)
-              .foregroundColor(.blue)
-          }
-        }
-
-        Divider()
-
-        // Message Preview
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Message:")
-            .font(.caption)
-            .foregroundColor(.primary.opacity(0.6))
-
-          Text(contactService.trustedContact?.customMessage ?? "")
-            .font(.body)
-            .foregroundColor(.primary.opacity(0.8))
-            .lineLimit(3)
-        }
-      }
-      .padding()
-      .background(
-        RoundedRectangle(cornerRadius: 16)
-          .fill(Color.white.opacity(0.9))
-      )
-      .padding(.horizontal, 20)
-
-      // Action Buttons
-      VStack(spacing: 12) {
-        // Send Message Button
-        Button(action: {
-          showingSendConfirmation = true
-        }) {
-          HStack {
-            Image(systemName: "message.fill")
-            Text("Reach Out Now")
-          }
+  private var addContactButton: some View {
+    Button(action: {
+      HapticManager.shared.softImpact()
+      editingContact = TrustedContact()
+    }) {
+      HStack(spacing: 8) {
+        Image(systemName: "plus.circle.fill")
+          .font(.title3)
+        Text("Add a safe person")
           .font(.headline)
           .fontWeight(.semibold)
-          .foregroundColor(.white)
-          .frame(maxWidth: .infinity)
-          .padding(.vertical, 16)
-          .background(
-            RoundedRectangle(cornerRadius: 30)
-              .fill(Color.blue)
-          )
-          .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
-        }
+      }
+      .foregroundColor(contactService.contacts.count >= 3 ? .gray : .white)
+      .frame(maxWidth: .infinity)
+      .padding(.vertical, 16)
+      .background(
+        RoundedRectangle(cornerRadius: 30)
+          .fill(contactService.contacts.count >= 3 ? Color.gray.opacity(0.3) : Color.blue)
+      )
+      .shadow(
+        color: contactService.contacts.count >= 3 ? .clear : .blue.opacity(0.3),
+        radius: 8, x: 0, y: 4
+      )
+    }
+    .disabled(contactService.contacts.count >= 3)
+    .padding(.horizontal, 20)
+  }
 
-        // Delete Contact Button
-        Button(action: {
-          contactService.deleteContact()
-          editedContact = TrustedContact()
-        }) {
-          Text("Remove Contact")
-            .font(.subheadline)
-            .foregroundColor(.red.opacity(0.8))
+  // MARK: - Bystander Message Section
+
+  private var bystanderSection: some View {
+    VStack(spacing: 0) {
+      // Toggle header
+      Button(action: {
+        HapticManager.shared.softImpact()
+        withAnimation(.easeInOut(duration: 0.25)) {
+          bystanderExpanded.toggle()
         }
+      }) {
+        HStack {
+          Image(systemName: "person.2.wave.2.fill")
+            .foregroundColor(.blue)
+
+          Text("Bystander message")
+            .font(.headline)
+            .foregroundColor(.primary)
+
+          Spacer()
+
+          Image(systemName: bystanderExpanded ? "chevron.up" : "chevron.down")
+            .font(.caption)
+            .foregroundColor(.primary.opacity(0.5))
+        }
+        .padding(16)
+      }
+
+      if bystanderExpanded {
+        VStack(alignment: .leading, spacing: 8) {
+          Text("Shown when you tap 'Show to someone nearby' in the crisis card")
+            .font(.caption)
+            .foregroundColor(.primary.opacity(0.6))
+            .padding(.horizontal, 16)
+
+          TextEditor(text: Binding(
+            get: { contactService.bystanderMessage },
+            set: { contactService.saveBystander($0) }
+          ))
+          .frame(minHeight: 120)
+          .padding(8)
+          .background(
+            RoundedRectangle(cornerRadius: 8)
+              .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+          )
+          .background(Color.white)
+          .cornerRadius(8)
+          .padding(.horizontal, 16)
+          .padding(.bottom, 16)
+        }
+      }
+    }
+    .background(
+      RoundedRectangle(cornerRadius: 16)
+        .fill(Color.white.opacity(0.9))
+    )
+    .padding(.horizontal, 20)
+  }
+
+  // MARK: - Open Crisis Card Button
+
+  @ViewBuilder
+  private var openCrisisCardButton: some View {
+    if contactService.hasContacts() {
+      Button(action: {
+        HapticManager.shared.softImpact()
+        showingCrisisCard = true
+      }) {
+        HStack(spacing: 8) {
+          Text("🆘")
+          Text("Open Crisis Card")
+            .font(.headline)
+            .fontWeight(.semibold)
+        }
+        .foregroundColor(.white)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(
+          RoundedRectangle(cornerRadius: 30)
+            .fill(
+              LinearGradient(
+                gradient: Gradient(colors: [Color(hex: "#0D1B2A"), Color(hex: "#1B2A3B")]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+              )
+            )
+        )
+        .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
       }
       .padding(.horizontal, 20)
     }
   }
 
-  // MARK: - Contact Edit Form
+  // MARK: - Close Button
 
-  private var contactEditForm: some View {
-    VStack(spacing: 20) {
-      VStack(spacing: 16) {
-        // Name Field
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Contact Name")
-            .font(.headline)
-            .foregroundColor(.primary)
+  private var closeButton: some View {
+    Button(action: {
+      presentationMode.wrappedValue.dismiss()
+    }) {
+      Image(systemName: "xmark.circle.fill")
+        .font(.title2)
+        .foregroundColor(.gray)
+        .padding()
+    }
+    .padding(.top, 8)
+  }
+}
 
-          TextField("Enter name", text: $editedContact.name)
-            .textFieldStyle(RoundedBorderTextFieldStyle())
-            .font(.body)
-        }
+// MARK: - Contact Edit Sheet
 
-        // Phone Field
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Phone Number")
-            .font(.headline)
-            .foregroundColor(.primary)
+struct ContactEditSheet: View {
+  @State private var draft: TrustedContact
+  let onSave: (TrustedContact) -> Void
+  let onCancel: () -> Void
 
-          TextField("Enter phone number", text: $editedContact.phoneNumber)
-            .textFieldStyle(RoundedBorderTextFieldStyle())
-            .font(.body)
+  init(contact: TrustedContact, onSave: @escaping (TrustedContact) -> Void, onCancel: @escaping () -> Void) {
+    _draft = State(initialValue: contact)
+    self.onSave = onSave
+    self.onCancel = onCancel
+  }
+
+  var body: some View {
+    NavigationView {
+      Form {
+        Section("Contact details") {
+          TextField("Name", text: $draft.name)
+          TextField("Phone number", text: $draft.phoneNumber)
             .keyboardType(.phonePad)
         }
 
-        // Message Field
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Message to Send")
-            .font(.headline)
-            .foregroundColor(.primary)
-
-          Text("This message will be pre-filled when you reach out")
-            .font(.caption)
-            .foregroundColor(.primary.opacity(0.6))
-
-          TextEditor(text: $editedContact.customMessage)
+        Section("Custom text message") {
+          TextEditor(text: $draft.customMessage)
             .frame(minHeight: 100)
-            .padding(8)
-            .background(
-              RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-            )
-            .background(Color.white)
-            .cornerRadius(8)
         }
       }
-      .padding()
-      .background(
-        RoundedRectangle(cornerRadius: 16)
-          .fill(Color.white.opacity(0.9))
-      )
-      .padding(.horizontal, 20)
-
-      // Save Button
-      Button(action: {
-        saveContact()
-      }) {
-        Text("Save Contact")
-          .font(.headline)
-          .fontWeight(.semibold)
-          .foregroundColor(.white)
-          .frame(maxWidth: .infinity)
-          .padding(.vertical, 16)
-          .background(
-            RoundedRectangle(cornerRadius: 30)
-              .fill(editedContact.isValid ? Color.blue : Color.gray)
-          )
-          .shadow(
-            color: editedContact.isValid ? .blue.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
-      }
-      .disabled(!editedContact.isValid)
-      .padding(.horizontal, 20)
-
-      // Cancel button if editing
-      if contactService.hasValidContact() {
-        Button(action: {
-          isEditing = false
-        }) {
-          Text("Cancel")
-            .font(.subheadline)
-            .foregroundColor(.primary.opacity(0.6))
+      .navigationTitle(draft.name.isEmpty ? "New contact" : draft.name)
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button("Cancel") { onCancel() }
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button("Save") { onSave(draft) }
+            .disabled(!draft.isValid)
+            .fontWeight(.semibold)
         }
       }
     }
-  }
-
-  // MARK: - Helper Methods
-
-  private func checkPremiumAccess() {
-    Task {
-      let hasAccess = await paywallManager.requestAIAccess()
-      if !hasAccess {
-        // User doesn't have premium - will be shown paywall automatically
-        // Dismiss this view if they don't subscribe
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-          if !paywallManager.shouldShowPaywall {
-            presentationMode.wrappedValue.dismiss()
-          }
-        }
-      }
-    }
-  }
-
-  private func saveContact() {
-    contactService.saveContact(editedContact)
-    isEditing = false
-    showingSaveSuccess = true
   }
 }
 

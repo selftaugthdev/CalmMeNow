@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TrustedContact: Codable, Equatable {
+struct TrustedContact: Codable, Equatable, Identifiable {
   var id: UUID
   var name: String
   var phoneNumber: String
