@@ -34,9 +34,14 @@ struct WatchCalmView: View {
         } label: {
           Text("Calm Now").font(.headline)
         }
-        // If you still want a tiny mascot here, uncomment:
-        // CatMascotWatch(scale: .constant(1.0))
-        //     .frame(width: 68, height: 68)
+
+        Button {
+          WCSessionDelegateHelper.shared.sendNightProtocol()
+        } label: {
+          Label("Night Mode", systemImage: "moon.fill")
+            .font(.caption)
+        }
+        .foregroundColor(.blue)
       } else {
         GeometryReader { geo in
           let D = min(geo.size.width, geo.size.height)  // ring diameter

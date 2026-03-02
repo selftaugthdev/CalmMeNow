@@ -4,6 +4,7 @@ import SwiftUI
 struct MainTabView: View {
   @EnvironmentObject var deepLinkManager: DeepLinkManager
   @State private var showingEmergencyCalm = false
+  @State private var showingNightProtocol = false
 
   var body: some View {
     TabView {
@@ -33,10 +34,19 @@ struct MainTabView: View {
     .fullScreenCover(isPresented: $showingEmergencyCalm) {
       EmergencyCalmView()
     }
+    .fullScreenCover(isPresented: $showingNightProtocol) {
+      NightProtocolView()
+    }
     .onReceive(deepLinkManager.$shouldShowEmergencyCalm) { shouldShow in
       if shouldShow {
         showingEmergencyCalm = true
         deepLinkManager.resetEmergencyCalm()
+      }
+    }
+    .onReceive(deepLinkManager.$shouldShowNightProtocol) { shouldShow in
+      if shouldShow {
+        showingNightProtocol = true
+        deepLinkManager.resetNightProtocol()
       }
     }
   }

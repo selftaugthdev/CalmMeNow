@@ -36,6 +36,12 @@ class WCSessionDelegateHelper: NSObject, WCSessionDelegate {
       errorHandler: { _ in })
   }
 
+  func sendNightProtocol() {
+    let msg: [String: Any] = ["action": "nightProtocol"]
+    guard WCSession.default.isReachable else { return }
+    WCSession.default.sendMessage(msg, replyHandler: nil, errorHandler: { _ in })
+  }
+
   func sendPing() {
     let msg = ["ping": Date().timeIntervalSince1970]
     guard WCSession.default.isReachable else {

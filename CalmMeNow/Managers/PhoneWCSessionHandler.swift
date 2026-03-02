@@ -72,6 +72,10 @@ final class PhoneWCSessionHandler: NSObject, WCSessionDelegate {
         }
       }
       return
+    } else if message["action"] as? String == "nightProtocol" {
+      DispatchQueue.main.async {
+        DeepLinkManager.shared.shouldShowNightProtocol = true
+      }
     } else if message["ping"] != nil {
       // Ping received - no action needed
     } else {

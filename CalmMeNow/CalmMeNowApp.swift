@@ -49,16 +49,16 @@ class DeepLinkManager: ObservableObject {
   static let shared = DeepLinkManager()
 
   @Published var shouldShowEmergencyCalm = false
+  @Published var shouldShowNightProtocol = false
 
   func handleDeepLink(_ url: URL) {
     guard url.scheme == "calmmenow" else { return }
 
     switch url.host {
     case "emergency":
-      // Trigger emergency calm view
-      DispatchQueue.main.async {
-        self.shouldShowEmergencyCalm = true
-      }
+      DispatchQueue.main.async { self.shouldShowEmergencyCalm = true }
+    case "night":
+      DispatchQueue.main.async { self.shouldShowNightProtocol = true }
     default:
       break
     }
@@ -66,6 +66,10 @@ class DeepLinkManager: ObservableObject {
 
   func resetEmergencyCalm() {
     shouldShowEmergencyCalm = false
+  }
+
+  func resetNightProtocol() {
+    shouldShowNightProtocol = false
   }
 }
 

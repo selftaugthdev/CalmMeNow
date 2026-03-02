@@ -206,6 +206,51 @@ struct CalmMeNowLockScreenWidget: Widget {
   }
 }
 
+// MARK: - Night Protocol Lock Screen Widget Views
+
+struct CircularNightButton: View {
+  var body: some View {
+    ZStack {
+      AccessoryWidgetBackground()
+      Text("🌙")
+        .font(.system(size: 22))
+    }
+  }
+}
+
+struct RectangularNightButton: View {
+  var body: some View {
+    HStack(spacing: 8) {
+      Text("🌙")
+        .font(.system(size: 20))
+      VStack(alignment: .leading, spacing: 2) {
+        Text("Night Protocol")
+          .font(.system(size: 14, weight: .semibold))
+        Text("Tap for calm")
+          .font(.system(size: 11))
+          .foregroundStyle(.secondary)
+      }
+    }
+  }
+}
+
+// MARK: - Night Protocol Widget Configuration
+
+struct NightProtocolWidget: Widget {
+  let kind: String = "NightProtocolWidget"
+
+  var body: some WidgetConfiguration {
+    StaticConfiguration(kind: kind, provider: Provider()) { _ in
+      CircularNightButton()
+        .widgetURL(URL(string: "calmmenow://night"))
+        .containerBackground(.fill.tertiary, for: .widget)
+    }
+    .configurationDisplayName("Night Protocol")
+    .description("One tap to calm nighttime panic or PTSD.")
+    .supportedFamilies([.accessoryCircular, .accessoryRectangular])
+  }
+}
+
 #Preview(as: .systemSmall) {
   CalmMeNowWidget()
 } timeline: {

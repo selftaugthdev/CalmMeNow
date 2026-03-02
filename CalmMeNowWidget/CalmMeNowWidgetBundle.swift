@@ -14,5 +14,6 @@ struct CalmMeNowWidgetBundle: WidgetBundle {
         CalmMeNowWidget()
         CalmMeNowMediumWidget()
         CalmMeNowLockScreenWidget()
+        NightProtocolWidget()
     }
 }
