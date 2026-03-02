@@ -67,8 +67,7 @@ struct PaywallView: View {
       startPoint: .topLeading,
       endPoint: .bottomTrailing
     )
-    .ignoresSafeArea(.all, edges: .top)
-    .padding(.bottom, 20)
+    .ignoresSafeArea()
   }
 
   private var headerSection: some View {
@@ -170,7 +169,8 @@ struct PaywallView: View {
               .progressViewStyle(CircularProgressViewStyle(tint: .white))
               .scaleEffect(0.8)
           } else {
-            HStack {
+            HStack(spacing: 8) {
+              Spacer()
               Text("🙌")
                 .font(.title2)
               Text(selectedPackageID == revenueCatService.currentOffering?.annual?.identifier ? "Try Free for 7 Days" : "Subscribe")
@@ -318,11 +318,12 @@ struct PricingOptionRow: View {
       .padding()
       .background(
         RoundedRectangle(cornerRadius: 12)
-          .fill(isSelected ? Color.blue.opacity(0.08) : Color(.systemBackground))
+          .fill(isSelected ? Color.white : Color.white.opacity(0.6))
           .overlay(
             RoundedRectangle(cornerRadius: 12)
-              .stroke(isSelected ? Color.blue : Color.gray.opacity(0.3), lineWidth: 1.5)
+              .stroke(isSelected ? Color.blue : Color.gray.opacity(0.3), lineWidth: isSelected ? 2.5 : 1)
           )
+          .shadow(color: isSelected ? Color.blue.opacity(0.2) : .clear, radius: 6, x: 0, y: 3)
       )
     }
     .buttonStyle(PlainButtonStyle())
