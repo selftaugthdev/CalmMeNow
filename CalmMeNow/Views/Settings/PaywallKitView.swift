@@ -10,10 +10,10 @@ struct PaywallKitView: View {
   private let paywallConfig = PaywallConfig(
     title: "Unlock Personalized Calm",
     subtitle: "Tools that genuinely help you understand and manage your anxiety",
-    yearlyBadgeText: "SAVE 90%",
-    weeklyTrialLabel: "7-Day Free Trial",
+    yearlyBadgeText: "7-Day Free Trial",
+    weeklyTrialLabel: "Weekly Plan",
     weeklyNoTrialLabel: "Weekly Plan",
-    trialToggleDefault: true,
+    trialToggleDefault: false,
     termsURL: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"),
     privacyURL: URL(
       string:

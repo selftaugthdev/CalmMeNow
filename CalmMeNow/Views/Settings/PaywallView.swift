@@ -50,8 +50,8 @@ struct PaywallView: View {
       }
       .onChange(of: revenueCatService.currentOffering) { offering in
         guard selectedPackageID.isEmpty else { return }
-        // Default to monthly when offering loads
-        if let id = offering?.monthly?.identifier {
+        // Default to yearly
+        if let id = offering?.annual?.identifier {
           selectedPackageID = id
         }
       }
@@ -140,7 +140,7 @@ struct PaywallView: View {
           PricingOptionRow(
             package: pkg,
             label: "Monthly",
-            badge: pkg.storeProduct.introductoryDiscount != nil ? "7-Day Free Trial" : nil,
+            badge: nil,
             isSelected: selectedPackageID == pkg.identifier,
             onSelect: { selectedPackageID = pkg.identifier }
           )
@@ -149,7 +149,7 @@ struct PaywallView: View {
           PricingOptionRow(
             package: pkg,
             label: "Yearly",
-            badge: "Best Value",
+            badge: "7-Day Free Trial",
             isSelected: selectedPackageID == pkg.identifier,
             onSelect: { selectedPackageID = pkg.identifier }
           )
@@ -173,7 +173,7 @@ struct PaywallView: View {
             HStack {
               Text("🙌")
                 .font(.title2)
-              Text("Try For Free")
+              Text(selectedPackageID == revenueCatService.currentOffering?.annual?.identifier ? "Try Free for 7 Days" : "Subscribe")
                 .fontWeight(.semibold)
               Spacer()
               Text("→")
