@@ -49,7 +49,7 @@ struct PDFReportView: View {
       }
     }
     .sheet(isPresented: $showingPaywall) {
-      PaywallKitView()
+      PaywallView()
     }
   }
 

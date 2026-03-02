@@ -496,7 +496,7 @@ struct ContentView: View {
       }
     #endif
     .sheet(isPresented: $showingPaywall) {
-      PaywallKitView()
+      PaywallView()
     }
     .sheet(isPresented: $showingPositiveQuotes) {
       PositiveQuotesView()

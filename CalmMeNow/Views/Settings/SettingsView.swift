@@ -465,7 +465,7 @@ struct SettingsView: View {
       }
       .navigationBarHidden(true)
       .sheet(isPresented: $showingPaywall) {
-        PaywallKitView()
+        PaywallView()
       }
       .sheet(isPresented: $showingCrisisResources) {
         CrisisResourcesView()
