@@ -159,8 +159,7 @@ struct BreathingLibraryView: View {
     HapticManager.shared.softImpact()
     if program.isFree {
       selectedProgram = program
-    } else if !PaywallManager.freeLaunchMode && paywallManager.hasAIAccess {
-      // Real subscriber in production
+    } else if paywallManager.hasAIAccess {
       selectedProgram = program
     } else {
       paywallManager.showPaywall()

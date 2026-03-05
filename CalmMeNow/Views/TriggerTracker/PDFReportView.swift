@@ -12,7 +12,7 @@ struct PDFReportView: View {
   @State private var showShareSheet = false
   @State private var showingPaywall = false
 
-  private var isPremium: Bool { revenueCat.isSubscribed }
+  private var isPremium: Bool { PaywallManager.hasFreeAccess || revenueCat.isSubscribed }
 
   var body: some View {
     ZStack {
