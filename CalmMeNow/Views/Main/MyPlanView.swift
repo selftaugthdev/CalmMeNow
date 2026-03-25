@@ -9,6 +9,8 @@ struct MyPlanView: View {
   @State private var showingEnhancedPanicPlan = false
   @State private var showingDailyCoach = false
   @State private var showingTriggerTracker = false
+  @State private var showingPatternInsights = false
+  @State private var showingSleepRoutine = false
   @State private var showingPaywall = false
 
   var body: some View {
@@ -88,6 +90,48 @@ struct MyPlanView: View {
                   showingTriggerTracker = true
                 }
               )
+
+              EmotionCard(
+                emoji: "📈",
+                emotion: "Pattern Insights",
+                subtext: "Discover trends in your mental health journey",
+                isSelected: selectedButton == "pattern_insights",
+                onTap: {
+                  HapticManager.shared.emotionButtonTap()
+                  selectedButton = "pattern_insights"
+                  Task {
+                    let hasAccess = await paywallManager.requestAIAccess()
+                    if hasAccess {
+                      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        showingPatternInsights = true
+                      }
+                    }
+                  }
+                },
+                isPremium: true,
+                hasAccess: paywallManager.hasAIAccess
+              )
+
+              EmotionCard(
+                emoji: "💤",
+                emotion: "Sleep Routine",
+                subtext: "Wind-down routine for better sleep",
+                isSelected: selectedButton == "sleep_routine",
+                onTap: {
+                  HapticManager.shared.emotionButtonTap()
+                  selectedButton = "sleep_routine"
+                  Task {
+                    let hasAccess = await paywallManager.requestAIAccess()
+                    if hasAccess {
+                      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        showingSleepRoutine = true
+                      }
+                    }
+                  }
+                },
+                isPremium: true,
+                hasAccess: paywallManager.hasAIAccess
+              )
             }
             .padding(.horizontal, horizontalSizeClass == .regular ? 60 : 20)
           }
@@ -102,6 +146,8 @@ struct MyPlanView: View {
     .sheet(isPresented: $showingEnhancedPanicPlan) { EnhancedPanicPlanView() }
     .sheet(isPresented: $showingDailyCoach) { DailyCoachView() }
     .sheet(isPresented: $showingTriggerTracker) { TriggerTrackerView() }
+    .sheet(isPresented: $showingPatternInsights) { PatternAnalyticsView() }
+    .sheet(isPresented: $showingSleepRoutine) { SleepRoutineView() }
     .sheet(isPresented: $showingPaywall) { PaywallView() }
     .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
       showingPaywall = shouldShow
