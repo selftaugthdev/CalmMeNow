@@ -99,8 +99,8 @@ struct PaywallView: View {
 
       FeatureRow(
         icon: "🎯",
-        title: "Personalized Panic Plans",
-        description: "AI-powered strategies tailored to your specific triggers, intensity patterns, and recovery history"
+        title: "Personal Coaching Plans",
+        description: "Personalised strategies tailored to your specific triggers, intensity patterns, and recovery history"
       )
 
       FeatureRow(
@@ -111,13 +111,13 @@ struct PaywallView: View {
 
       FeatureRow(
         icon: "🧠",
-        title: "AI Daily Check-in Coach",
-        description: "Daily mood coaching with personalised recommendations and pattern insights powered by AI"
+        title: "Daily Check-in Coach",
+        description: "Daily mood coaching with personalised recommendations and pattern insights"
       )
 
       FeatureRow(
         icon: "💜",
-        title: "AI Emergency Companion",
+        title: "Emergency Companion",
         description: "24/7 adaptive support for crisis moments with personalised guidance when you need it most"
       )
     }

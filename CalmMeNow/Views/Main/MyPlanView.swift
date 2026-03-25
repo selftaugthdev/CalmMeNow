@@ -6,7 +6,6 @@ struct MyPlanView: View {
   @StateObject private var paywallManager = PaywallManager.shared
 
   @State private var selectedButton: String? = nil
-  @State private var showingPersonalizedPlan = false
   @State private var showingEnhancedPanicPlan = false
   @State private var showingDailyCoach = false
   @State private var showingTriggerTracker = false
@@ -35,31 +34,9 @@ struct MyPlanView: View {
               spacing: 16
             ) {
               EmotionCard(
-                emoji: "🧩",
-                emotion: "Panic Plan",
-                subtext: "Your personalized emergency response plan",
-                isSelected: selectedButton == "panic_plan",
-                onTap: {
-                  HapticManager.shared.emotionButtonTap()
-                  selectedButton = "panic_plan"
-                  FirebaseAnalyticsService.shared.trackEmotionSelected(emotion: "panic_plan")
-                  Task {
-                    let hasAccess = await paywallManager.requestAIAccess()
-                    if hasAccess {
-                      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        showingPersonalizedPlan = true
-                      }
-                    }
-                  }
-                },
-                isPremium: true,
-                hasAccess: paywallManager.hasAIAccess
-              )
-
-              EmotionCard(
                 emoji: "🧠",
-                emotion: "Smart Plan",
-                subtext: "Personalized panic plan with insights",
+                emotion: "Personal Coach",
+                subtext: "Your personalised plan with journal insights",
                 isSelected: selectedButton == "enhanced_panic_plan",
                 onTap: {
                   HapticManager.shared.emotionButtonTap()
@@ -122,7 +99,6 @@ struct MyPlanView: View {
       .navigationBarTitleDisplayMode(.large)
     }
     .navigationViewStyle(.stack)
-    .sheet(isPresented: $showingPersonalizedPlan) { PersonalizedPanicPlanView() }
     .sheet(isPresented: $showingEnhancedPanicPlan) { EnhancedPanicPlanView() }
     .sheet(isPresented: $showingDailyCoach) { DailyCoachView() }
     .sheet(isPresented: $showingTriggerTracker) { TriggerTrackerView() }

@@ -177,8 +177,8 @@ struct SettingsView: View {
                 )
               }
 
-              // AI Settings
-              SettingsSection(title: "🤖 AI Assistant") {
+              // Personal Coach Settings
+              SettingsSection(title: "🧠 Personal Coach") {
                 VStack(spacing: 16) {
                   HStack {
                     VStack(alignment: .leading, spacing: 4) {
@@ -226,7 +226,7 @@ struct SettingsView: View {
                   SettingsFeatureRow(
                     icon: "infinity",
                     iconColor: .orange,
-                    title: "Unlimited AI Sessions",
+                    title: "Unlimited Coaching Sessions",
                     description: "Generate unlimited personalized calming plans",
                     isPremium: !PaywallManager.hasFreeAccess
                   )

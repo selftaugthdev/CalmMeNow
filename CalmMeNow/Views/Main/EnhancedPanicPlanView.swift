@@ -59,7 +59,7 @@ struct EnhancedPanicPlanView: View {
               Text("🧠")
                 .font(.system(size: 60))
 
-              Text("Personalized Panic Plan")
+              Text("Personal Coach")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(Color(.label))
@@ -148,7 +148,7 @@ struct EnhancedPanicPlanView: View {
                   .foregroundColor(.green)
                   .font(.title2)
 
-                Text("Your Panic Plans")
+                Text("Your Plans")
                   .font(.title2)
                   .fontWeight(.bold)
                   .foregroundColor(Color(.label))
@@ -215,7 +215,7 @@ struct EnhancedPanicPlanView: View {
                     .font(.title2)
                 }
 
-                Text(isGeneratingAIPlan ? "Creating..." : "Generate Personalized Plan")
+                Text(isGeneratingAIPlan ? "Creating..." : "Generate My Plan")
                   .font(.headline)
                   .fontWeight(.semibold)
               }
@@ -600,7 +600,7 @@ struct PanicPlanEditorView: View {
           TextField("Your calming phrase", text: $personalizedPhrase)
         }
       }
-      .navigationTitle(plan == nil ? "New Panic Plan" : "Edit Panic Plan")
+      .navigationTitle(plan == nil ? "New Plan" : "Edit Plan")
       .navigationBarItems(
         leading: Button("Cancel") {
           presentationMode.wrappedValue.dismiss()
