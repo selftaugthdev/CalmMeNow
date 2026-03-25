@@ -15,6 +15,7 @@ func printJSON(_ any: Any, prefix: String = "🔎") {
 
 struct DailyCoachView: View {
   @Environment(\.presentationMode) var presentationMode
+  @Environment(\.modelContext) private var modelContext
   @State private var mood: Int = 4  // 1-10
   @State private var tags: Set<String> = ["tired"]
   @State private var note: String = ""
@@ -503,7 +504,9 @@ struct DailyCoachView: View {
         await updateProgress(1.0)
         try await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
 
+        let entry = MoodEntry(score: mood, tags: Array(tags))
         await MainActor.run {
+          modelContext.insert(entry)
           self.checkInResponse = parsed
           self.isLoadingResponse = false
         }

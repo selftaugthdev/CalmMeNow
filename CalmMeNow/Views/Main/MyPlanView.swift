@@ -12,6 +12,7 @@ struct MyPlanView: View {
   @State private var showingPatternInsights = false
   @State private var showingSleepRoutine = false
   @State private var showingWeeklyReport = false
+  @State private var showingMoodHistory = false
   @State private var showingPaywall = false
 
   var body: some View {
@@ -135,6 +136,27 @@ struct MyPlanView: View {
               )
 
               EmotionCard(
+                emoji: "📉",
+                emotion: "Mood History",
+                subtext: "Visual timeline of your check-in mood scores",
+                isSelected: selectedButton == "mood_history",
+                onTap: {
+                  HapticManager.shared.emotionButtonTap()
+                  selectedButton = "mood_history"
+                  Task {
+                    let hasAccess = await paywallManager.requestAIAccess()
+                    if hasAccess {
+                      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        showingMoodHistory = true
+                      }
+                    }
+                  }
+                },
+                isPremium: true,
+                hasAccess: paywallManager.hasAIAccess
+              )
+
+              EmotionCard(
                 emoji: "📋",
                 emotion: "Weekly Report",
                 subtext: "Your wellness summary for the week",
@@ -171,6 +193,7 @@ struct MyPlanView: View {
     .sheet(isPresented: $showingPatternInsights) { PatternAnalyticsView() }
     .sheet(isPresented: $showingSleepRoutine) { SleepRoutineView() }
     .sheet(isPresented: $showingWeeklyReport) { WeeklyWellnessReportView() }
+    .sheet(isPresented: $showingMoodHistory) { MoodHistoryView() }
     .sheet(isPresented: $showingPaywall) { PaywallView() }
     .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
       showingPaywall = shouldShow
