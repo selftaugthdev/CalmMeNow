@@ -194,8 +194,8 @@ struct HomeView: View {
             ) {
               EmotionCard(
                 emoji: "🫁",
-                emotion: "Breathwork",
-                subtext: "5 clinically-backed techniques + custom",
+                emotion: "Slow my heart",
+                subtext: "Breathing techniques to calm you down",
                 isSelected: selectedButton == "breathing_library",
                 onTap: {
                   HapticManager.shared.softImpact()
@@ -206,8 +206,8 @@ struct HomeView: View {
 
               EmotionCard(
                 emoji: "🌱",
-                emotion: "Grounding",
-                subtext: "5-4-3-2-1 sensory technique",
+                emotion: "Stop the spiral",
+                subtext: "5-4-3-2-1 sensory grounding",
                 isSelected: selectedButton == "grounding",
                 onTap: {
                   HapticManager.shared.emotionButtonTap()
@@ -219,7 +219,7 @@ struct HomeView: View {
 
               EmotionCard(
                 emoji: "💪",
-                emotion: "Body Relax",
+                emotion: "Release tension",
                 subtext: "Progressive muscle relaxation",
                 isSelected: selectedButton == "pmr",
                 onTap: {
@@ -232,7 +232,7 @@ struct HomeView: View {
 
               EmotionCard(
                 emoji: "🌙",
-                emotion: "Night Protocol",
+                emotion: "Help me sleep",
                 subtext: "For nighttime panic, PTSD & insomnia",
                 isSelected: selectedButton == "night_protocol",
                 onTap: {

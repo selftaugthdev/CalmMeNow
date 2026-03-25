@@ -39,8 +39,8 @@ struct MyPlanView: View {
             ) {
               EmotionCard(
                 emoji: "🧠",
-                emotion: "Personal Coach",
-                subtext: "Your personalised plan with journal insights",
+                emotion: "My Plan",
+                subtext: "A plan that adapts when you struggle",
                 isSelected: selectedButton == "enhanced_panic_plan",
                 onTap: {
                   HapticManager.shared.emotionButtonTap()
@@ -61,8 +61,8 @@ struct MyPlanView: View {
 
               EmotionCard(
                 emoji: "📅",
-                emotion: "Daily Coach",
-                subtext: "Daily check-ins and progress tracking",
+                emotion: "Today's Plan",
+                subtext: "Know exactly what to do today",
                 isSelected: selectedButton == "daily_coach",
                 onTap: {
                   HapticManager.shared.emotionButtonTap()
@@ -83,8 +83,8 @@ struct MyPlanView: View {
 
               EmotionCard(
                 emoji: "📊",
-                emotion: "Trigger Tracker",
-                subtext: "See what sets off your panic & spot patterns",
+                emotion: "What sets me off",
+                subtext: "Log triggers and spot your patterns",
                 isSelected: selectedButton == "trigger_tracker",
                 onTap: {
                   HapticManager.shared.emotionButtonTap()
@@ -95,8 +95,8 @@ struct MyPlanView: View {
 
               EmotionCard(
                 emoji: "📈",
-                emotion: "Pattern Insights",
-                subtext: "Discover trends in your mental health journey",
+                emotion: "Why it happens",
+                subtext: "Understand why this keeps happening",
                 isSelected: selectedButton == "pattern_insights",
                 onTap: {
                   HapticManager.shared.emotionButtonTap()
@@ -116,7 +116,7 @@ struct MyPlanView: View {
 
               EmotionCard(
                 emoji: "💤",
-                emotion: "Sleep Routine",
+                emotion: "Help me sleep",
                 subtext: "Wind-down routine for better sleep",
                 isSelected: selectedButton == "sleep_routine",
                 onTap: {
@@ -137,8 +137,8 @@ struct MyPlanView: View {
 
               EmotionCard(
                 emoji: "📉",
-                emotion: "Mood History",
-                subtext: "Visual timeline of your check-in mood scores",
+                emotion: "How I'm doing",
+                subtext: "Track how you're really doing over time",
                 isSelected: selectedButton == "mood_history",
                 onTap: {
                   HapticManager.shared.emotionButtonTap()
@@ -158,8 +158,8 @@ struct MyPlanView: View {
 
               EmotionCard(
                 emoji: "📋",
-                emotion: "Weekly Report",
-                subtext: "Your wellness summary for the week",
+                emotion: "My progress",
+                subtext: "See your progress, even when it doesn't feel like it",
                 isSelected: selectedButton == "weekly_report",
                 onTap: {
                   HapticManager.shared.emotionButtonTap()
