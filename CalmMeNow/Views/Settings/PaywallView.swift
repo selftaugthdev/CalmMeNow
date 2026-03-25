@@ -72,16 +72,16 @@ struct PaywallView: View {
 
   private var headerSection: some View {
     VStack(spacing: 16) {
-      Text("🧠")
+      Text("💙")
         .font(.system(size: 80))
 
-      Text("Unlock Personalized Calm")
+      Text("Stop panic attacks faster.")
         .font(.largeTitle)
         .fontWeight(.bold)
         .foregroundColor(.black)
         .multilineTextAlignment(.center)
 
-      Text("Get personalized support when you need it most")
+      Text("Personalized support that meets you\nright when it hits.")
         .font(.title3)
         .foregroundColor(.black.opacity(0.7))
         .multilineTextAlignment(.center)
@@ -92,33 +92,33 @@ struct PaywallView: View {
   private var featuresSection: some View {
     VStack(spacing: 20) {
       FeatureRow(
-        icon: "📄",
-        title: "Full Clinical PDF Report",
-        description: "Multi-page doctor's report with trigger charts, severity history, time-of-day patterns & journal themes — shareable directly with your therapist"
+        icon: "💙",
+        title: "Never face it alone",
+        description: "Adaptive support that kicks in the moment panic hits — every time, no matter when."
       )
 
       FeatureRow(
         icon: "🎯",
-        title: "Personal Coaching Plans",
-        description: "Personalised strategies tailored to your specific triggers, intensity patterns, and recovery history"
+        title: "A plan that adapts when you struggle",
+        description: "Not a generic routine. Your triggers, your patterns, your personalised recovery path."
       )
 
       FeatureRow(
         icon: "📊",
-        title: "Trigger Tracker Insights",
-        description: "Full episode log, weekly trend charts, outcome-per-trigger analysis, and custom trigger categories"
+        title: "Understand why this keeps happening",
+        description: "See exactly what sets you off, how often it's improving, and what actually helps."
       )
 
       FeatureRow(
-        icon: "🧠",
-        title: "Daily Check-in Coach",
-        description: "Daily mood coaching with personalised recommendations and pattern insights"
+        icon: "📅",
+        title: "Know exactly what to do today",
+        description: "Daily support tailored to how you're actually feeling — not how you should be feeling."
       )
 
       FeatureRow(
-        icon: "💜",
-        title: "Emergency Companion",
-        description: "24/7 adaptive support for crisis moments with personalised guidance when you need it most"
+        icon: "📈",
+        title: "See your progress, even when it doesn't feel like it",
+        description: "Weekly summaries and mood trends that show how far you've really come."
       )
     }
   }
@@ -154,7 +154,7 @@ struct PaywallView: View {
           )
         }
       }
-      Text("Cancel anytime • No commitment")
+      Text("Start free. Cancel anytime.")
         .font(.subheadline)
         .foregroundColor(Color(.secondaryLabel))
     }

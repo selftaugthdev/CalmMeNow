@@ -51,23 +51,23 @@ struct SubscriptionSuccessView: View {
 
         // Success message
         VStack(spacing: 20) {
-          Text("🎉 Welcome to Premium!")
+          Text("You're not alone anymore.")
             .font(.largeTitle)
             .fontWeight(.bold)
             .foregroundColor(.white)
             .multilineTextAlignment(.center)
             .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
 
-          Text("You now have access to all personalized features:")
+          Text("Everything you need to stop panic faster is now unlocked.")
             .font(.title3)
             .foregroundColor(.white)
             .multilineTextAlignment(.center)
             .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
 
           VStack(spacing: 12) {
-            PremiumFeatureRow(icon: "target", text: "Personal Coaching Plans")
-            PremiumFeatureRow(icon: "brain.head.profile", text: "Daily Check-in Coach")
-            PremiumFeatureRow(icon: "heart.fill", text: "Emergency Companion")
+            PremiumFeatureRow(icon: "heart.fill", text: "Never face it alone")
+            PremiumFeatureRow(icon: "target", text: "A plan that adapts when you struggle")
+            PremiumFeatureRow(icon: "chart.line.uptrend.xyaxis", text: "See your progress, even when it doesn't feel like it")
           }
           .padding(.top, 10)
         }
