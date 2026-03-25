@@ -9,10 +9,24 @@ struct MainTabView: View {
   var body: some View {
     TabView {
       // Home Tab
-      ContentView()
+      HomeView()
         .tabItem {
           Image(systemName: "house.fill")
           Text("Home")
+        }
+
+      // Tools Tab
+      ToolsView()
+        .tabItem {
+          Image(systemName: "leaf.fill")
+          Text("Tools")
+        }
+
+      // My Plan Tab
+      MyPlanView()
+        .tabItem {
+          Image(systemName: "puzzlepiece.fill")
+          Text("My Plan")
         }
 
       // Journal Tab
@@ -20,13 +34,6 @@ struct MainTabView: View {
         .tabItem {
           Image(systemName: "book.fill")
           Text("Journal")
-        }
-
-      // Settings Tab
-      SettingsView()
-        .tabItem {
-          Image(systemName: "gear")
-          Text("Settings")
         }
     }
     .accentColor(Color(hex: "#A0C4FF"))
@@ -120,6 +127,21 @@ struct JournalListView: View {
                   .padding(.horizontal, 40)
 
                 Spacer()
+
+                StreakCardView(progressTracker: ProgressTracker.shared)
+                  .padding(.horizontal, 20)
+                  .onLongPressGesture(minimumDuration: 3) {
+                    ProgressTracker.shared.resetStreakData()
+                  }
+                  .onTapGesture(count: 2) {
+                    let calendar = Calendar.current
+                    if let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) {
+                      ProgressTracker.shared.addUsageForDate(yesterday)
+                    }
+                  }
+                  .onTapGesture(count: 3) {
+                    ProgressTracker.shared.addUsageForConsecutiveDays(5)
+                  }
               }
             } else {
               ScrollView {
@@ -133,6 +155,23 @@ struct JournalListView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
+
+                StreakCardView(progressTracker: ProgressTracker.shared)
+                  .padding(.horizontal, 20)
+                  .padding(.top, 12)
+                  .padding(.bottom, 20)
+                  .onLongPressGesture(minimumDuration: 3) {
+                    ProgressTracker.shared.resetStreakData()
+                  }
+                  .onTapGesture(count: 2) {
+                    let calendar = Calendar.current
+                    if let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) {
+                      ProgressTracker.shared.addUsageForDate(yesterday)
+                    }
+                  }
+                  .onTapGesture(count: 3) {
+                    ProgressTracker.shared.addUsageForConsecutiveDays(5)
+                  }
               }
             }
 
