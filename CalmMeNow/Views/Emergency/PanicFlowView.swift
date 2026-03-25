@@ -99,6 +99,7 @@ struct PanicFlowView: View {
             .frame(width: 260, height: 260)
             .scaleEffect(bearScale)
             .brightness(bearBrightness)
+            .blendMode(.screen)
             .animation(.easeInOut(duration: 4).repeatForever(autoreverses: true), value: bearScale)
             .animation(.easeInOut(duration: 4).repeatForever(autoreverses: true), value: bearBrightness)
         }
