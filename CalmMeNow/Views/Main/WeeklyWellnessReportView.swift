@@ -172,7 +172,7 @@ struct WeeklyWellnessReportView: View {
             } else {
               ReportSectionCard(title: "Top Trigger This Week") {
                 HStack {
-                  Text("No trigger episodes logged yet this week.")
+                  Text("A calm week so far. Keep going.")
                     .font(.subheadline)
                     .foregroundColor(.black.opacity(0.55))
                   Spacer()

@@ -40,11 +40,10 @@ struct HomeView: View {
         VStack(spacing: 0) {
           // Section 1: Emergency Block
           VStack(spacing: 8) {
-            Text("🚨 EMERGENCY CALM")
-              .font(.title2)
-              .fontWeight(.bold)
-              .foregroundColor(.red)
-              .opacity(0.9)
+            Text("I need help right now")
+              .font(.title3)
+              .fontWeight(.semibold)
+              .foregroundColor(.black.opacity(0.55))
 
             Button(action: {
               HapticManager.shared.emergencyButtonTap()
@@ -175,11 +174,11 @@ struct HomeView: View {
           // Section 2: Quick Access 2x2 grid
           VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-              Text("Quick Access")
+              Text("Right here, right now")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundColor(.black)
-              Text("Your most-used tools")
+              Text("Tap anything. You've got this.")
                 .font(.caption)
                 .foregroundColor(.black.opacity(0.6))
             }

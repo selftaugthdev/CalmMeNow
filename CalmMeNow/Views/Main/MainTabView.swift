@@ -115,12 +115,12 @@ struct JournalListView: View {
                   .font(.system(size: 60))
                   .foregroundColor(.black.opacity(0.3))
 
-                Text("No journal entries yet")
+                Text("This is your space.")
                   .font(.title2)
                   .fontWeight(.medium)
                   .foregroundColor(.black)
 
-                Text("Start writing to track your thoughts and feelings")
+                Text("Write whenever you're ready.\nNo pressure, no rules.")
                   .font(.body)
                   .foregroundColor(.black.opacity(0.7))
                   .multilineTextAlignment(.center)

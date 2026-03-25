@@ -116,10 +116,10 @@ struct MoodHistoryView: View {
     VStack(spacing: 16) {
       Text("💙")
         .font(.system(size: 48))
-      Text("No check-ins yet")
+      Text("Nothing here yet.")
         .font(.headline)
         .foregroundColor(.black)
-      Text("Complete a Daily Check-in to start\ntracking your mood over time.")
+      Text("Do your first Daily Check-in and\nyour mood will start showing up here.")
         .font(.subheadline)
         .foregroundColor(.black.opacity(0.55))
         .multilineTextAlignment(.center)

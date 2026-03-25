@@ -174,7 +174,7 @@ struct TriggerTrackerView: View {
 
     return trackerCard(title: "Top Triggers", subtitle: "Last 30 days") {
       if sorted.isEmpty {
-        Text("No episodes in the last 30 days")
+        Text("A quiet stretch — that's a good thing.")
           .font(.caption).foregroundColor(.white.opacity(0.5))
           .frame(maxWidth: .infinity, alignment: .center).padding(.vertical, 8)
       } else {
@@ -336,9 +336,9 @@ struct TriggerTrackerView: View {
       Spacer()
       Text("📊").font(.system(size: 72))
       VStack(spacing: 10) {
-        Text("No episodes yet")
+        Text("Nothing logged yet.")
           .font(.system(size: 28, weight: .bold, design: .rounded)).foregroundColor(.white)
-        Text("After your next emergency calm session,\nyou'll be prompted to log what triggered it.")
+        Text("After your next calm session, you'll get a chance to note what triggered it.\nEvery entry helps you understand yourself better.")
           .font(.body).foregroundColor(.white.opacity(0.7))
           .multilineTextAlignment(.center).padding(.horizontal, 40)
       }
