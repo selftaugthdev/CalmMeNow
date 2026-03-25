@@ -7,6 +7,7 @@ struct ToolsView: View {
 
   @State private var selectedButton: String? = nil
   @State private var showingBreathingLibrary = false
+  @State private var showingBreathingChallenge = false
   @State private var showingGrounding = false
   @State private var showingPMRExercise = false
   @State private var showingGameSelection = false
@@ -49,6 +50,26 @@ struct ToolsView: View {
                   selectedButton = "breathing_library"
                   showingBreathingLibrary = true
                 }
+              )
+              EmotionCard(
+                emoji: "🔥",
+                emotion: "Challenge",
+                subtext: "7 or 21-day breathing habit builder",
+                isSelected: selectedButton == "breathing_challenge",
+                onTap: {
+                  HapticManager.shared.softImpact()
+                  selectedButton = "breathing_challenge"
+                  Task {
+                    let hasAccess = await paywallManager.requestAIAccess()
+                    if hasAccess {
+                      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        showingBreathingChallenge = true
+                      }
+                    }
+                  }
+                },
+                isPremium: true,
+                hasAccess: paywallManager.hasAIAccess
               )
               EmotionCard(
                 emoji: "🌱",
@@ -121,6 +142,7 @@ struct ToolsView: View {
     }
     .navigationViewStyle(.stack)
     .sheet(isPresented: $showingBreathingLibrary) { BreathingLibraryView() }
+    .sheet(isPresented: $showingBreathingChallenge) { BreathingChallengeView() }
     .sheet(isPresented: $showingGrounding) { SomaticGroundingView() }
     .sheet(isPresented: $showingPMRExercise) { PMRExerciseView() }
     .sheet(isPresented: $showingGameSelection) {
