@@ -125,12 +125,25 @@ struct PaywallView: View {
 
   private var pricingSection: some View {
     VStack(spacing: 12) {
+      // No payment due now
+      HStack(spacing: 6) {
+        Image(systemName: "checkmark")
+          .font(.caption.weight(.bold))
+          .foregroundColor(.green)
+        Text("No payment due now")
+          .font(.subheadline)
+          .foregroundColor(.black.opacity(0.7))
+      }
+
       if let offering = revenueCatService.currentOffering {
-        if let pkg = offering.weekly {
+        // Annual first — highlighted
+        if let pkg = offering.annual {
           PricingOptionRow(
             package: pkg,
-            label: "Weekly",
-            badge: nil,
+            label: "Annual Plan",
+            weeklyBreakdown: weeklyPrice(for: pkg),
+            trialText: "7-day\nfree trial",
+            badgeText: "Limited Time: Best Value",
             isSelected: selectedPackageID == pkg.identifier,
             onSelect: { selectedPackageID = pkg.identifier }
           )
@@ -138,17 +151,21 @@ struct PaywallView: View {
         if let pkg = offering.monthly {
           PricingOptionRow(
             package: pkg,
-            label: "Monthly",
-            badge: nil,
+            label: "Monthly Plan",
+            weeklyBreakdown: nil,
+            trialText: "No free\ntrial",
+            badgeText: nil,
             isSelected: selectedPackageID == pkg.identifier,
             onSelect: { selectedPackageID = pkg.identifier }
           )
         }
-        if let pkg = offering.annual {
+        if let pkg = offering.weekly {
           PricingOptionRow(
             package: pkg,
-            label: "Yearly",
-            badge: "7-Day Free Trial",
+            label: "Weekly Plan",
+            weeklyBreakdown: nil,
+            trialText: "No free\ntrial",
+            badgeText: nil,
             isSelected: selectedPackageID == pkg.identifier,
             onSelect: { selectedPackageID = pkg.identifier }
           )
@@ -158,6 +175,16 @@ struct PaywallView: View {
         .font(.subheadline)
         .foregroundColor(Color(.secondaryLabel))
     }
+  }
+
+  private func weeklyPrice(for package: Package) -> String? {
+    let weekly = package.storeProduct.price / 52
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .currency
+    formatter.currencyCode = package.storeProduct.currencyCode
+    formatter.maximumFractionDigits = 2
+    guard let formatted = formatter.string(from: weekly as NSDecimalNumber) else { return nil }
+    return "\(formatted)/week"
   }
 
   private var actionButtonsSection: some View {
@@ -173,7 +200,7 @@ struct PaywallView: View {
               Spacer()
               Text("🙌")
                 .font(.title2)
-              Text(selectedPackageID == revenueCatService.currentOffering?.annual?.identifier ? "Try Free for 7 Days" : "Subscribe")
+              Text(selectedPackageID == revenueCatService.currentOffering?.annual?.identifier ? "Start My 7-Day Free Trial" : "Subscribe Now")
                 .fontWeight(.semibold)
               Spacer()
               Text("→")
@@ -281,50 +308,76 @@ struct PaywallView: View {
 struct PricingOptionRow: View {
   let package: Package
   let label: String
-  let badge: String?
+  let weeklyBreakdown: String?
+  let trialText: String
+  let badgeText: String?
   let isSelected: Bool
   let onSelect: () -> Void
 
   var body: some View {
     Button(action: onSelect) {
-      HStack {
-        // Selection indicator
-        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-          .foregroundColor(isSelected ? .blue : .gray)
-          .font(.title3)
+      ZStack(alignment: .top) {
+        // Card
+        HStack(alignment: .center, spacing: 12) {
+          VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+              .font(.headline)
+              .foregroundColor(isSelected ? Color(hex: "#3A6ED4") : .black)
 
-        VStack(alignment: .leading, spacing: 2) {
-          Text(label)
-            .font(.headline)
-            .foregroundColor(.black)
-          Text(package.storeProduct.localizedPriceString)
-            .font(.subheadline)
-            .foregroundColor(.black.opacity(0.6))
+            HStack(spacing: 4) {
+              Text(package.storeProduct.localizedPriceString)
+                .font(.subheadline)
+                .foregroundColor(isSelected ? Color(hex: "#3A6ED4") : .black.opacity(0.6))
+              if let breakdown = weeklyBreakdown {
+                Text("(\(breakdown))")
+                  .font(.subheadline)
+                  .foregroundColor(isSelected ? Color(hex: "#3A6ED4").opacity(0.7) : .black.opacity(0.45))
+              }
+            }
+          }
+
+          Spacer()
+
+          Text(trialText)
+            .font(.caption)
+            .fontWeight(.medium)
+            .foregroundColor(isSelected ? Color(hex: "#3A6ED4") : .black.opacity(0.45))
+            .multilineTextAlignment(.trailing)
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 18)
+        .padding(.top, badgeText != nil ? 10 : 0)
+        .background(
+          RoundedRectangle(cornerRadius: 14)
+            .fill(isSelected ? Color.white : Color.white.opacity(0.6))
+            .overlay(
+              RoundedRectangle(cornerRadius: 14)
+                .stroke(isSelected ? Color(hex: "#3A6ED4") : Color.gray.opacity(0.25), lineWidth: isSelected ? 2 : 1)
+            )
+            .shadow(color: isSelected ? Color(hex: "#3A6ED4").opacity(0.15) : .clear, radius: 8, x: 0, y: 3)
+        )
 
-        Spacer()
-
-        if let badge = badge {
+        // Badge overlay at top center
+        if let badge = badgeText {
           Text(badge)
             .font(.caption)
             .fontWeight(.bold)
             .foregroundColor(.white)
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 12)
             .padding(.vertical, 4)
-            .background(badge == "Best Value" ? Color.green : Color.blue)
-            .cornerRadius(8)
+            .background(
+              Capsule()
+                .fill(
+                  LinearGradient(
+                    colors: [Color(hex: "#5B8FCC"), Color(hex: "#9B5FC0")],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                  )
+                )
+            )
+            .offset(y: -10)
         }
       }
-      .padding()
-      .background(
-        RoundedRectangle(cornerRadius: 12)
-          .fill(isSelected ? Color.white : Color.white.opacity(0.6))
-          .overlay(
-            RoundedRectangle(cornerRadius: 12)
-              .stroke(isSelected ? Color.blue : Color.gray.opacity(0.3), lineWidth: isSelected ? 2.5 : 1)
-          )
-          .shadow(color: isSelected ? Color.blue.opacity(0.2) : .clear, radius: 6, x: 0, y: 3)
-      )
     }
     .buttonStyle(PlainButtonStyle())
   }
