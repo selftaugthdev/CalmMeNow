@@ -19,9 +19,11 @@ struct RecoveryTip: Identifiable {
 
 struct PostPanicRecoveryView: View {
   @Environment(\.presentationMode) var presentationMode
+  @StateObject private var progressTracker = ProgressTracker.shared
   @State private var expandedTipId: UUID?
   @State private var showingJournal = false
   @State private var showingCrisisResources = false
+  var sessionDuration: Int = 0
   var onReturnToHome: (() -> Void)?
 
   private let tips: [RecoveryTip] = [
@@ -88,28 +90,58 @@ struct PostPanicRecoveryView: View {
 
       ScrollView {
         VStack(spacing: 24) {
-          // Header
-          VStack(spacing: 16) {
-            // Gentle checkmark animation
+          // Confidence card
+          VStack(spacing: 20) {
             ZStack {
               Circle()
                 .fill(Color.green.opacity(0.2))
                 .frame(width: 100, height: 100)
-
               Image(systemName: "heart.fill")
                 .font(.system(size: 50))
                 .foregroundColor(.green)
             }
             .padding(.top, 30)
 
-            Text("You made it through")
+            Text("You got through it.")
               .font(.largeTitle)
               .fontWeight(.bold)
               .foregroundColor(.primary)
 
-            Text("That took strength. Here are some gentle next steps.")
+            // Session stats
+            HStack(spacing: 20) {
+              if sessionDuration > 0 {
+                VStack(spacing: 2) {
+                  Text(sessionDuration < 60
+                    ? "\(sessionDuration)s"
+                    : "\(sessionDuration / 60)m \(sessionDuration % 60)s")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+                  Text("to calm down")
+                    .font(.caption)
+                    .foregroundColor(.primary.opacity(0.55))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color.green.opacity(0.12)))
+              }
+
+              VStack(spacing: 2) {
+                Text("\(progressTracker.weeklyUsage)")
+                  .font(.system(size: 22, weight: .bold, design: .rounded))
+                  .foregroundColor(.primary)
+                Text("times this week")
+                  .font(.caption)
+                  .foregroundColor(.primary.opacity(0.55))
+              }
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 14)
+              .background(RoundedRectangle(cornerRadius: 12).fill(Color.blue.opacity(0.10)))
+            }
+            .padding(.horizontal, 24)
+
+            Text("You've handled this before.\nYou can handle it again.")
               .font(.body)
-              .foregroundColor(.primary.opacity(0.7))
+              .foregroundColor(.primary.opacity(0.65))
               .multilineTextAlignment(.center)
               .padding(.horizontal, 40)
           }
@@ -195,33 +227,30 @@ struct RecoveryTipCard: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       // Main row
-      Button(action: onTap) {
-        HStack(spacing: 16) {
-          // Emoji
-          Text(tip.emoji)
-            .font(.system(size: 32))
+      HStack(spacing: 16) {
+        Text(tip.emoji)
+          .font(.system(size: 32))
 
-          // Title and description
-          VStack(alignment: .leading, spacing: 4) {
-            Text(tip.title)
-              .font(.headline)
-              .foregroundColor(.primary)
+        VStack(alignment: .leading, spacing: 4) {
+          Text(tip.title)
+            .font(.headline)
+            .foregroundColor(.primary)
 
-            Text(tip.description)
-              .font(.subheadline)
-              .foregroundColor(.primary.opacity(0.6))
-          }
-
-          Spacer()
-
-          // Expand indicator
-          Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-            .font(.caption)
-            .foregroundColor(.gray)
+          Text(tip.description)
+            .font(.subheadline)
+            .foregroundColor(.primary.opacity(0.6))
         }
-        .padding()
+
+        Spacer()
+
+        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+          .font(.caption)
+          .foregroundColor(.gray)
+          .animation(.easeInOut(duration: 0.2), value: isExpanded)
       }
-      .buttonStyle(PlainButtonStyle())
+      .padding()
+      .contentShape(Rectangle())
+      .onTapGesture { onTap() }
 
       // Expanded content
       if isExpanded, let content = tip.expandedContent {
@@ -234,14 +263,12 @@ struct RecoveryTipCard: View {
             .foregroundColor(.primary.opacity(0.8))
             .fixedSize(horizontal: false, vertical: true)
 
-          // Action button if available
           if let actionLabel = tip.actionLabel, let action = onAction {
             Button(action: action) {
               HStack {
                 Text(actionLabel)
                   .font(.subheadline)
                   .fontWeight(.medium)
-
                 Image(systemName: "arrow.right")
                   .font(.caption)
               }
@@ -257,9 +284,10 @@ struct RecoveryTipCard: View {
         }
         .padding(.horizontal)
         .padding(.bottom)
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        .transition(.opacity)
       }
     }
+    .animation(.easeInOut(duration: 0.25), value: isExpanded)
     .background(
       RoundedRectangle(cornerRadius: 16)
         .fill(Color.white.opacity(0.9))

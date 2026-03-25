@@ -267,7 +267,7 @@ struct HomeView: View {
       }
     }
     .navigationViewStyle(.stack)
-    .sheet(isPresented: $showingEmergencyCalm) { EmergencyCalmView() }
+    .fullScreenCover(isPresented: $showingEmergencyCalm) { PanicFlowView() }
     .sheet(isPresented: $showingBreathingLibrary) { BreathingLibraryView() }
     .sheet(isPresented: $showingGrounding) { SomaticGroundingView() }
     .sheet(isPresented: $showingPMRExercise) { PMRExerciseView() }
