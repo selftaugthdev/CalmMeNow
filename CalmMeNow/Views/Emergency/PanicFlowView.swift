@@ -12,9 +12,11 @@ struct PanicFlowView: View {
   @State private var sessionId: String = ""
   private let sessionStart = Date()
 
-  // MARK: - Breathing orb
+  // MARK: - Bear breathing animation
 
-  @State private var orbScale: CGFloat = 0.6
+  @State private var bearScale: CGFloat = 0.92
+  @State private var bearBrightness: Double = -0.05
+  @State private var bearGlow: CGFloat = 12
   @State private var breatheIn: Bool = true
 
   // MARK: - Reassurance messages
@@ -82,39 +84,23 @@ struct PanicFlowView: View {
 
         Spacer()
 
-        // Breathing orb
+        // Bear mascot — breathes via scale + brightness
         ZStack {
-          // Outer pulse ring
+          // Soft ambient glow behind bear
           Circle()
-            .stroke(Color.white.opacity(0.06), lineWidth: 1)
-            .frame(width: 280, height: 280)
-            .scaleEffect(orbScale * 1.35)
-            .animation(.easeInOut(duration: 4).repeatForever(autoreverses: true), value: orbScale)
+            .fill(Color(hex: "#6AB0FF").opacity(0.12))
+            .frame(width: 260, height: 260)
+            .blur(radius: bearGlow)
+            .animation(.easeInOut(duration: 4).repeatForever(autoreverses: true), value: bearGlow)
 
-          // Mid ring
-          Circle()
-            .stroke(Color.white.opacity(0.10), lineWidth: 1)
-            .frame(width: 280, height: 280)
-            .scaleEffect(orbScale * 1.15)
-            .animation(.easeInOut(duration: 4).repeatForever(autoreverses: true), value: orbScale)
-
-          // Core orb
-          Circle()
-            .fill(
-              RadialGradient(
-                colors: [
-                  Color(hex: "#6AB0FF").opacity(0.85),
-                  Color(hex: "#3A6ED4").opacity(0.6),
-                  Color(hex: "#1A3560").opacity(0.0),
-                ],
-                center: .center,
-                startRadius: 0,
-                endRadius: 140
-              )
-            )
-            .frame(width: 280, height: 280)
-            .scaleEffect(orbScale)
-            .animation(.easeInOut(duration: 4).repeatForever(autoreverses: true), value: orbScale)
+          Image("bear_mascot")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 260, height: 260)
+            .scaleEffect(bearScale)
+            .brightness(bearBrightness)
+            .animation(.easeInOut(duration: 4).repeatForever(autoreverses: true), value: bearScale)
+            .animation(.easeInOut(duration: 4).repeatForever(autoreverses: true), value: bearBrightness)
         }
 
         // Breathing instruction
@@ -256,9 +242,10 @@ struct PanicFlowView: View {
 
   private func startBreathingCycle() {
     withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
-      orbScale = 1.15
+      bearScale = 1.06
+      bearBrightness = 0.08
+      bearGlow = 28
     }
-    // Toggle breatheIn text every 4s
     scheduleBreathToggle()
   }
 
