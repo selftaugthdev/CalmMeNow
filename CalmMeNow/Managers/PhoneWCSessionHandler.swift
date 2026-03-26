@@ -72,6 +72,15 @@ final class PhoneWCSessionHandler: NSObject, WCSessionDelegate {
         }
       }
       return
+    } else if message["action"] as? String == "moodEntry",
+      let score = message["score"] as? Int,
+      let date = message["date"] as? TimeInterval
+    {
+      NotificationCenter.default.post(
+        name: .watchMoodEntryReceived,
+        object: nil,
+        userInfo: ["score": score, "date": date]
+      )
     } else if message["action"] as? String == "nightProtocol" {
       DispatchQueue.main.async {
         DeepLinkManager.shared.shouldShowNightProtocol = true
@@ -86,4 +95,8 @@ final class PhoneWCSessionHandler: NSObject, WCSessionDelegate {
   // iOS-only required stubs when switching between watches
   func sessionDidBecomeInactive(_ session: WCSession) {}
   func sessionDidDeactivate(_ session: WCSession) { WCSession.default.activate() }
+}
+
+extension Notification.Name {
+  static let watchMoodEntryReceived = Notification.Name("watchMoodEntryReceived")
 }

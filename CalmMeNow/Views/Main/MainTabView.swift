@@ -3,6 +3,7 @@ import SwiftUI
 
 struct MainTabView: View {
   @EnvironmentObject var deepLinkManager: DeepLinkManager
+  @Environment(\.modelContext) private var modelContext
   @State private var showingEmergencyCalm = false
   @State private var showingNightProtocol = false
 
@@ -55,6 +56,15 @@ struct MainTabView: View {
         showingNightProtocol = true
         deepLinkManager.resetNightProtocol()
       }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .watchMoodEntryReceived)) { notification in
+      guard let score = notification.userInfo?["score"] as? Int,
+            let date = notification.userInfo?["date"] as? TimeInterval else { return }
+      let entry = MoodEntry(score: score, tags: ["watch"], timestamp: Date(timeIntervalSince1970: date))
+      modelContext.insert(entry)
+    }
+    .onAppear {
+      PhoneWCSessionHandler.shared.activate()
     }
   }
 }

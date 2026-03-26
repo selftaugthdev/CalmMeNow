@@ -78,6 +78,7 @@ struct WatchMoodView: View {
       UserDefaults.standard.set(data, forKey: "watchMoodEntries")
     }
 
+    WCSessionDelegateHelper.shared.sendMoodEntry(score: score, date: Date().timeIntervalSince1970)
     withAnimation { saved = true }
   }
 

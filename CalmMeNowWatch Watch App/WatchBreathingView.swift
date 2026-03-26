@@ -56,58 +56,53 @@ struct WatchBreathingView: View {
           .buttonStyle(.plain)
         }
         .padding(.horizontal, 12)
+        .transition(.identity)
       } else {
         // Active session
         GeometryReader { geo in
-          let D = min(geo.size.width, geo.size.height) * 0.9
+          let D = min(geo.size.width, geo.size.height) * 0.58
           let ringW: CGFloat = 6
 
-          ZStack {
-            // Track ring
-            Circle()
-              .stroke(Color.white.opacity(0.1), lineWidth: ringW)
-              .frame(width: D, height: D)
+          VStack(spacing: 2) {
+            ZStack {
+              Circle()
+                .stroke(Color.white.opacity(0.1), lineWidth: ringW)
+                .frame(width: D, height: D)
 
-            // Progress ring
-            Circle()
-              .trim(from: 0, to: progress)
-              .stroke(
-                Color(hex: "#6AB0FF"),
-                style: StrokeStyle(lineWidth: ringW, lineCap: .round)
-              )
-              .rotationEffect(.degrees(-90))
-              .frame(width: D, height: D)
-              .animation(.linear(duration: 0.1), value: progress)
+              Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                  Color(hex: "#6AB0FF"),
+                  style: StrokeStyle(lineWidth: ringW, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+                .frame(width: D, height: D)
+                .animation(.linear(duration: 0.1), value: progress)
 
-            VStack(spacing: 4) {
               Image("bear_mascot")
                 .resizable()
                 .scaledToFit()
-                .frame(width: D * 0.48, height: D * 0.48)
+                .frame(width: D * 0.55, height: D * 0.55)
                 .scaleEffect(bearScale)
                 .blendMode(.screen)
                 .animation(.easeInOut(duration: phase == .inhale ? 4 : 6), value: bearScale)
-
-              Text(phase.rawValue)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.white.opacity(0.8))
-
-              Text("\(Int(max(0, sessionLength - elapsed)))s")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
-                .foregroundColor(.white.opacity(0.5))
             }
+
+            Text(phase.rawValue)
+              .font(.system(size: 11, weight: .medium))
+              .foregroundColor(.white.opacity(0.8))
+
+            Text("\(Int(max(0, sessionLength - elapsed)))s")
+              .font(.system(size: 12, weight: .bold, design: .rounded))
+              .foregroundColor(.white.opacity(0.5))
+
+            Button("Stop") { endSession() }
+              .font(.system(size: 11))
+              .foregroundColor(.white.opacity(0.4))
           }
           .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .padding(6)
-
-        VStack {
-          Spacer()
-          Button("Stop") { endSession() }
-            .font(.system(size: 11))
-            .foregroundColor(.white.opacity(0.4))
-            .padding(.bottom, 4)
-        }
       }
     }
     .onDisappear {

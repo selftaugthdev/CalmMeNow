@@ -9,6 +9,10 @@ import SwiftUI
 
 @main
 struct CalmMeNowWatchApp: App {
+  init() {
+    WCSessionDelegateHelper.shared.activate()
+  }
+
   var body: some Scene {
     WindowGroup { WatchHomeView() }
   }

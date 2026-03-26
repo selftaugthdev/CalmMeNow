@@ -84,7 +84,7 @@ struct WatchHomeView: View {
       }
       .padding(.horizontal, 8)
     }
-    .sheet(isPresented: $showingBreathing) {
+    .fullScreenCover(isPresented: $showingBreathing) {
       WatchBreathingView()
     }
     .sheet(isPresented: $showingMood) {

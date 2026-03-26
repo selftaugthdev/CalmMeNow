@@ -8,10 +8,10 @@ class MoodEntry {
   var tags: [String]
   var timestamp: Date
 
-  init(score: Int, tags: [String] = []) {
+  init(score: Int, tags: [String] = [], timestamp: Date = Date()) {
     self.id = UUID()
     self.score = score
     self.tags = tags
-    self.timestamp = Date()
+    self.timestamp = timestamp
   }
 }
