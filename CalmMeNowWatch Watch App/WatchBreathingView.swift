@@ -110,6 +110,10 @@ struct WatchBreathingView: View {
         }
       }
     }
+    .onDisappear {
+      timer?.invalidate()
+      timer = nil
+    }
   }
 
   private func startSession() {

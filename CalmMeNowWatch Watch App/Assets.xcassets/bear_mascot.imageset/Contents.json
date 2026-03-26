@@ -12,6 +12,11 @@
       "filename" : "Bear Glow Mascot.png",
       "idiom" : "universal",
       "scale" : "3x"
+    },
+    {
+      "filename" : "Bear Glow Mascot 1.png",
+      "idiom" : "watch",
+      "scale" : "2x"
     }
   ],
   "info" : {

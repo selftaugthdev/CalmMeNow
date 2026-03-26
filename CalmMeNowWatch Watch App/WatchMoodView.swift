@@ -73,7 +73,7 @@ struct WatchMoodView: View {
 
     // Save to UserDefaults
     var entries = loadEntries()
-    entries.append(["score": score, "date": Date().timeIntervalSince1970])
+    entries.append(["score": Double(score), "date": Date().timeIntervalSince1970])
     if let data = try? JSONSerialization.data(withJSONObject: entries) {
       UserDefaults.standard.set(data, forKey: "watchMoodEntries")
     }
