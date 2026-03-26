@@ -95,13 +95,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		316B84DC2F75305C000F58F6 /* Exceptions for "CalmMeNowWatch Watch App" folder in "CalmMeNowWatch Watch App" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				ContentView.swift,
-			);
-			target = 316B84C22F752DFE000F58F6 /* CalmMeNowWatch Watch App */;
-		};
 		E46E82E62F26443100C7F540 /* Exceptions for "CalmMeNowWidget" folder in "CalmMeNowWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -122,9 +115,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		316B84C42F752DFE000F58F6 /* CalmMeNowWatch Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				316B84DC2F75305C000F58F6 /* Exceptions for "CalmMeNowWatch Watch App" folder in "CalmMeNowWatch Watch App" target */,
-			);
 			path = "CalmMeNowWatch Watch App";
 			sourceTree = "<group>";
 		};
