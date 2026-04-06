@@ -38,11 +38,12 @@ class SpeechService: NSObject, ObservableObject {
 
     // Grounding (5-4-3-2-1)
     "let's ground yourself using your five senses. take your time with each step.": "voice_grounding_intro",
-    "look around you. name five things you can see.":    "voice_grounding_see",
-    "listen carefully. name four things you can hear.":  "voice_grounding_hear",
-    "feel around you. name three things you can touch.": "voice_grounding_touch",
-    "breathe in gently. name two things you can smell.": "voice_grounding_smell",
-    "finally, name one thing you can taste.":            "voice_grounding_taste",
+    "look around you. name 5 things you can see.":              "voice_grounding_see",
+    "feel 4 things you can physically touch right now.":        "voice_grounding_touch",
+    "listen carefully. name 3 things you can hear.":            "voice_grounding_hear",
+    "notice 2 things you can smell around you.":                "voice_grounding_smell",
+    "notice 1 thing you can taste right now.":                  "voice_grounding_taste",
+    "well done. you are here. you are grounded.":               "voice_grounding_complete",
 
     // PMR intro & outro
     "progressive muscle relaxation. we'll tense and relax each muscle group. let's begin.": "voice_pmr_intro",
