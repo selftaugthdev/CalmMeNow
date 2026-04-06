@@ -7,6 +7,35 @@ struct BreathingProgramPlayerView: View {
   @StateObject private var speechService = SpeechService()
   @AppStorage("prefVoice") private var voiceGuidanceEnabled = false
   @AppStorage("prefHaptics") private var hapticsEnabled = true
+  @StateObject private var audioManager = AudioManager.shared
+
+  // Ambient sound selection — nil means no sound
+  @State private var selectedAmbientSound: AmbientSound? = nil
+
+  enum AmbientSound: String, CaseIterable, Identifiable {
+    case night       = "ethereal-night-loop"
+    case rain        = "ambient-rain"
+    case ocean       = "ambient-ocean"
+    case brownNoise  = "ambient-brown-noise"
+
+    var id: String { rawValue }
+    var label: String {
+      switch self {
+      case .night:      return "Night"
+      case .rain:       return "Rain"
+      case .ocean:      return "Ocean"
+      case .brownNoise: return "Noise"
+      }
+    }
+    var icon: String {
+      switch self {
+      case .night:      return "moon.stars.fill"
+      case .rain:       return "cloud.rain.fill"
+      case .ocean:      return "water.waves"
+      case .brownNoise: return "waveform"
+      }
+    }
+  }
 
   @State private var isExerciseActive = false
   @State private var isStarting = false
@@ -169,6 +198,64 @@ struct BreathingProgramPlayerView: View {
                 )
             )
 
+            // Ambient sound picker
+            VStack(alignment: .leading, spacing: 10) {
+              HStack {
+                Image(systemName: "music.note")
+                  .foregroundColor(selectedAmbientSound != nil ? .blue : .gray)
+                Text("Ambient sound")
+                  .font(.subheadline)
+              }
+
+              HStack(spacing: 8) {
+                // None button
+                Button {
+                  selectedAmbientSound = nil
+                } label: {
+                  Text("Off")
+                    .font(.caption.weight(.medium))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                      RoundedRectangle(cornerRadius: 20)
+                        .fill(selectedAmbientSound == nil ? Color.blue : Color.gray.opacity(0.15))
+                    )
+                    .foregroundColor(selectedAmbientSound == nil ? .white : .primary)
+                }
+
+                ForEach(AmbientSound.allCases) { sound in
+                  Button {
+                    selectedAmbientSound = selectedAmbientSound == sound ? nil : sound
+                  } label: {
+                    HStack(spacing: 4) {
+                      Image(systemName: sound.icon)
+                        .font(.caption)
+                      Text(sound.label)
+                        .font(.caption.weight(.medium))
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                      RoundedRectangle(cornerRadius: 20)
+                        .fill(selectedAmbientSound == sound ? Color.blue : Color.gray.opacity(0.15))
+                    )
+                    .foregroundColor(selectedAmbientSound == sound ? .white : .primary)
+                  }
+                }
+              }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+              RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
+            )
+
             Button(action: {
               guard !isStarting else { return }
               isStarting = true
@@ -219,6 +306,10 @@ struct BreathingProgramPlayerView: View {
     isExerciseActive = true
     timeRemaining = program.duration
     currentPhase = .inhale
+
+    if let sound = selectedAmbientSound {
+      audioManager.playSound(sound.rawValue, loop: true)
+    }
     orbScale = 1.0
     orbOpacity = 0.8
     boxProgress = 0.0
@@ -383,6 +474,7 @@ struct BreathingProgramPlayerView: View {
     cycleTimer = nil
 
     speechService.stopAll()
+    audioManager.stopSoundImmediately()
 
     orbScale = 1.0
     orbOpacity = 0.8
