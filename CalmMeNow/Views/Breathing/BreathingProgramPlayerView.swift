@@ -57,13 +57,12 @@ struct BreathingProgramPlayerView: View {
   var body: some View {
     ZStack {
       LinearGradient(
-        gradient: Gradient(colors: [
-          Color.blue.opacity(0.1),
-          Color(hex: "#98D8C8").opacity(0.1),
-          Color.mint.opacity(0.1),
-        ]),
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
+        colors: [
+          Color(red: 0.05, green: 0.07, blue: 0.20),
+          Color(red: 0.08, green: 0.10, blue: 0.26),
+        ],
+        startPoint: .top,
+        endPoint: .bottom
       )
       .ignoresSafeArea()
 
@@ -76,7 +75,7 @@ struct BreathingProgramPlayerView: View {
           }) {
             Image(systemName: "xmark.circle.fill")
               .font(.title2)
-              .foregroundColor(.gray)
+              .foregroundColor(.white.opacity(0.5))
           }
 
           Spacer()
@@ -85,10 +84,10 @@ struct BreathingProgramPlayerView: View {
             Text("\(program.emoji) \(program.name)")
               .font(.title2)
               .fontWeight(.semibold)
-              .foregroundColor(.primary)
+              .foregroundColor(.white)
             Text(program.ratioLabel)
               .font(.caption)
-              .foregroundColor(.secondary)
+              .foregroundColor(.white.opacity(0.5))
           }
 
           Spacer()
@@ -96,7 +95,7 @@ struct BreathingProgramPlayerView: View {
           Text(timeString(timeRemaining))
             .font(.title2)
             .fontWeight(.bold)
-            .foregroundColor(.blue)
+            .foregroundColor(Color(red: 0.6, green: 0.75, blue: 1.0))
             .frame(width: 54)
         }
         .padding()
@@ -124,12 +123,12 @@ struct BreathingProgramPlayerView: View {
             Text(phaseLabel)
               .font(.title)
               .fontWeight(.semibold)
-              .foregroundColor(.primary)
+              .foregroundColor(.white)
               .animation(.easeInOut(duration: 0.3), value: currentPhase)
 
             Text(program.description)
               .font(.caption)
-              .foregroundColor(.secondary)
+              .foregroundColor(.white.opacity(0.55))
               .multilineTextAlignment(.center)
               .padding(.horizontal, 40)
           }
@@ -143,10 +142,11 @@ struct BreathingProgramPlayerView: View {
             Text(program.name)
               .font(.title)
               .fontWeight(.bold)
+              .foregroundColor(.white)
 
             Text(program.description)
               .font(.body)
-              .foregroundColor(.secondary)
+              .foregroundColor(.white.opacity(0.6))
               .multilineTextAlignment(.center)
               .padding(.horizontal, 30)
 
@@ -155,24 +155,25 @@ struct BreathingProgramPlayerView: View {
                 Text(program.ratioLabel)
                   .font(.headline)
                   .fontWeight(.semibold)
+                  .foregroundColor(.white)
                 Text("Ratio")
                   .font(.caption)
-                  .foregroundColor(.secondary)
+                  .foregroundColor(.white.opacity(0.5))
               }
               VStack(spacing: 4) {
                 Text(program.durationLabel)
                   .font(.headline)
                   .fontWeight(.semibold)
+                  .foregroundColor(.white)
                 Text("Duration")
                   .font(.caption)
-                  .foregroundColor(.secondary)
+                  .foregroundColor(.white.opacity(0.5))
               }
             }
             .padding()
             .background(
               RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
+                .fill(Color.white.opacity(0.08))
             )
 
             // Voice toggle
@@ -180,21 +181,22 @@ struct BreathingProgramPlayerView: View {
               Image(
                 systemName: voiceGuidanceEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill"
               )
-              .foregroundColor(voiceGuidanceEnabled ? .blue : .gray)
+              .foregroundColor(voiceGuidanceEnabled ? Color(red: 0.6, green: 0.75, blue: 1.0) : .white.opacity(0.4))
               Text("Voice guidance")
                 .font(.subheadline)
+                .foregroundColor(.white.opacity(0.85))
               Spacer()
               Toggle("", isOn: $voiceGuidanceEnabled)
-                .toggleStyle(SwitchToggleStyle(tint: .blue))
+                .toggleStyle(SwitchToggleStyle(tint: Color(red: 0.6, green: 0.75, blue: 1.0)))
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .background(
               RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
+                .fill(Color.white.opacity(0.08))
                 .overlay(
                   RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
                 )
             )
 
@@ -202,13 +204,13 @@ struct BreathingProgramPlayerView: View {
             VStack(alignment: .leading, spacing: 10) {
               HStack {
                 Image(systemName: "music.note")
-                  .foregroundColor(selectedAmbientSound != nil ? .blue : .gray)
+                  .foregroundColor(selectedAmbientSound != nil ? Color(red: 0.6, green: 0.75, blue: 1.0) : .white.opacity(0.4))
                 Text("Ambient sound")
                   .font(.subheadline)
+                  .foregroundColor(.white.opacity(0.85))
               }
 
               HStack(spacing: 8) {
-                // None button
                 Button {
                   selectedAmbientSound = nil
                 } label: {
@@ -218,9 +220,9 @@ struct BreathingProgramPlayerView: View {
                     .padding(.vertical, 6)
                     .background(
                       RoundedRectangle(cornerRadius: 20)
-                        .fill(selectedAmbientSound == nil ? Color.blue : Color.gray.opacity(0.15))
+                        .fill(selectedAmbientSound == nil ? Color(red: 0.6, green: 0.75, blue: 1.0) : Color.white.opacity(0.12))
                     )
-                    .foregroundColor(selectedAmbientSound == nil ? .white : .primary)
+                    .foregroundColor(.white)
                 }
 
                 ForEach(AmbientSound.allCases) { sound in
@@ -237,9 +239,9 @@ struct BreathingProgramPlayerView: View {
                     .padding(.vertical, 6)
                     .background(
                       RoundedRectangle(cornerRadius: 20)
-                        .fill(selectedAmbientSound == sound ? Color.blue : Color.gray.opacity(0.15))
+                        .fill(selectedAmbientSound == sound ? Color(red: 0.6, green: 0.75, blue: 1.0) : Color.white.opacity(0.12))
                     )
-                    .foregroundColor(selectedAmbientSound == sound ? .white : .primary)
+                    .foregroundColor(.white)
                   }
                 }
               }
@@ -249,10 +251,10 @@ struct BreathingProgramPlayerView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
               RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
+                .fill(Color.white.opacity(0.08))
                 .overlay(
                   RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
                 )
             )
 
@@ -270,7 +272,7 @@ struct BreathingProgramPlayerView: View {
                 .padding(.vertical, 14)
                 .background(
                   RoundedRectangle(cornerRadius: 25)
-                    .fill(isStarting ? Color.gray : Color.blue)
+                    .fill(isStarting ? Color.white.opacity(0.2) : Color(red: 0.6, green: 0.75, blue: 1.0))
                 )
             }
             .disabled(isStarting)
