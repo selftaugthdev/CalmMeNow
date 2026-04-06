@@ -5,6 +5,7 @@
 //  Created by Thierry De Belder on 19/05/2025.
 //
 
+import AppIntents
 import Combine
 import FirebaseAnalytics
 import FirebaseAppCheck
@@ -79,6 +80,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     setupFirebaseAndAppCheck()
+    CalmMeNowShortcuts.updateAppShortcutParameters()
     return true
   }
 
