@@ -8,6 +8,11 @@ struct SettingsView: View {
   @AppStorage("userCalmingPhrase") private var userCalmingPhrase =
     "This feeling will pass, I am safe"
 
+  @StateObject private var checkInReminder = CheckInReminderService.shared
+  @StateObject private var breathingReminder = BreathingReminderService.shared
+  @State private var showingCheckInTimePicker = false
+  @State private var showingBreathingTimePicker = false
+
   // App version
   private var appVersion: String {
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
@@ -151,6 +156,147 @@ struct SettingsView: View {
                 if prefVoice {
                   CompactEnhancedVoiceBanner()
                 }
+              }
+
+              // Notifications Section
+              SettingsSection(title: "Notifications") {
+                VStack(spacing: 16) {
+                  // Daily Check-In Reminder
+                  VStack(spacing: 8) {
+                    HStack {
+                      Image(systemName: "bell.fill")
+                        .foregroundColor(.green)
+                        .font(.title2)
+                        .frame(width: 24, height: 24)
+
+                      VStack(alignment: .leading, spacing: 4) {
+                        Text("Daily Check-In")
+                          .font(.headline)
+                          .foregroundColor(.primary)
+
+                        Text("Remind me to log how I'm feeling")
+                          .font(.caption)
+                          .foregroundColor(.primary.opacity(0.6))
+                      }
+
+                      Spacer()
+
+                      Toggle("", isOn: Binding(
+                        get: { checkInReminder.isEnabled },
+                        set: { newValue in
+                          if newValue {
+                            Task { await checkInReminder.requestPermissionAndEnable() }
+                          } else {
+                            checkInReminder.disableReminder()
+                          }
+                        }
+                      ))
+                      .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#A0C4FF")))
+                    }
+
+                    if checkInReminder.isEnabled {
+                      Button {
+                        showingCheckInTimePicker.toggle()
+                      } label: {
+                        HStack {
+                          Text("Time")
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+                          Spacer()
+                          Text(checkInReminder.timeDisplayString)
+                            .font(.subheadline)
+                            .foregroundColor(Color(hex: "#A0C4FF"))
+                          Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.primary.opacity(0.3))
+                        }
+                        .padding(.leading, 32)
+                      }
+
+                      if showingCheckInTimePicker {
+                        NotificationTimePicker(hour: $checkInReminder.hour, minute: $checkInReminder.minute) {
+                          checkInReminder.updateTime(hour: checkInReminder.hour, minute: checkInReminder.minute)
+                          showingCheckInTimePicker = false
+                        }
+                        .padding(.leading, 32)
+                      }
+                    }
+                  }
+
+                  Divider()
+                    .background(Color.black.opacity(0.1))
+
+                  // Breathing Reminder
+                  VStack(spacing: 8) {
+                    HStack {
+                      Image(systemName: "wind")
+                        .foregroundColor(.blue)
+                        .font(.title2)
+                        .frame(width: 24, height: 24)
+
+                      VStack(alignment: .leading, spacing: 4) {
+                        Text("Breathing Reminder")
+                          .font(.headline)
+                          .foregroundColor(.primary)
+
+                        Text("Daily nudge to keep your streak going")
+                          .font(.caption)
+                          .foregroundColor(.primary.opacity(0.6))
+                      }
+
+                      Spacer()
+
+                      Toggle("", isOn: Binding(
+                        get: { breathingReminder.isEnabled },
+                        set: { newValue in
+                          if newValue {
+                            Task { await breathingReminder.requestPermissionAndEnable() }
+                          } else {
+                            breathingReminder.disableReminder()
+                          }
+                        }
+                      ))
+                      .toggleStyle(SwitchToggleStyle(tint: Color(hex: "#A0C4FF")))
+                    }
+
+                    if breathingReminder.isEnabled {
+                      Button {
+                        showingBreathingTimePicker.toggle()
+                      } label: {
+                        HStack {
+                          Text("Time")
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+                          Spacer()
+                          Text(breathingReminder.timeDisplayString)
+                            .font(.subheadline)
+                            .foregroundColor(Color(hex: "#A0C4FF"))
+                          Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.primary.opacity(0.3))
+                        }
+                        .padding(.leading, 32)
+                      }
+
+                      if showingBreathingTimePicker {
+                        NotificationTimePicker(hour: $breathingReminder.hour, minute: $breathingReminder.minute) {
+                          breathingReminder.updateTime(hour: breathingReminder.hour, minute: breathingReminder.minute)
+                          showingBreathingTimePicker = false
+                        }
+                        .padding(.leading, 32)
+                      }
+                    }
+                  }
+                }
+                .padding()
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.9))
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                )
               }
 
               // Crisis Resources Section
@@ -649,6 +795,41 @@ struct SettingsActionRow: View {
       }
     }
     .buttonStyle(PlainButtonStyle())
+  }
+}
+
+struct NotificationTimePicker: View {
+  @Binding var hour: Int
+  @Binding var minute: Int
+  let onDone: () -> Void
+
+  var body: some View {
+    VStack(spacing: 8) {
+      DatePicker(
+        "",
+        selection: Binding(
+          get: {
+            var dc = DateComponents()
+            dc.hour = hour; dc.minute = minute
+            return Calendar.current.date(from: dc) ?? Date()
+          },
+          set: { date in
+            let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
+            hour   = comps.hour   ?? hour
+            minute = comps.minute ?? minute
+          }
+        ),
+        displayedComponents: .hourAndMinute
+      )
+      .datePickerStyle(.wheel)
+      .labelsHidden()
+      .frame(maxHeight: 120)
+      .clipped()
+
+      Button("Done") { onDone() }
+        .font(.subheadline.weight(.semibold))
+        .foregroundColor(Color(hex: "#A0C4FF"))
+    }
   }
 }
 

@@ -1,30 +1,36 @@
 import UserNotifications
 import SwiftUI
 
-final class CheckInReminderService: ObservableObject {
-  static let shared = CheckInReminderService()
+final class BreathingReminderService: ObservableObject {
+  static let shared = BreathingReminderService()
 
   @Published var isEnabled: Bool {
-    didSet { UserDefaults.standard.set(isEnabled, forKey: "reminderEnabled") }
+    didSet { UserDefaults.standard.set(isEnabled, forKey: "breathingReminderEnabled") }
   }
   @Published var hour: Int {
-    didSet { UserDefaults.standard.set(hour, forKey: "reminderHour") }
+    didSet { UserDefaults.standard.set(hour, forKey: "breathingReminderHour") }
   }
   @Published var minute: Int {
-    didSet { UserDefaults.standard.set(minute, forKey: "reminderMinute") }
+    didSet { UserDefaults.standard.set(minute, forKey: "breathingReminderMinute") }
   }
 
-  private let notificationID = "calmnow_checkin_reminder"
+  private let notificationID = "calmnow_breathing_reminder"
+
+  private let messages: [(title: String, body: String)] = [
+    ("Time to breathe 🌬️", "A short breathing session can reset your whole day."),
+    ("Your daily calm awaits 🧘", "Take 2 minutes to breathe and reset."),
+    ("Breathing break ✨", "Keep your streak going — one session is all it takes."),
+    ("Pause and breathe 💙", "Your mind will thank you for a quick breathing session."),
+  ]
 
   init() {
-    isEnabled = UserDefaults.standard.bool(forKey: "reminderEnabled")
-    hour      = UserDefaults.standard.object(forKey: "reminderHour")   as? Int ?? 9
-    minute    = UserDefaults.standard.object(forKey: "reminderMinute") as? Int ?? 0
+    isEnabled = UserDefaults.standard.bool(forKey: "breathingReminderEnabled")
+    hour      = UserDefaults.standard.object(forKey: "breathingReminderHour")   as? Int ?? 18
+    minute    = UserDefaults.standard.object(forKey: "breathingReminderMinute") as? Int ?? 0
   }
 
   // MARK: - Public
 
-  /// Request permission then schedule. Returns true if granted.
   @discardableResult
   func requestPermissionAndEnable() async -> Bool {
     do {
@@ -46,9 +52,10 @@ final class CheckInReminderService: ObservableObject {
     let center = UNUserNotificationCenter.current()
     center.removePendingNotificationRequests(withIdentifiers: [notificationID])
 
+    let msg = messages[Int.random(in: 0..<messages.count)]
     let content = UNMutableNotificationContent()
-    content.title = "How are you today? 🌱"
-    content.body  = "Take a moment to check in with CalmMeNow."
+    content.title = msg.title
+    content.body  = msg.body
     content.sound = .default
 
     var dc = DateComponents()
@@ -71,7 +78,6 @@ final class CheckInReminderService: ObservableObject {
     if isEnabled { scheduleReminder() }
   }
 
-  /// Formatted display string, e.g. "9:00 AM"
   var timeDisplayString: String {
     var dc = DateComponents()
     dc.hour = hour; dc.minute = minute
