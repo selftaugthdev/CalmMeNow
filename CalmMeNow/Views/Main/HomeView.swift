@@ -8,7 +8,9 @@ struct HomeView: View {
   @StateObject private var progressTracker = ProgressTracker.shared
   @StateObject private var paywallManager = PaywallManager.shared
   @StateObject private var subscriptionSuccessManager = SubscriptionSuccessManager.shared
+  @StateObject private var healthKit = HealthKitManager.shared
 
+  @State private var healthSuggestedProgram: String? = nil
   @State private var isQuickCalmPressed = false
   @State private var calmButtonPulse = false
   @State private var selectedButton: String? = nil
@@ -171,6 +173,14 @@ struct HomeView: View {
           .padding(.horizontal, horizontalSizeClass == .regular ? 60 : 24)
           .padding(.top, 12)
 
+          // Section 1.5: Heart Rate Card
+          HeartRateCard { programName in
+            healthSuggestedProgram = programName
+            showingBreathingLibrary = true
+          }
+          .padding(.horizontal, horizontalSizeClass == .regular ? 60 : 24)
+          .padding(.top, 16)
+
           // Section 2: Quick Access 2x2 grid
           VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
@@ -267,7 +277,9 @@ struct HomeView: View {
     }
     .navigationViewStyle(.stack)
     .fullScreenCover(isPresented: $showingEmergencyCalm) { PanicFlowView() }
-    .sheet(isPresented: $showingBreathingLibrary) { BreathingLibraryView() }
+    .sheet(isPresented: $showingBreathingLibrary, onDismiss: { healthSuggestedProgram = nil }) {
+      BreathingLibraryView(preselectedProgramName: healthSuggestedProgram)
+    }
     .sheet(isPresented: $showingGrounding) { SomaticGroundingView() }
     .sheet(isPresented: $showingPMRExercise) { PMRExerciseView() }
     .sheet(isPresented: $showingNightProtocol) { NightProtocolView() }

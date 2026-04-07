@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>CalmMeNow reads your heart rate and HRV to suggest the most effective breathing exercise for your current stress level.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

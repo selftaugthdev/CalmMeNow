@@ -16,6 +16,7 @@ struct ContentView: View {
   @StateObject private var progressTracker = ProgressTracker.shared
   @StateObject private var paywallManager = PaywallManager.shared
   @StateObject private var subscriptionSuccessManager = SubscriptionSuccessManager.shared
+  @StateObject private var healthKit = HealthKitManager.shared
   @State private var showingPaywall = false
   @State private var selectedButton: String? = nil
   @State private var isQuickCalmPressed = false
@@ -41,6 +42,7 @@ struct ContentView: View {
   @State private var showingSafeCard = false
   @State private var showingSafePersonSetup = false
   @State private var showingBreathingLibrary = false
+  @State private var healthSuggestedProgram: String? = nil
 
   @State private var selectedEmotion = ""
   @State private var selectedEmoji = ""
@@ -180,6 +182,12 @@ struct ContentView: View {
 
             // Core Differentiators - Reordered with free features first
             VStack(spacing: 20) {
+              // Heart Rate card
+              HeartRateCard { programName in
+                healthSuggestedProgram = programName
+                showingBreathingLibrary = true
+              }
+
               // Top row - Free features: Grounding and Body Relax
               HStack(spacing: 20) {
                 // Grounding Exercise Card (FREE)
@@ -522,8 +530,8 @@ struct ContentView: View {
     .sheet(isPresented: $showingSafePersonSetup) {
       TrustedContactView()
     }
-    .sheet(isPresented: $showingBreathingLibrary) {
-      BreathingLibraryView()
+    .sheet(isPresented: $showingBreathingLibrary, onDismiss: { healthSuggestedProgram = nil }) {
+      BreathingLibraryView(preselectedProgramName: healthSuggestedProgram)
     }
     .fullScreenCover(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
       SubscriptionSuccessView()

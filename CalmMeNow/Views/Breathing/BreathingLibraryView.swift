@@ -5,6 +5,8 @@ struct BreathingLibraryView: View {
   @StateObject private var service = BreathingProgramService.shared
   @StateObject private var paywallManager = PaywallManager.shared
 
+  var preselectedProgramName: String? = nil
+
   @State private var selectedProgram: BreathingProgram?
   @State private var showingPlayer = false
   @State private var showingCreator = false
@@ -150,6 +152,15 @@ struct BreathingLibraryView: View {
     }
     .sheet(isPresented: $showingCreator) {
       CustomBreathingCreatorView()
+    }
+    .onAppear {
+      if let name = preselectedProgramName,
+        let match = (service.builtInPrograms + service.customPrograms).first(where: { $0.name == name })
+      {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+          handleTap(match)
+        }
+      }
     }
   }
 
