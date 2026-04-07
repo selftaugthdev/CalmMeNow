@@ -17,6 +17,7 @@ struct BreathingProgramPlayerView: View {
     case rain        = "ambient-rain"
     case ocean       = "ambient-ocean"
     case brownNoise  = "ambient-brown-noise"
+    case whiteNoise  = "ambient-white-noise"
 
     var id: String { rawValue }
     var label: String {
@@ -24,7 +25,8 @@ struct BreathingProgramPlayerView: View {
       case .night:      return "Night"
       case .rain:       return "Rain"
       case .ocean:      return "Ocean"
-      case .brownNoise: return "Noise"
+      case .brownNoise: return "Brown"
+      case .whiteNoise: return "White"
       }
     }
     var icon: String {
@@ -33,6 +35,7 @@ struct BreathingProgramPlayerView: View {
       case .rain:       return "cloud.rain.fill"
       case .ocean:      return "water.waves"
       case .brownNoise: return "waveform"
+      case .whiteNoise: return "waveform.circle"
       }
     }
   }
@@ -210,14 +213,14 @@ struct BreathingProgramPlayerView: View {
                   .foregroundColor(.white.opacity(0.85))
               }
 
-              HStack(spacing: 8) {
+              LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 Button {
                   selectedAmbientSound = nil
                 } label: {
                   Text("Off")
                     .font(.caption.weight(.medium))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
                     .background(
                       RoundedRectangle(cornerRadius: 20)
                         .fill(selectedAmbientSound == nil ? Color(red: 0.6, green: 0.75, blue: 1.0) : Color.white.opacity(0.12))
@@ -234,9 +237,10 @@ struct BreathingProgramPlayerView: View {
                         .font(.caption)
                       Text(sound.label)
                         .font(.caption.weight(.medium))
+                        .lineLimit(1)
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
                     .background(
                       RoundedRectangle(cornerRadius: 20)
                         .fill(selectedAmbientSound == sound ? Color(red: 0.6, green: 0.75, blue: 1.0) : Color.white.opacity(0.12))

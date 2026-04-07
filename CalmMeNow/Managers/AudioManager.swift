@@ -58,6 +58,8 @@ class AudioManager: NSObject, ObservableObject {
 
   private func playAudioFromURL(_ url: URL, loop: Bool = false) {
     do {
+      try AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+      try AVAudioSession.sharedInstance().setActive(true)
       player = try AVAudioPlayer(contentsOf: url)
       player?.delegate = self
       player?.numberOfLoops = loop ? -1 : 0  // -1 means infinite loop
@@ -79,8 +81,8 @@ class AudioManager: NSObject, ObservableObject {
         }
       }
 
-      // Fade in the audio
-      fadeInAudio(duration: 1.5)
+      // Fade in the audio — ambient sounds cap at 0.4 to leave headroom for voice
+      fadeInAudio(duration: 1.5, targetVolume: loop ? 0.4 : 1.0)
 
       // Only schedule automatic fade-out for non-looping audio that's longer than 30 seconds
       if !loop, let duration = player?.duration, duration > 30.0 {
@@ -106,25 +108,21 @@ class AudioManager: NSObject, ObservableObject {
     }
   }
 
-  private func fadeInAudio(duration: TimeInterval = 1.5) {
-    guard let player = player else { return }
-
+  private func fadeInAudio(duration: TimeInterval = 1.5, targetVolume: Float = 1.0) {
     let fadeInSteps = 15
     let stepDuration = duration / TimeInterval(fadeInSteps)
-    let volumeStep = 1.0 / Float(fadeInSteps)
+    let volumeStep = targetVolume / Float(fadeInSteps)
 
-    // Start fade in timer
     Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { [weak self] timer in
       guard let self = self, let currentPlayer = self.player else {
         timer.invalidate()
         return
       }
 
-      if currentPlayer.volume < 1.0 - volumeStep {
+      if currentPlayer.volume < targetVolume - volumeStep {
         currentPlayer.volume += volumeStep
       } else {
-        // Fade in complete, set to full volume
-        currentPlayer.volume = 1.0
+        currentPlayer.volume = targetVolume
         timer.invalidate()
       }
     }
