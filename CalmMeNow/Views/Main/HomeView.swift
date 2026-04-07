@@ -24,7 +24,6 @@ struct HomeView: View {
   @State private var showingSafePersonSetup = false
   @State private var showingCrisisResources = false
   @State private var showingSettings = false
-  @State private var showingPaywall = false
 
   var body: some View {
     NavigationView {
@@ -287,13 +286,9 @@ struct HomeView: View {
     .sheet(isPresented: $showingSafePersonSetup) { TrustedContactView() }
     .sheet(isPresented: $showingCrisisResources) { CrisisResourcesView() }
     .sheet(isPresented: $showingSettings) { SettingsView() }
-    .sheet(isPresented: $showingPaywall) { PaywallView() }
     .fullScreenCover(isPresented: $subscriptionSuccessManager.shouldShowSuccessScreen) {
       SubscriptionSuccessView()
         .onDisappear { subscriptionSuccessManager.dismissSuccessScreen() }
-    }
-    .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
-      showingPaywall = shouldShow
     }
     .onAppear {
       if !hasShownFirstLaunchOverlay {

@@ -14,7 +14,6 @@ struct MyPlanView: View {
   @State private var showingWeeklyReport = false
   @State private var showingMoodHistory = false
   @State private var showingPDFReport = false
-  @State private var showingPaywall = false
 
   var body: some View {
     NavigationView {
@@ -208,9 +207,5 @@ struct MyPlanView: View {
     .sheet(isPresented: $showingWeeklyReport) { WeeklyWellnessReportView() }
     .sheet(isPresented: $showingMoodHistory) { MoodHistoryView() }
     .sheet(isPresented: $showingPDFReport) { PDFReportView() }
-    .sheet(isPresented: $showingPaywall) { PaywallView() }
-    .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
-      showingPaywall = shouldShow
-    }
   }
 }

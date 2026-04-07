@@ -4,8 +4,10 @@ import SwiftUI
 struct MainTabView: View {
   @EnvironmentObject var deepLinkManager: DeepLinkManager
   @Environment(\.modelContext) private var modelContext
+  @StateObject private var paywallManager = PaywallManager.shared
   @State private var showingEmergencyCalm = false
   @State private var showingNightProtocol = false
+  @State private var showingPaywall = false
 
   var body: some View {
     TabView {
@@ -44,6 +46,12 @@ struct MainTabView: View {
     }
     .fullScreenCover(isPresented: $showingNightProtocol) {
       NightProtocolView()
+    }
+    .fullScreenCover(isPresented: $showingPaywall) {
+      PaywallView()
+    }
+    .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
+      showingPaywall = shouldShow
     }
     .onReceive(deepLinkManager.$shouldShowEmergencyCalm) { shouldShow in
       if shouldShow {

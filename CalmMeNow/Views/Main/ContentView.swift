@@ -17,7 +17,6 @@ struct ContentView: View {
   @StateObject private var paywallManager = PaywallManager.shared
   @StateObject private var subscriptionSuccessManager = SubscriptionSuccessManager.shared
   @StateObject private var healthKit = HealthKitManager.shared
-  @State private var showingPaywall = false
   @State private var selectedButton: String? = nil
   @State private var isQuickCalmPressed = false
   @State private var calmButtonPulse = false
@@ -503,9 +502,6 @@ struct ContentView: View {
         AIDebugView()
       }
     #endif
-    .sheet(isPresented: $showingPaywall) {
-      PaywallView()
-    }
     .sheet(isPresented: $showingPositiveQuotes) {
       PositiveQuotesView()
     }
@@ -538,9 +534,6 @@ struct ContentView: View {
         .onDisappear {
           subscriptionSuccessManager.dismissSuccessScreen()
         }
-    }
-    .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
-      showingPaywall = shouldShow
     }
     .onAppear {
       if !hasShownFirstLaunchOverlay {

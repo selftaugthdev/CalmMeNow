@@ -17,7 +17,6 @@ struct ToolsView: View {
   @State private var showingNightProtocol = false
   @State private var showingPositiveQuotes = false
   @State private var showingThoughtChallenge = false
-  @State private var showingPaywall = false
 
   var body: some View {
     NavigationView {
@@ -171,9 +170,5 @@ struct ToolsView: View {
     .sheet(isPresented: $showingNightProtocol) { NightProtocolView() }
     .sheet(isPresented: $showingPositiveQuotes) { PositiveQuotesView() }
     .fullScreenCover(isPresented: $showingThoughtChallenge) { CBTThoughtChallengeView() }
-    .sheet(isPresented: $showingPaywall) { PaywallView() }
-    .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
-      showingPaywall = shouldShow
-    }
   }
 }
