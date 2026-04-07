@@ -10,7 +10,7 @@ final class PaywallManager: ObservableObject {
   // MARK: - Launch Configuration
   /// Set to true to make all features free (no paywall)
   /// TODO: Set back to false when ready to monetize
-  static let freeLaunchMode = true
+  static let freeLaunchMode = false
 
   /// Cutoff date for grandfathering early adopters (set this when you disable freeLaunchMode)
   /// Users who installed before this date get permanent free access
