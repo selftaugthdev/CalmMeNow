@@ -581,6 +581,9 @@ struct EmotionCard: View {
           .font(.title2)
           .fontWeight(.semibold)
           .foregroundColor(hasAccess ? .black : .gray)
+          .lineLimit(1)
+          .minimumScaleFactor(0.7)
+          .padding(.horizontal, 12)
 
         // Tiny subtext
         Text(subtext)

@@ -16,6 +16,7 @@ struct ToolsView: View {
   @State private var showingColoringGame = false
   @State private var showingNightProtocol = false
   @State private var showingPositiveQuotes = false
+  @State private var showingThoughtChallenge = false
   @State private var showingPaywall = false
 
   var body: some View {
@@ -130,7 +131,19 @@ struct ToolsView: View {
                   selectedButton = "positive_quotes"
                   showingPositiveQuotes = true
                 }
-              )            }
+              )
+              EmotionCard(
+                emoji: "🧠",
+                emotion: "Challenge a thought",
+                subtext: "CBT evidence technique for anxious thinking",
+                isSelected: selectedButton == "thought_challenge",
+                onTap: {
+                  HapticManager.shared.softImpact()
+                  selectedButton = "thought_challenge"
+                  showingThoughtChallenge = true
+                }
+              )
+            }
             .padding(.horizontal, horizontalSizeClass == .regular ? 60 : 20)
           }
           .padding(.top, 20)
@@ -157,6 +170,7 @@ struct ToolsView: View {
     .sheet(isPresented: $showingColoringGame) { ColoringPageWithTraceView() }
     .sheet(isPresented: $showingNightProtocol) { NightProtocolView() }
     .sheet(isPresented: $showingPositiveQuotes) { PositiveQuotesView() }
+    .fullScreenCover(isPresented: $showingThoughtChallenge) { CBTThoughtChallengeView() }
     .sheet(isPresented: $showingPaywall) { PaywallView() }
     .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
       showingPaywall = shouldShow
