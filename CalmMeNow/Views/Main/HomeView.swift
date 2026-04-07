@@ -10,6 +10,7 @@ struct HomeView: View {
   @StateObject private var subscriptionSuccessManager = SubscriptionSuccessManager.shared
   @StateObject private var healthKit = HealthKitManager.shared
 
+  @AppStorage("userPrimaryGoal") private var userPrimaryGoal: String = ""
   @State private var healthSuggestedProgram: String? = nil
   @State private var isQuickCalmPressed = false
   @State private var calmButtonPulse = false
@@ -45,6 +46,12 @@ struct HomeView: View {
               .font(.title3)
               .fontWeight(.semibold)
               .foregroundColor(.black.opacity(0.55))
+
+            if let goal = UserPrimaryGoal(rawValue: userPrimaryGoal) {
+              Text(goal.personalizedSubtitle)
+                .font(.caption)
+                .foregroundColor(.black.opacity(0.4))
+            }
 
             Button(action: {
               HapticManager.shared.emergencyButtonTap()

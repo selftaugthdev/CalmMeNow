@@ -1,7 +1,8 @@
 import SwiftUI
+import UserNotifications
 import WatchConnectivity
 
-// User's primary reason for using the app
+// User's primary reason for using the app — also used in HomeView
 enum UserPrimaryGoal: String, CaseIterable {
   case panicAttacks = "panic_attacks"
   case generalAnxiety = "general_anxiety"
@@ -23,6 +24,15 @@ enum UserPrimaryGoal: String, CaseIterable {
     case .generalAnxiety: return "😰"
     case .dailyStress: return "😮‍💨"
     case .exploring: return "🔍"
+    }
+  }
+
+  var personalizedSubtitle: String {
+    switch self {
+    case .panicAttacks:   return "Your emergency calm is always ready."
+    case .generalAnxiety: return "Steady yourself, one breath at a time."
+    case .dailyStress:    return "Even small moments of calm add up."
+    case .exploring:      return "Tap anything — find what works for you."
     }
   }
 }
@@ -62,6 +72,7 @@ enum OnboardingPageType {
   case triggers
   case howToUse
   case preferences
+  case permissions
 }
 
 struct OnboardingPage: Identifiable {
@@ -82,10 +93,25 @@ struct OnboardingView: View {
   // 0: Ask every time, 1: Continue, 2: Stop
   @AppStorage("watchEndBehavior") var watchEndBehavior = 1
 
+  @StateObject private var healthKit = HealthKitManager.shared
   @State private var index = 0
   @State private var selectedGoal: UserPrimaryGoal?
   @State private var selectedTriggers: Set<UserTrigger> = []
   @State private var showingCrisisResources = false
+  @State private var notifGranted = false
+
+  // Prevents swiping forward past required pages
+  private var safeIndex: Binding<Int> {
+    Binding(
+      get: { index },
+      set: { newValue in
+        if newValue > index && pages[index].type == .primaryGoal && selectedGoal == nil {
+          return
+        }
+        index = newValue
+      }
+    )
+  }
 
   private var pages: [OnboardingPage] {
     [
@@ -127,6 +153,12 @@ struct OnboardingView: View {
         body: "Pick your defaults. Change them anytime in Settings.",
         bullets: []
       ),
+      .init(
+        type: .permissions,
+        title: "One last thing",
+        body: "These help Calm SOS work best for you. Both are optional.",
+        bullets: []
+      ),
     ]
   }
 
@@ -144,7 +176,7 @@ struct OnboardingView: View {
       .ignoresSafeArea()
 
       VStack(spacing: 24) {
-        TabView(selection: $index) {
+        TabView(selection: safeIndex) {
           ForEach(pages.indices, id: \.self) { i in
             pageView(pages[i])
               .tag(i)
@@ -290,6 +322,43 @@ struct OnboardingView: View {
         .padding(.top, 8)
       }
 
+      // Permissions
+      if page.type == .permissions {
+        VStack(spacing: 12) {
+          permissionCard(
+            icon: "bell.badge.fill",
+            iconColor: .orange,
+            title: "Daily reminders",
+            subtitle: "A gentle nudge to check in and keep your streak going.",
+            buttonLabel: notifGranted ? "Enabled ✓" : "Allow notifications",
+            isGranted: notifGranted
+          ) {
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+              DispatchQueue.main.async { notifGranted = granted }
+            }
+          }
+
+          permissionCard(
+            icon: "heart.fill",
+            iconColor: .pink,
+            title: "Apple Health",
+            subtitle: "Get breathing suggestions based on your real-time heart rate.",
+            buttonLabel: healthKit.authStatus == .authorized ? "Connected ✓" : "Connect Apple Health",
+            isGranted: healthKit.authStatus == .authorized
+          ) {
+            Task { await healthKit.requestAuthorization() }
+          }
+        }
+        .padding(.top, 8)
+        .onAppear {
+          UNUserNotificationCenter.current().getNotificationSettings { settings in
+            DispatchQueue.main.async {
+              notifGranted = settings.authorizationStatus == .authorized
+            }
+          }
+        }
+      }
+
       // Preferences Toggles
       if page.type == .preferences {
         VStack(alignment: .leading, spacing: 12) {
@@ -418,6 +487,58 @@ struct TriggerOptionButton: View {
     }
     .buttonStyle(PlainButtonStyle())
   }
+}
+
+@ViewBuilder
+private func permissionCard(
+  icon: String,
+  iconColor: Color,
+  title: String,
+  subtitle: String,
+  buttonLabel: String,
+  isGranted: Bool,
+  action: @escaping () -> Void
+) -> some View {
+  HStack(spacing: 14) {
+    Image(systemName: icon)
+      .font(.title2)
+      .foregroundColor(iconColor)
+      .frame(width: 36)
+
+    VStack(alignment: .leading, spacing: 3) {
+      Text(title)
+        .fontWeight(.semibold)
+        .foregroundColor(.black)
+      Text(subtitle)
+        .font(.caption)
+        .foregroundColor(.black.opacity(0.6))
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    Spacer()
+
+    Button(action: action) {
+      Text(buttonLabel)
+        .font(.caption.weight(.semibold))
+        .foregroundColor(isGranted ? .green : .white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .background(
+          RoundedRectangle(cornerRadius: 10)
+            .fill(isGranted ? Color.green.opacity(0.12) : Color(hex: "#FF6B9D"))
+        )
+    }
+    .disabled(isGranted)
+  }
+  .padding()
+  .background(
+    RoundedRectangle(cornerRadius: 16)
+      .fill(Color.white.opacity(0.9))
+  )
+  .overlay(
+    RoundedRectangle(cornerRadius: 16)
+      .stroke(Color.black.opacity(0.05), lineWidth: 1)
+  )
 }
 
 @ViewBuilder

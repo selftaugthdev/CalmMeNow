@@ -7,9 +7,10 @@ struct BreathingProgramPlayerView: View {
   @StateObject private var speechService = SpeechService()
   @AppStorage("prefVoice") private var voiceGuidanceEnabled = false
   @AppStorage("prefHaptics") private var hapticsEnabled = true
+  @AppStorage("prefSounds") private var prefSoundsEnabled = true
   @StateObject private var audioManager = AudioManager.shared
 
-  // Ambient sound selection — nil means no sound
+  // Ambient sound — pre-selected from preference, user can override
   @State private var selectedAmbientSound: AmbientSound? = nil
 
   enum AmbientSound: String, CaseIterable, Identifiable {
@@ -68,6 +69,11 @@ struct BreathingProgramPlayerView: View {
         endPoint: .bottom
       )
       .ignoresSafeArea()
+      .onAppear {
+        if prefSoundsEnabled && selectedAmbientSound == nil {
+          selectedAmbientSound = .night
+        }
+      }
 
       VStack(spacing: 30) {
         // Header
