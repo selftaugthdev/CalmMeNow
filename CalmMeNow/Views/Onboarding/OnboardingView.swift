@@ -91,7 +91,7 @@ struct OnboardingView: View {
     [
       .init(
         type: .welcome,
-        title: "Welcome to CalmMeNow",
+        title: "Welcome to Calm SOS",
         body: "Tools to steady your body and mind when stress hits.",
         bullets: [
           "Emergency Calm for sudden panic (Free)",
@@ -318,7 +318,7 @@ struct OnboardingView: View {
 
       // Footer text
       VStack(spacing: 8) {
-        Text("CalmMeNow is a self-help tool, not a replacement for medical care.")
+        Text("Calm SOS is a self-help tool, not a replacement for medical care.")
           .font(.footnote)
           .foregroundColor(.black.opacity(0.6))
           .multilineTextAlignment(.center)

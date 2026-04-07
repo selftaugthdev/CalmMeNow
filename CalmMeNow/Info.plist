@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSHealthShareUsageDescription</key>
-	<string>CalmMeNow reads your heart rate and HRV to suggest the most effective breathing exercise for your current stress level.</string>
+	<string>Calm SOS reads your heart rate and HRV to suggest the most effective breathing exercise for your current stress level.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

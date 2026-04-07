@@ -268,11 +268,11 @@ class ProgressTracker: ObservableObject {
 
   func getUsageMessage() -> String {
     if weeklyUsage == 0 {
-      return "Welcome! This is your first time using CalmMeNow."
+      return "Welcome! This is your first time using Calm SOS."
     } else if weeklyUsage == 1 {
-      return "You've used CalmMeNow once this week. Great start!"
+      return "You've used Calm SOS once this week. Great start!"
     } else {
-      return "You've used CalmMeNow \(weeklyUsage) times this week."
+      return "You've used Calm SOS \(weeklyUsage) times this week."
     }
   }
 

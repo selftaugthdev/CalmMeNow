@@ -29,7 +29,7 @@ final class PDFReportService {
         drawFreeReport(ctx, episodes: episodes, tracker: tracker)
       }
     }
-    let name = isPremium ? "CalmMeNow_FullReport.pdf" : "CalmMeNow_Report.pdf"
+    let name = isPremium ? "Calm SOS_FullReport.pdf" : "Calm SOS_Report.pdf"
     let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
     try? data.write(to: url)
     return url
@@ -46,7 +46,7 @@ final class PDFReportService {
 
     // Header band
     fill(CGRect(x: 0, y: 0, width: W, height: 76), color: navy)
-    drawText("Relaxing Calm", in: CGRect(x: M, y: 16, width: CW * 0.6, height: 28),
+    drawText("Calm SOS", in: CGRect(x: M, y: 16, width: CW * 0.6, height: 28),
              font: .boldSystemFont(ofSize: 22), color: .white)
     drawText("Anxiety & Panic Report", in: CGRect(x: M, y: 46, width: CW * 0.6, height: 18),
              font: .systemFont(ofSize: 13), color: .white.withAlphaComponent(0.75))
@@ -143,7 +143,7 @@ final class PDFReportService {
     fill(CGRect(x: 0, y: 0, width: W, height: 190), color: navy)
     fill(CGRect(x: 0, y: 187, width: W, height: 4), color: teal)
 
-    drawText("Relaxing Calm",
+    drawText("Calm SOS",
              in: CGRect(x: M, y: 44, width: CW, height: 40),
              font: .boldSystemFont(ofSize: 32), color: .white)
     drawText("Anxiety & Panic — Clinical Report",
@@ -606,7 +606,7 @@ final class PDFReportService {
   private func footer(page: Int, of total: Int?) {
     fill(CGRect(x: 0, y: H - 34, width: W, height: 34), color: UIColor(white: 0.97, alpha: 1))
     let pageStr = total != nil ? "Page \(page) of \(total!)" : "Page \(page)"
-    drawText("Relaxing Calm — Confidential patient report",
+    drawText("Calm SOS — Confidential patient report",
              in: CGRect(x: M, y: H - 22, width: CW * 0.65, height: 14),
              font: .systemFont(ofSize: 9), color: .lightGray)
     drawText(pageStr, in: CGRect(x: M, y: H - 22, width: CW, height: 14),

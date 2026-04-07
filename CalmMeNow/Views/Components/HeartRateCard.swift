@@ -178,7 +178,7 @@ struct HeartRateCard: View {
     HStack(spacing: 12) {
       Image(systemName: "heart.slash")
         .foregroundColor(.secondary)
-      Text("Health access denied. Enable it in Settings → Privacy → Health → CalmMeNow.")
+      Text("Health access denied. Enable it in Settings → Privacy → Health → Calm SOS.")
         .font(.caption)
         .foregroundColor(.secondary)
         .fixedSize(horizontal: false, vertical: true)

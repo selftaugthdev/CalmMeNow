@@ -48,7 +48,7 @@ final class CheckInReminderService: ObservableObject {
 
     let content = UNMutableNotificationContent()
     content.title = "How are you today? 🌱"
-    content.body  = "Take a moment to check in with CalmMeNow."
+    content.body  = "Take a moment to check in with Calm SOS."
     content.sound = .default
 
     var dc = DateComponents()
