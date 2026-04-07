@@ -13,6 +13,7 @@ struct MyPlanView: View {
   @State private var showingSleepRoutine = false
   @State private var showingWeeklyReport = false
   @State private var showingMoodHistory = false
+  @State private var showingPDFReport = false
   @State private var showingPaywall = false
 
   var body: some View {
@@ -157,6 +158,18 @@ struct MyPlanView: View {
               )
 
               EmotionCard(
+                emoji: "📄",
+                emotion: "Share with therapist",
+                subtext: "Export your data as a PDF report",
+                isSelected: selectedButton == "pdf_report",
+                onTap: {
+                  HapticManager.shared.softImpact()
+                  selectedButton = "pdf_report"
+                  showingPDFReport = true
+                }
+              )
+
+              EmotionCard(
                 emoji: "📋",
                 emotion: "My progress",
                 subtext: "See your progress, even when it doesn't feel like it",
@@ -194,6 +207,7 @@ struct MyPlanView: View {
     .sheet(isPresented: $showingSleepRoutine) { SleepRoutineView() }
     .sheet(isPresented: $showingWeeklyReport) { WeeklyWellnessReportView() }
     .sheet(isPresented: $showingMoodHistory) { MoodHistoryView() }
+    .sheet(isPresented: $showingPDFReport) { PDFReportView() }
     .sheet(isPresented: $showingPaywall) { PaywallView() }
     .onReceive(paywallManager.$shouldShowPaywall) { shouldShow in
       showingPaywall = shouldShow

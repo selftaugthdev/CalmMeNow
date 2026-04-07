@@ -4,6 +4,7 @@ import SwiftUI
 struct PDFReportView: View {
   @Environment(\.dismiss) private var dismiss
   @Query(sort: \TriggerEpisode.timestamp, order: .reverse) private var episodes: [TriggerEpisode]
+  @Query(sort: \MoodEntry.timestamp, order: .reverse) private var moodEntries: [MoodEntry]
   @Query private var journal: [JournalEntry]
   @ObservedObject private var revenueCat = RevenueCatService.shared
 
@@ -157,6 +158,7 @@ struct PDFReportView: View {
   private var dataSnapshot: some View {
     HStack(spacing: 12) {
       dataChip("\(episodes.count)", label: "Episodes logged")
+      dataChip("\(moodEntries.count)", label: "Mood check-ins")
       dataChip("\(journal.filter { !$0.isLocked }.count)", label: "Journal entries")
     }
   }
@@ -242,6 +244,7 @@ struct PDFReportView: View {
     HapticManager.shared.mediumImpact()
     let epsCopy      = Array(episodes)
     let journalCopy  = Array(journal)
+    let moodCopy     = Array(moodEntries)
     let premium      = isPremium
     let tracker      = ProgressTracker.shared
 
@@ -250,6 +253,7 @@ struct PDFReportView: View {
         episodes: epsCopy,
         tracker: tracker,
         journal: journalCopy,
+        moodEntries: moodCopy,
         isPremium: premium
       )
       DispatchQueue.main.async {
@@ -273,6 +277,7 @@ struct PDFReportView: View {
     ReportFeature(title: "Trigger frequency charts",   subtitle: "Visual bar charts for all triggers",        free: false),
     ReportFeature(title: "Time-of-day analysis",       subtitle: "When episodes tend to occur",               free: false),
     ReportFeature(title: "Outcome per trigger",        subtitle: "Which situations you recover from fastest", free: false),
+    ReportFeature(title: "Mood history",               subtitle: "Score trends, distribution & top tags",     free: false),
     ReportFeature(title: "Journal themes & emotions",  subtitle: "Mood patterns from your journal",           free: false),
   ]
 }
@@ -335,5 +340,5 @@ struct ShareSheet: UIViewControllerRepresentable {
 
 #Preview {
   PDFReportView()
-    .modelContainer(for: [TriggerEpisode.self, JournalEntry.self], inMemory: true)
+    .modelContainer(for: [TriggerEpisode.self, JournalEntry.self, MoodEntry.self], inMemory: true)
 }

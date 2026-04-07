@@ -18,17 +18,18 @@ final class PDFReportService {
     episodes: [TriggerEpisode],
     tracker: ProgressTracker,
     journal: [JournalEntry],
+    moodEntries: [MoodEntry],
     isPremium: Bool
   ) -> URL? {
     let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: W, height: H))
     let data = renderer.pdfData { ctx in
       if isPremium {
-        drawPremiumReport(ctx, episodes: episodes, tracker: tracker, journal: journal)
+        drawPremiumReport(ctx, episodes: episodes, tracker: tracker, journal: journal, moodEntries: moodEntries)
       } else {
         drawFreeReport(ctx, episodes: episodes, tracker: tracker)
       }
     }
-    let name = isPremium ? "RelaxingCalm_FullReport.pdf" : "RelaxingCalm_Report.pdf"
+    let name = isPremium ? "CalmMeNow_FullReport.pdf" : "CalmMeNow_Report.pdf"
     let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
     try? data.write(to: url)
     return url
@@ -110,10 +111,11 @@ final class PDFReportService {
     _ ctx: UIGraphicsPDFRendererContext,
     episodes: [TriggerEpisode],
     tracker: ProgressTracker,
-    journal: [JournalEntry]
+    journal: [JournalEntry],
+    moodEntries: [MoodEntry]
   ) {
     ctx.beginPage()
-    drawCoverPage(episodes: episodes, tracker: tracker)
+    drawCoverPage(episodes: episodes, tracker: tracker, moodEntries: moodEntries)
     footer(page: 1, of: nil)
 
     ctx.beginPage()
@@ -122,16 +124,21 @@ final class PDFReportService {
     ctx.beginPage()
     drawAnalysisPage(episodes: episodes, page: 3)
 
+    if !moodEntries.isEmpty {
+      ctx.beginPage()
+      drawMoodPage(moodEntries, page: 4)
+    }
+
     let unlocked = journal.filter { !$0.isLocked }
     if !unlocked.isEmpty {
       ctx.beginPage()
-      drawJournalPage(unlocked, page: 4)
+      drawJournalPage(unlocked, page: moodEntries.isEmpty ? 4 : 5)
     }
   }
 
   // MARK: - Cover Page
 
-  private func drawCoverPage(episodes: [TriggerEpisode], tracker: ProgressTracker) {
+  private func drawCoverPage(episodes: [TriggerEpisode], tracker: ProgressTracker, moodEntries: [MoodEntry]) {
     // Navy header
     fill(CGRect(x: 0, y: 0, width: W, height: 190), color: navy)
     fill(CGRect(x: 0, y: 187, width: W, height: 4), color: teal)
@@ -168,11 +175,12 @@ final class PDFReportService {
     let pct = episodes.isEmpty ? 0 : Int(Double(episodes.filter(\.isSuccess).count) / Double(episodes.count) * 100)
 
     let bw = (CW - 30) / 4
+    let moodAvg = moodEntries.isEmpty ? "–" : String(format: "%.1f", Double(moodEntries.map(\.score).reduce(0, +)) / Double(moodEntries.count))
     let statData: [(String, String, UIColor)] = [
       ("\(episodes.count)", "Total\nEpisodes", navy),
       ("\(week)",            "This\nWeek",     navy),
       ("\(pct)%",            "Felt\nBetter",   UIColor(hex: "#1A5C50")),
-      ("\(tracker.currentStreak)d", "Current\nStreak", UIColor(hex: "#7A4A10")),
+      ("\(moodAvg)/10",      "Avg\nMood",      UIColor(hex: "#7A4A10")),
     ]
     for (i, (val, lbl, col)) in statData.enumerated() {
       let x = M + CGFloat(i) * (bw + 10)
@@ -381,6 +389,104 @@ final class PDFReportService {
     footer(page: page, of: nil)
   }
 
+  // MARK: - Mood History Page
+
+  private func drawMoodPage(_ moodEntries: [MoodEntry], page: Int) {
+    fill(CGRect(x: 0, y: 0, width: W, height: 56), color: navy)
+    drawText("Mood History", in: CGRect(x: M, y: 14, width: CW, height: 28),
+             font: .boldSystemFont(ofSize: 18), color: .white)
+
+    var y: CGFloat = 76
+
+    // Summary stats
+    let avg = Double(moodEntries.map(\.score).reduce(0, +)) / Double(moodEntries.count)
+    let cutoff7 = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+    let recent  = moodEntries.filter { $0.timestamp >= cutoff7 }
+    let recentAvg = recent.isEmpty ? avg : Double(recent.map(\.score).reduce(0, +)) / Double(recent.count)
+    let highest = moodEntries.map(\.score).max() ?? 0
+    let lowest  = moodEntries.map(\.score).min() ?? 0
+
+    sectionTitle("OVERVIEW", y: &y)
+    kvLine("Total check-ins",      value: "\(moodEntries.count)",                   y: &y)
+    kvLine("Overall average",      value: String(format: "%.1f / 10", avg),         y: &y)
+    kvLine("7-day average",        value: String(format: "%.1f / 10", recentAvg),   y: &y)
+    kvLine("Score range",          value: "\(lowest) – \(highest) / 10",            y: &y)
+    y += 16
+
+    // Score distribution (1–10 bar chart)
+    sectionTitle("SCORE DISTRIBUTION", y: &y)
+    let distribution = (1...10).map { s in (s, moodEntries.filter { $0.score == s }.count) }
+    let maxDist = distribution.map(\.1).max() ?? 1
+    let bW = (CW - 9 * 5) / 10
+    let chartTop = y
+
+    for (i, (score, count)) in distribution.enumerated() {
+      let x   = M + CGFloat(i) * (bW + 5)
+      let bH  = maxDist > 0 ? CGFloat(count) / CGFloat(maxDist) * 56 : 2
+      let col: UIColor = score <= 3 ? UIColor(hex: "#C0514F").withAlphaComponent(0.65)
+                       : score <= 6 ? amber.withAlphaComponent(0.65)
+                       : teal.withAlphaComponent(0.65)
+      fill(CGRect(x: x, y: chartTop + 56 - bH, width: bW, height: max(bH, 2)), color: col, radius: 2)
+      if count > 0 {
+        drawText("\(count)", in: CGRect(x: x, y: chartTop + 56 - bH - 13, width: bW, height: 12),
+                 font: .systemFont(ofSize: 8), color: .darkGray, align: .center)
+      }
+      drawText("\(score)", in: CGRect(x: x, y: chartTop + 60, width: bW, height: 12),
+               font: .systemFont(ofSize: 8), color: .darkGray, align: .center)
+    }
+    y = chartTop + 80
+
+    // Weekly trend — last 8 weeks
+    sectionTitle("WEEKLY AVERAGE  (last 8 weeks)", y: &y)
+    let calendar = Calendar.current
+    let weekFmt  = DateFormatter(); weekFmt.dateFormat = "MMM d"
+    let weekData: [(String, Double)] = (0..<8).reversed().compactMap { offset in
+      guard let wStart = calendar.date(byAdding: .weekOfYear, value: -offset, to: calendar.startOfWeek(for: Date())),
+            let wEnd   = calendar.date(byAdding: .day, value: 7, to: wStart) else { return nil }
+      let entries = moodEntries.filter { $0.timestamp >= wStart && $0.timestamp < wEnd }
+      guard !entries.isEmpty else { return nil }
+      return (weekFmt.string(from: wStart), Double(entries.map(\.score).reduce(0, +)) / Double(entries.count))
+    }
+
+    if weekData.isEmpty {
+      drawText("Not enough data for weekly trend.", in: CGRect(x: M, y: y, width: CW, height: 16),
+               font: .systemFont(ofSize: 11), color: .darkGray)
+      y += 20
+    } else {
+      let colW2   = CW / CGFloat(weekData.count)
+      let maxBarH: CGFloat = 60
+      let baseY   = y + maxBarH + 16
+      for (i, (label, weekAvg)) in weekData.enumerated() {
+        let bH  = maxBarH * CGFloat(weekAvg) / 10.0
+        let x   = M + CGFloat(i) * colW2 + colW2 / 2 - 18
+        let col: UIColor = weekAvg <= 3 ? UIColor(hex: "#C0514F").withAlphaComponent(0.55)
+                         : weekAvg <= 6 ? amber.withAlphaComponent(0.55)
+                         : teal.withAlphaComponent(0.55)
+        fill(CGRect(x: x, y: baseY - bH, width: 36, height: bH), color: col, radius: 3)
+        drawText(String(format: "%.1f", weekAvg),
+                 in: CGRect(x: x, y: baseY - bH - 14, width: 36, height: 12),
+                 font: .boldSystemFont(ofSize: 9), color: navy, align: .center)
+        drawText(label, in: CGRect(x: x - 10, y: baseY + 4, width: 56, height: 12),
+                 font: .systemFont(ofSize: 8), color: .darkGray, align: .center)
+      }
+      y = baseY + 24
+    }
+    y += 8
+
+    // Top mood tags
+    let allTags  = moodEntries.flatMap(\.tags)
+    let tagCounts = Dictionary(grouping: allTags, by: { $0 }).mapValues { $0.count }
+    let topTags  = tagCounts.sorted { $0.value > $1.value }.prefix(6)
+    if !topTags.isEmpty {
+      sectionTitle("MOST COMMON MOOD TAGS", y: &y)
+      for (tag, count) in topTags {
+        kvLine(tag.capitalized, value: "\(count)×", y: &y)
+      }
+    }
+
+    footer(page: page, of: nil)
+  }
+
   // MARK: - Journal Page
 
   private func drawJournalPage(_ journal: [JournalEntry], page: Int) {
@@ -505,6 +611,15 @@ final class PDFReportService {
              font: .systemFont(ofSize: 9), color: .lightGray)
     drawText(pageStr, in: CGRect(x: M, y: H - 22, width: CW, height: 14),
              font: .systemFont(ofSize: 9), color: .lightGray, align: .right)
+  }
+}
+
+// MARK: - Calendar helper
+
+private extension Calendar {
+  func startOfWeek(for date: Date) -> Date {
+    let comps = dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+    return self.date(from: comps) ?? date
   }
 }
 
