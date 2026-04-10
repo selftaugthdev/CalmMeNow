@@ -8,6 +8,8 @@ struct AIPlanIntakeView: View {
   @Environment(\.modelContext) private var modelContext
   @Query private var journalEntries: [JournalEntry]
   @AppStorage("userTriggers") private var userTriggersFromOnboarding: String = ""
+  @AppStorage("userPrimaryGoal") private var userPrimaryGoal: String = ""
+  @AppStorage("userPainPoints") private var userPainPointsFromOnboarding: String = ""
 
   // Form state
   @State private var selectedTriggers: Set<String> = []
@@ -356,26 +358,42 @@ struct AIPlanIntakeView: View {
     // Only analyze if user hasn't made any selections yet
     guard selectedTriggers.isEmpty && selectedSymptoms.isEmpty else { return }
 
-    // First, check if user selected triggers during onboarding
-    if !userTriggersFromOnboarding.isEmpty {
-      let onboardingTriggers = userTriggersFromOnboarding.split(separator: ",").map { String($0) }
-      // Map onboarding trigger keys to our trigger list
-      let triggerMapping: [String: String] = [
-        "work_school": "Work meetings",
-        "social_situations": "Social situations",
-        "health_worries": "Health concerns",
-        "sleep_difficulties": "Being alone",  // Related
-        "general_overwhelm": "Uncertainty",
-      ]
-      for key in onboardingTriggers {
-        if let mappedTrigger = triggerMapping[key], triggers.contains(mappedTrigger) {
-          selectedTriggers.insert(mappedTrigger)
-        }
+    // Check onboarding answers (both old userTriggers key and new userPainPoints key)
+    let triggerMapping: [String: String] = [
+      "work_school": "Work meetings",
+      "social_situations": "Social situations",
+      "health_worries": "Health concerns",
+      "sleep_difficulties": "Being alone",
+      "general_overwhelm": "Uncertainty",
+    ]
+    let painPointMapping: [String: String] = [
+      "no_plan": "Uncertainty",
+      "ashamed": "Social situations",
+      "anticipation": "Uncertainty",
+      "sleep_pain": "Being alone",
+      "avoidance": "Crowded places",
+      "nothing_sticks": "Performance pressure",
+    ]
+
+    var preselectedFromOnboarding = false
+
+    for key in userTriggersFromOnboarding.split(separator: ",").map(String.init) {
+      if let mapped = triggerMapping[key], triggers.contains(mapped) {
+        selectedTriggers.insert(mapped)
+        preselectedFromOnboarding = true
       }
-      if !selectedTriggers.isEmpty {
-        journalInsightMessage =
-          "✨ We pre-selected triggers based on your onboarding answers."
+    }
+    for key in userPainPointsFromOnboarding.split(separator: ",").map(String.init) {
+      if let mapped = painPointMapping[key], triggers.contains(mapped) {
+        selectedTriggers.insert(mapped)
+        preselectedFromOnboarding = true
       }
+    }
+
+    if preselectedFromOnboarding {
+      let goalLabel = UserPrimaryGoal(rawValue: userPrimaryGoal)?.displayText ?? ""
+      let goalSuffix = goalLabel.isEmpty ? "" : " for \u{201C}\(goalLabel)\u{201D}"
+      journalInsightMessage = "✨ Personalised\(goalSuffix) based on your onboarding answers."
     }
 
     // Then, also check journal entries for additional patterns
