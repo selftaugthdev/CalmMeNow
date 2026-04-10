@@ -227,11 +227,37 @@ export const dailyCheckIn = onCall(
         throw new HttpsError("invalid-argument", "Expected data.checkin to be an object.");
       }
 
+      // Build onboarding context string from goal + pain points the user declared at signup
+      const goalLabels: Record<string, string> = {
+        "panic_attacks": "managing panic attacks",
+        "general_anxiety": "managing general anxiety",
+        "daily_stress": "managing daily stress",
+        "sleep": "improving sleep affected by anxiety",
+      };
+      const painPointLabels: Record<string, string> = {
+        "no_plan": "not knowing what to do when panic hits",
+        "ashamed": "feeling embarrassed or ashamed after episodes",
+        "anticipation": "worrying about when the next episode will happen",
+        "sleep_pain": "inability to sleep due to anxiety",
+        "avoidance": "avoiding places or situations out of fear",
+        "nothing_sticks": "previous coping methods not working",
+      };
+
+      const onboarding = checkin.onboarding ?? {};
+      const goalLabel = goalLabels[onboarding.primaryGoal as string] ?? "";
+      const painPoints: string[] = (onboarding.painPoints ?? [])
+        .map((p: string) => painPointLabels[p] ?? "")
+        .filter(Boolean);
+
+      const onboardingContext = (goalLabel || painPoints.length > 0)
+        ? `\n\nUSER ONBOARDING CONTEXT (use to personalise your response):\n- Primary goal: ${goalLabel || "not specified"}\n- Key struggles: ${painPoints.length > 0 ? painPoints.join("; ") : "not specified"}`
+        : "";
+
       // 1) Classify severity
       const classifySystem = `
 Classify {mood,tags,note} for mental-distress triage. Output STRICT JSON:
 { "severity": 0|1|2|3, "reason": "string", "suggested_path": "rescue|exercise|journal" }.
-3 = imminent risk; 2 = concerning; 1 = mild; 0 = none. No advice here.
+3 = imminent risk; 2 = concerning; 1 = mild; 0 = none. No advice here.${onboardingContext}
 `.trim();
 
       const classification = await callOpenAI(
@@ -252,7 +278,9 @@ Classify {mood,tags,note} for mental-distress triage. Output STRICT JSON:
       const coachSystem = `
 You are a supportive, CBT-informed coach. Analyze the check-in data and generate a comprehensive response.
 
-Input: {mood: number, tags: string[], note: string}
+Input: {mood: number, tags: string[], note: string, onboarding: {primaryGoal, painPoints}}${onboardingContext}
+
+When onboarding context is available, weave it naturally into your response — e.g. if their goal is panic attacks, frame advice around building confidence before the next episode, not just the current moment. If they struggle with "nothing sticks", acknowledge that and name why this approach is different. Keep it subtle — one sentence max, don't over-explain it.
 
 Output STRICT JSON with these fields:
 {
