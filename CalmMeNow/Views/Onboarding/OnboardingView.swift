@@ -1025,10 +1025,12 @@ struct OnboardingProcessingView: View {
 struct OnboardingDemoView: View {
     let onComplete: () -> Void
 
+    @StateObject private var speechService = SpeechService()
     @State private var timeRemaining = 30
     @State private var started = false
     @State private var finished = false
     @State private var countdown: Timer?
+    @State private var lastSpokenPhase: String = ""
 
     private var breathingPhase: String {
         let elapsed = 30 - timeRemaining
@@ -1036,6 +1038,14 @@ struct OnboardingDemoView: View {
         if pos < 4 { return "Breathe in..." }
         else if pos < 6 { return "Hold..." }
         else { return "Breathe out..." }
+    }
+
+    private var currentPhaseCue: String {
+        let elapsed = 30 - timeRemaining
+        let pos = elapsed % 12
+        if pos < 4 { return "Inhale" }
+        else if pos < 6 { return "Hold" }
+        else { return "Exhale" }
     }
 
     private var ringProgress: CGFloat {
@@ -1059,6 +1069,10 @@ struct OnboardingDemoView: View {
 
                 bottomAction
             }
+        }
+        .onDisappear {
+            countdown?.invalidate()
+            speechService.stopAll()
         }
     }
 
@@ -1164,9 +1178,16 @@ struct OnboardingDemoView: View {
 
     private func start() {
         started = true
+        lastSpokenPhase = "Inhale"
+        speechService.speak("Inhale", rate: 0.4, pitch: 0.9)
         countdown = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
             if timeRemaining > 0 {
                 timeRemaining -= 1
+                let cue = currentPhaseCue
+                if cue != lastSpokenPhase {
+                    lastSpokenPhase = cue
+                    speechService.speak(cue, rate: 0.4, pitch: 0.9)
+                }
             } else {
                 t.invalidate()
                 withAnimation(.easeInOut(duration: 0.6)) { finished = true }
