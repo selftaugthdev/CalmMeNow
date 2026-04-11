@@ -108,7 +108,7 @@ struct OnboardingView: View {
 
     @StateObject private var healthKit = HealthKitManager.shared
 
-    private let totalSteps = 13
+    private let totalSteps = 14
 
     // MARK: - Body
 
@@ -181,8 +181,9 @@ struct OnboardingView: View {
             case 8:  OnboardingDemoView(onComplete: advance)
             case 9:  valueDeliveryScreen
             case 10: notificationsScreen
-            case 11: healthScreen
-            case 12: paywallScreen
+            case 11: siriScreen
+            case 12: healthScreen
+            case 13: paywallScreen
             default: EmptyView()
             }
         }
@@ -555,7 +556,64 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Screen 12: Apple Health
+    // MARK: - Screen 12: Siri Shortcuts
+
+    private var siriScreen: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: 28) {
+                Image(systemName: "waveform")
+                    .font(.system(size: 52))
+                    .foregroundColor(Color(hex: "#5E5CE6"))
+
+                VStack(spacing: 10) {
+                    Text("Call for calm — hands free")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                        .multilineTextAlignment(.center)
+
+                    Text("When panic hits, unlocking your phone can feel impossible. Say any of these to Siri — even from your lock screen.")
+                        .font(.body)
+                        .foregroundColor(.black.opacity(0.65))
+                        .multilineTextAlignment(.center)
+                }
+
+                VStack(spacing: 10) {
+                    siriPhrase("\"Hey Siri, open Calm SOS\"")
+                    siriPhrase("\"Hey Siri, start Calm SOS\"")
+                    siriPhrase("\"Hey Siri, I'm having a panic attack with Calm SOS\"")
+                }
+            }
+            .padding(.horizontal, 24)
+
+            Spacer()
+
+            onboardingButton(label: "Got it →") { advance() }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 52)
+        }
+    }
+
+    private func siriPhrase(_ text: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "mic.fill")
+                .font(.system(size: 14))
+                .foregroundColor(Color(hex: "#5E5CE6"))
+                .frame(width: 28, height: 28)
+                .background(Circle().fill(Color(hex: "#5E5CE6").opacity(0.12)))
+
+            Text(text)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundColor(.black.opacity(0.85))
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.85)))
+    }
+
+    // MARK: - Screen 13: Apple Health
 
     private var healthScreen: some View {
         VStack(spacing: 0) {
