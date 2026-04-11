@@ -26,8 +26,16 @@ struct SafePersonCardView: View {
     ZStack {
       navyGradient.ignoresSafeArea()
 
+      if bystanderMode {
+        bystanderContent
+          .transition(.opacity.combined(with: .move(edge: .trailing)))
+      } else {
+        crisisContent
+          .transition(.opacity.combined(with: .move(edge: .leading)))
+      }
+
+      // Dismiss button on top so the ScrollView doesn't swallow taps
       VStack {
-        // Dismiss button
         HStack {
           Spacer()
           Button(action: {
@@ -40,16 +48,7 @@ struct SafePersonCardView: View {
               .padding()
           }
         }
-
         Spacer()
-      }
-
-      if bystanderMode {
-        bystanderContent
-          .transition(.opacity.combined(with: .move(edge: .trailing)))
-      } else {
-        crisisContent
-          .transition(.opacity.combined(with: .move(edge: .leading)))
       }
     }
   }
