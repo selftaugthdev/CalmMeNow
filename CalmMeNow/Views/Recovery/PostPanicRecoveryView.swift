@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct RecoveryTip: Identifiable {
-  let id = UUID()
+  let id: String
   let emoji: String
   let title: String
   let description: String
@@ -20,7 +20,7 @@ struct RecoveryTip: Identifiable {
 struct PostPanicRecoveryView: View {
   @Environment(\.presentationMode) var presentationMode
   @StateObject private var progressTracker = ProgressTracker.shared
-  @State private var expandedTipId: UUID?
+  @State private var expandedTipId: String?
   @State private var showingJournal = false
   @State private var showingCrisisResources = false
   var sessionDuration: Int = 0
@@ -28,6 +28,7 @@ struct PostPanicRecoveryView: View {
 
   private let tips: [RecoveryTip] = [
     RecoveryTip(
+      id: "hydrate",
       emoji: "💧",
       title: "Hydrate",
       description: "Drink some water",
@@ -37,6 +38,7 @@ struct PostPanicRecoveryView: View {
       action: nil
     ),
     RecoveryTip(
+      id: "rest",
       emoji: "🛋️",
       title: "Rest",
       description: "Find a comfortable spot",
@@ -46,6 +48,7 @@ struct PostPanicRecoveryView: View {
       action: nil
     ),
     RecoveryTip(
+      id: "gentle",
       emoji: "💜",
       title: "Be Gentle",
       description: "Self-compassion matters",
@@ -55,6 +58,7 @@ struct PostPanicRecoveryView: View {
       action: nil
     ),
     RecoveryTip(
+      id: "journal",
       emoji: "📝",
       title: "Journal",
       description: "Write about your experience",
@@ -64,6 +68,7 @@ struct PostPanicRecoveryView: View {
       action: nil  // Will be set dynamically
     ),
     RecoveryTip(
+      id: "reach-out",
       emoji: "💬",
       title: "Reach Out",
       description: "Consider texting someone",
