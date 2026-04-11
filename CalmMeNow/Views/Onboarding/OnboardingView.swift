@@ -1084,8 +1084,10 @@ struct OnboardingDemoView: View {
     let onComplete: () -> Void
 
     @StateObject private var speechService = SpeechService()
+    @StateObject private var audioManager = AudioManager.shared
     @State private var timeRemaining = 30
     @State private var started = false
+    @State private var preparing = false
     @State private var finished = false
     @State private var countdown: Timer?
     @State private var lastSpokenPhase: String = ""
@@ -1131,6 +1133,7 @@ struct OnboardingDemoView: View {
         .onDisappear {
             countdown?.invalidate()
             speechService.stopAll()
+            audioManager.stopSoundImmediately()
         }
     }
 
@@ -1166,7 +1169,7 @@ struct OnboardingDemoView: View {
             }
 
             VStack(spacing: 8) {
-                Text(started ? breathingPhase : "Tap below to begin")
+                Text(started ? (preparing ? "Get ready..." : breathingPhase) : "Tap below to begin")
                     .font(.title3)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
@@ -1236,19 +1239,27 @@ struct OnboardingDemoView: View {
 
     private func start() {
         started = true
-        lastSpokenPhase = "Inhale"
-        speechService.speak("Inhale", rate: 0.4, pitch: 0.9)
-        countdown = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-                let cue = currentPhaseCue
-                if cue != lastSpokenPhase {
-                    lastSpokenPhase = cue
-                    speechService.speak(cue, rate: 0.4, pitch: 0.9)
+        preparing = true
+        audioManager.playSound("ethereal-night-loop", loop: true)
+        speechService.speak("You're safe. You're home. Take a breath.", rate: 0.4)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            preparing = false
+            lastSpokenPhase = "Inhale"
+            speechService.speak("Inhale", rate: 0.4, pitch: 0.9)
+            countdown = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
+                if timeRemaining > 0 {
+                    timeRemaining -= 1
+                    let cue = currentPhaseCue
+                    if cue != lastSpokenPhase {
+                        lastSpokenPhase = cue
+                        speechService.speak(cue, rate: 0.4, pitch: 0.9)
+                    }
+                } else {
+                    t.invalidate()
+                    withAnimation(.easeInOut(duration: 0.6)) { finished = true }
+                    audioManager.stopSoundImmediately()
                 }
-            } else {
-                t.invalidate()
-                withAnimation(.easeInOut(duration: 0.6)) { finished = true }
             }
         }
     }
