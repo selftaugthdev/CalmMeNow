@@ -299,6 +299,30 @@ struct SettingsView: View {
                 )
               }
 
+              // Siri Shortcuts Section
+              SettingsSection(title: "Siri Shortcuts") {
+                VStack(alignment: .leading, spacing: 12) {
+                  Text("Say any of these to Siri — works from the lock screen:")
+                    .font(.caption)
+                    .foregroundColor(.primary.opacity(0.6))
+
+                  VStack(spacing: 8) {
+                    SiriPhraseRow(phrase: "\"Hey Siri, open Calm SOS\"")
+                    SiriPhraseRow(phrase: "\"Hey Siri, start Calm SOS\"")
+                    SiriPhraseRow(phrase: "\"Hey Siri, I'm having a panic attack with Calm SOS\"")
+                  }
+                }
+                .padding()
+                .background(
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.9))
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                )
+              }
+
               // Crisis Resources Section
               SettingsSection(title: "Support") {
                 VStack(spacing: 16) {
@@ -795,6 +819,27 @@ struct SettingsActionRow: View {
       }
     }
     .buttonStyle(PlainButtonStyle())
+  }
+}
+
+struct SiriPhraseRow: View {
+  let phrase: String
+
+  var body: some View {
+    HStack(spacing: 12) {
+      Image(systemName: "mic.fill")
+        .font(.system(size: 13))
+        .foregroundColor(Color(hex: "#5E5CE6"))
+        .frame(width: 26, height: 26)
+        .background(Circle().fill(Color(hex: "#5E5CE6").opacity(0.12)))
+
+      Text(phrase)
+        .font(.system(size: 14, weight: .medium, design: .rounded))
+        .foregroundColor(.primary.opacity(0.85))
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .padding(12)
+    .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: "#5E5CE6").opacity(0.06)))
   }
 }
 
